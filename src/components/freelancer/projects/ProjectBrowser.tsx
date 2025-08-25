@@ -156,13 +156,7 @@ export function ProjectBrowser() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Projects</h1>
-        <p className="text-gray-600">Discover opportunities that match your skills</p>
-      </div>
-
+    <div className="max-w-7xl mx-auto">
       {/* Search and Filter Bar */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
         <form onSubmit={handleSearch} className="flex gap-4 mb-4">

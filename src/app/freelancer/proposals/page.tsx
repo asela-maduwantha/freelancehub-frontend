@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { ProposalManagement } from "@/components/freelancer/proposals/ProposalManagement";
-import { FreelancerLayout } from "@/components/freelancer/layout/FreelancerLayout";
 
 export default function FreelancerProposalsPage() {
   const { user } = useAuth({ required: true });
@@ -25,14 +24,12 @@ export default function FreelancerProposalsPage() {
   }
 
   return (
-    <FreelancerLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Proposals</h1>
-          <p className="text-gray-600">Track and manage your project proposals</p>
-        </div>
-        <ProposalManagement />
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Proposals</h1>
+        <p className="text-gray-600">Track and manage your project proposals</p>
       </div>
-    </FreelancerLayout>
+      <ProposalManagement />
+    </div>
   );
 }

@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import NotificationCenter from "@/components/freelancer/notifications/NotificationCenter";
-import { FreelancerLayout } from "@/components/freelancer/layout/FreelancerLayout";
 
 export default function FreelancerNotificationsPage() {
   const { user } = useAuth({ required: true });
@@ -25,14 +24,12 @@ export default function FreelancerNotificationsPage() {
   }
 
   return (
-    <FreelancerLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
-          <p className="text-gray-600">Stay updated with important messages and alerts</p>
-        </div>
-        <NotificationCenter />
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
+        <p className="text-gray-600">Stay updated with important messages and alerts</p>
       </div>
-    </FreelancerLayout>
+      <NotificationCenter />
+    </div>
   );
 }

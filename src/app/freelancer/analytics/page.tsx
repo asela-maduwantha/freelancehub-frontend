@@ -2,9 +2,9 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { FreelancerProfileSettings } from "@/components/modules/freelancers/FreelancerProfileSettings";
+import { FreelancerAnalytics } from "@/components/freelancer/analytics/FreelancerAnalytics";
 
-export default function FreelancerSettingsPage() {
+export default function FreelancerAnalyticsPage() {
   const { user } = useAuth({ required: true });
   const router = useRouter();
 
@@ -26,10 +26,10 @@ export default function FreelancerSettingsPage() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-        <p className="text-gray-600">Manage your profile and account preferences</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics & Insights</h1>
+        <p className="text-gray-600">Track your performance and optimize your freelance business</p>
       </div>
-      {user.id && <FreelancerProfileSettings userId={user.id} />}
+      <FreelancerAnalytics />
     </div>
   );
 }

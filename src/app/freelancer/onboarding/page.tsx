@@ -4,19 +4,14 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CheckCircle, 
-  User, 
   Star, 
   Award, 
   Briefcase, 
   Shield, 
-  ArrowRight,
-  ArrowLeft,
   Sparkles,
   Rocket
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/context/toast-context";
 
 // Import step components
 import { AlmostThereStep } from "@/components/freelancer/onboarding/AlmostThereStep";

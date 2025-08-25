@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { FreelancerReviewsEnhanced } from "@/components/modules/freelancers/FreelancerReviewsEnhanced";
-import { FreelancerLayout } from "@/components/freelancer/layout/FreelancerLayout";
 
 export default function FreelancerReviewsPage() {
   const { user } = useAuth({ required: true });
@@ -25,14 +24,12 @@ export default function FreelancerReviewsPage() {
   }
 
   return (
-    <FreelancerLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Reviews</h1>
-          <p className="text-gray-600">View and manage reviews from your clients</p>
-        </div>
-        {user.id && <FreelancerReviewsEnhanced freelancerId={user.id} />}
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Reviews & Ratings</h1>
+        <p className="text-gray-600">View and manage reviews from your clients</p>
       </div>
-    </FreelancerLayout>
+      {user.id && <FreelancerReviewsEnhanced freelancerId={user.id} />}
+    </div>
   );
 }

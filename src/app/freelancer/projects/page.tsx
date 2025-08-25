@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { ProjectBrowser } from "@/components/freelancer/projects/ProjectBrowser";
-import { FreelancerLayout } from "@/components/freelancer/layout/FreelancerLayout";
 
 export default function FreelancerProjectsPage() {
   const { user } = useAuth({ required: true });
@@ -25,14 +24,12 @@ export default function FreelancerProjectsPage() {
   }
 
   return (
-    <FreelancerLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Projects</h1>
-          <p className="text-gray-600">Find projects that match your skills and interests</p>
-        </div>
-        <ProjectBrowser />
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Projects</h1>
+        <p className="text-gray-600">Find projects that match your skills and interests</p>
       </div>
-    </FreelancerLayout>
+      <ProjectBrowser />
+    </div>
   );
 }

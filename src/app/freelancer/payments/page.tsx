@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import EarningsDashboard from "@/components/freelancer/payments/EarningsDashboard";
-import { FreelancerLayout } from "@/components/freelancer/layout/FreelancerLayout";
 
 export default function FreelancerPaymentsPage() {
   const { user } = useAuth({ required: true });
@@ -25,14 +24,12 @@ export default function FreelancerPaymentsPage() {
   }
 
   return (
-    <FreelancerLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Payments</h1>
-          <p className="text-gray-600">Track your earnings and payment history</p>
-        </div>
-        <EarningsDashboard />
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Payments & Earnings</h1>
+        <p className="text-gray-600">Track your earnings and payment history</p>
       </div>
-    </FreelancerLayout>
+      <EarningsDashboard />
+    </div>
   );
 }

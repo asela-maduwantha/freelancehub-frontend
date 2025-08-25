@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import ContractDashboard from "@/components/freelancer/contracts/ContractDashboard";
-import { FreelancerLayout } from "@/components/freelancer/layout/FreelancerLayout";
 
 export default function FreelancerContractsPage() {
   const { user } = useAuth({ required: true });
@@ -25,14 +24,12 @@ export default function FreelancerContractsPage() {
   }
 
   return (
-    <FreelancerLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Contracts</h1>
-          <p className="text-gray-600">Manage your active and completed contracts</p>
-        </div>
-        <ContractDashboard />
+    <div className="p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Contracts</h1>
+        <p className="text-gray-600">Manage your active and completed contracts</p>
       </div>
-    </FreelancerLayout>
+      <ContractDashboard />
+    </div>
   );
 }
