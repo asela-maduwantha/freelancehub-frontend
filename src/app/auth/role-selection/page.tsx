@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
@@ -59,7 +59,7 @@ const ROLE_OPTIONS: RoleOption[] = [
   }
 ];
 
-export default function RoleSelectionPage() {
+function RoleSelectionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
@@ -266,5 +266,49 @@ export default function RoleSelectionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function RoleSelectionLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-4xl w-full">
+        <div className="text-center mb-12">
+          <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-96 mx-auto animate-pulse"></div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-xl border-2 border-gray-200 p-8">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-gray-200 rounded-lg mr-4 animate-pulse"></div>
+                <div>
+                  <div className="h-5 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-6 animate-pulse"></div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="flex items-center">
+                    <div className="w-2 h-2 bg-gray-200 rounded-full mr-3 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded w-32 animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RoleSelectionPage() {
+  return (
+    <Suspense fallback={<RoleSelectionLoading />}>
+      <RoleSelectionContent />
+    </Suspense>
   );
 }
