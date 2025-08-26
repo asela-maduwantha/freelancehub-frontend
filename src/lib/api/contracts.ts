@@ -118,16 +118,43 @@ export interface MilestoneUpdateDto {
 export const contractApi = {
   // Get all contracts with filters
   getContracts: async (filters: ContractFilters = {}): Promise<ContractListResponse> => {
-    const params = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        params.append(key, value.toString());
-      }
-    });
+    try {
+      const params = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
+        }
+      });
 
-    const response = await apiClient.get(`/contracts?${params.toString()}`);
-    return (response.data as any).data;
+      const response = await apiClient.get(`/contracts?${params.toString()}`);
+      
+      // Handle different response structures
+      if (response.data) {
+        const data = response.data as any;
+        if (data.data) {
+          return data.data as ContractListResponse;
+        }
+        if (data.contracts || Array.isArray(data)) {
+          return data as ContractListResponse;
+        }
+      }
+      
+      return {
+        contracts: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    } catch (error) {
+      console.error('Error in getContracts:', error);
+      return {
+        contracts: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    }
   },
 
   // Get contract by ID
@@ -186,29 +213,92 @@ export const contractApi = {
 
   // Get my contracts (as freelancer)
   getMyContracts: async (filters: ContractFilters = {}): Promise<ContractListResponse> => {
-    const params = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        params.append(key, value.toString());
-      }
-    });
+    try {
+      const params = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
+        }
+      });
 
-    const response = await apiClient.get(`/contracts/my?${params.toString()}`);
-    return (response.data as any).data;
+      const response = await apiClient.get(`/contracts/my?${params.toString()}`);
+      
+      // Debug logging
+      console.log('Raw API response:', response);
+      console.log('Response data:', response.data);
+      
+      // Handle different response structures
+      if (response.data) {
+        const data = response.data as any;
+        // If the response has a nested data structure
+        if (data.data) {
+          return data.data as ContractListResponse;
+        }
+        // If the response data is the ContractListResponse directly
+        if (data.contracts || Array.isArray(data)) {
+          return data as ContractListResponse;
+        }
+      }
+      
+      // Fallback: return empty response structure
+      console.warn('Unexpected API response structure:', response);
+      return {
+        contracts: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    } catch (error) {
+      console.error('Error in getMyContracts:', error);
+      // Return empty response structure on error
+      return {
+        contracts: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    }
   },
 
   // Get contracts as client
   getClientContracts: async (filters: ContractFilters = {}): Promise<ContractListResponse> => {
-    const params = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        params.append(key, value.toString());
-      }
-    });
+    try {
+      const params = new URLSearchParams();
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
+        }
+      });
 
-    const response = await apiClient.get(`/contracts/client?${params.toString()}`);
-    return (response.data as any).data;
+      const response = await apiClient.get(`/contracts/client?${params.toString()}`);
+      
+      // Handle different response structures
+      if (response.data) {
+        const data = response.data as any;
+        if (data.data) {
+          return data.data as ContractListResponse;
+        }
+        if (data.contracts || Array.isArray(data)) {
+          return data as ContractListResponse;
+        }
+      }
+      
+      return {
+        contracts: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    } catch (error) {
+      console.error('Error in getClientContracts:', error);
+      return {
+        contracts: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    }
   },
 };

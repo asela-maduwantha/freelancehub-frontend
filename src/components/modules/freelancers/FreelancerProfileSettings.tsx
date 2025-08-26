@@ -295,34 +295,8 @@ export const FreelancerProfileSettings: React.FC<FreelancerProfileSettingsProps>
     );
   };
 
-  const ProfileCompleteness = () => {
-    const percentage = profileData.profileCompleteness;
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-blue-900">Profile Completeness</h3>
-          <span className="text-blue-700 font-semibold">{percentage}%</span>
-        </div>
-        <div className="w-full bg-blue-200 rounded-full h-2">
-          <div 
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${percentage}%` }}
-          ></div>
-        </div>
-        <p className="text-sm text-blue-700 mt-2">
-          Complete your profile to get more visibility and better opportunities
-        </p>
-      </div>
-    );
-  };
-
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-        <p className="text-gray-600">Manage your freelancer profile and preferences</p>
-      </div>
-
+    <div className="max-w-4xl mx-auto">
       {/* Loading State */}
       {isLoadingProfile && (
         <div className="flex items-center justify-center py-12">
@@ -355,7 +329,6 @@ export const FreelancerProfileSettings: React.FC<FreelancerProfileSettingsProps>
 
       {!isLoadingProfile && (
         <>
-          <ProfileCompleteness />
 
           {/* Tab Navigation */}
       <div className="border-b border-gray-200 mb-8">
@@ -394,12 +367,48 @@ export const FreelancerProfileSettings: React.FC<FreelancerProfileSettingsProps>
             {/* Profile Photo */}
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <img
-                  src={profileData.avatar}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-full object-cover"
-                />
-                <button className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors">
+                {profileData.avatar ? (
+                  <img
+                    src={profileData.avatar}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                    onError={(e) => {
+                      // Fallback to default avatar on error
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjNjM2NEY3Ii8+CjxwYXRoIGQ9Im0xIDIwIDItMmE4IDggMCAwIDEgMTYgMGwyIDIiIGZpbGw9IiM2MzY0RjciLz4KPC9zdmc+';
+                    }}
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
+                    <User className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+                <button 
+                  className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                  onClick={() => {
+                    // Create hidden file input and trigger click
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        try {
+                          // TODO: Implement actual file upload when API is ready
+                          // const uploadedUrl = await fileUploadApi.uploadFile(file);
+                          // setProfileData(prev => ({ ...prev, avatar: uploadedUrl }));
+                          
+                          // For now, create a local preview
+                          const previewUrl = URL.createObjectURL(file);
+                          setProfileData(prev => ({ ...prev, avatar: previewUrl }));
+                        } catch (error) {
+                          console.error('Failed to upload avatar:', error);
+                        }
+                      }
+                    };
+                    input.click();
+                  }}
+                >
                   <Camera size={16} />
                 </button>
               </div>

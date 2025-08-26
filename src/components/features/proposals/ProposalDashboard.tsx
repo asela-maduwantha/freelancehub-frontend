@@ -64,17 +64,22 @@ export default function ProposalDashboard({ userRole, userId, projectId }: Propo
         response = await proposalApi.getReceivedProposals(filters);
       }
 
-      setProposals(response.proposals);
-      setTotalPages(response.totalPages);
+      // Handle case where response might be undefined
+      const proposals = response?.proposals || [];
+      const totalPages = response?.totalPages || 1;
+      const total = response?.total || 0;
+
+      setProposals(proposals);
+      setTotalPages(totalPages);
       
       // Calculate stats
-      const statusCounts = response.proposals.reduce((acc, proposal) => {
+      const statusCounts = proposals.reduce((acc, proposal) => {
         acc[proposal.status] = (acc[proposal.status] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       setStats({
-        total: response.total,
+        total,
         pending: statusCounts.pending || 0,
         accepted: statusCounts.accepted || 0,
         rejected: statusCounts.rejected || 0

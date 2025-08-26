@@ -20,7 +20,8 @@ import {
   Users,
   CheckCircle,
   AlertCircle,
-  Search
+  Search,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -55,7 +56,7 @@ interface RecentActivity {
 }
 
 export function EnhancedFreelancerDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     activeProjects: 0,
     totalEarnings: 0,
@@ -102,25 +103,42 @@ export function EnhancedFreelancerDashboard() {
 
   const loadStats = async () => {
     try {
+      // Use Promise.allSettled to handle individual API failures gracefully
       const [
-        profile,
-        proposalsResponse,
-        contractsResponse
-      ] = await Promise.all([
+        profileResult,
+        proposalsResult,
+        contractsResult
+      ] = await Promise.allSettled([
         freelancerApi.getMyProfile(),
         proposalApi.getMyProposals({ status: 'pending', limit: 100 }),
         contractApi.getMyContracts({ status: 'active' })
       ]);
 
+      // Extract values with fallbacks for failed calls
+      const profile = profileResult.status === 'fulfilled' ? profileResult.value : null;
+      const proposalsResponse = proposalsResult.status === 'fulfilled' ? proposalsResult.value : null;
+      const contractsResponse = contractsResult.status === 'fulfilled' ? contractsResult.value : null;
+
+      // Log any failures for debugging
+      if (profileResult.status === 'rejected') {
+        console.error('Failed to load profile:', profileResult.reason);
+      }
+      if (proposalsResult.status === 'rejected') {
+        console.error('Failed to load proposals:', proposalsResult.reason);
+      }
+      if (contractsResult.status === 'rejected') {
+        console.error('Failed to load contracts:', contractsResult.reason);
+      }
+
       setStats({
-        activeProjects: contractsResponse.contracts?.length || 0,
+        activeProjects: contractsResponse?.contracts?.length || 0,
         totalEarnings: 0, // TODO: Get from payments API
         profileViews: 0, // TODO: Get from analytics API
-        averageRating: profile.user?.rating || 0,
-        completedProjects: profile.completedProjects || 0,
-        pendingProposals: proposalsResponse.proposals?.length || 0,
+        averageRating: profile?.user?.rating || 0,
+        completedProjects: profile?.completedProjects || 0,
+        pendingProposals: proposalsResponse?.proposals?.length || 0,
         unreadMessages: 0, // TODO: Get from messages API
-        availabilityStatus: profile.isAvailable
+        availabilityStatus: profile?.isAvailable || false
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -129,16 +147,28 @@ export function EnhancedFreelancerDashboard() {
 
   const loadRecentActivity = async () => {
     try {
-      // Combine different types of activities
-      const [proposals, contracts] = await Promise.all([
+      // Use Promise.allSettled to handle individual API failures gracefully
+      const [proposalsResult, contractsResult] = await Promise.allSettled([
         proposalApi.getMyProposals({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
         contractApi.getMyContracts({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' })
       ]);
 
+      // Extract values with fallbacks for failed calls
+      const proposals = proposalsResult.status === 'fulfilled' ? proposalsResult.value : null;
+      const contracts = contractsResult.status === 'fulfilled' ? contractsResult.value : null;
+
+      // Log any failures for debugging
+      if (proposalsResult.status === 'rejected') {
+        console.error('Failed to load proposals for recent activity:', proposalsResult.reason);
+      }
+      if (contractsResult.status === 'rejected') {
+        console.error('Failed to load contracts for recent activity:', contractsResult.reason);
+      }
+
       const activities: RecentActivity[] = [];
 
       // Add proposal activities
-      proposals.proposals?.forEach(proposal => {
+      proposals?.proposals?.forEach(proposal => {
         activities.push({
           id: `proposal-${proposal._id}`,
           type: proposal.status === 'accepted' ? 'proposal_accepted' : 
@@ -151,7 +181,7 @@ export function EnhancedFreelancerDashboard() {
       });
 
       // Add contract activities
-      contracts.contracts?.forEach((contract: any) => {
+      contracts?.contracts?.forEach((contract: any) => {
         activities.push({
           id: `contract-${contract._id}`,
           type: 'milestone_completed',
@@ -228,6 +258,18 @@ export function EnhancedFreelancerDashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      try {
+        await logout();
+        toast.success('Logged out successfully');
+      } catch (error) {
+        console.error('Logout error:', error);
+        toast.error('Failed to logout');
+      }
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -300,9 +342,13 @@ export function EnhancedFreelancerDashboard() {
             </button>
           </div>
           
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+            className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
           </Button>
         </div>
       </div>

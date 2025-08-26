@@ -79,12 +79,26 @@ export function ProjectBrowser() {
 
   const loadInitialData = async () => {
     try {
-      const [skillsData, categoriesData] = await Promise.all([
+      // Use Promise.allSettled to handle individual API failures gracefully
+      const [skillsResult, categoriesResult] = await Promise.allSettled([
         skillsApi.getAllSkills(),
         categoryApi.getCategories()
       ]);
+
+      // Extract values with fallbacks for failed calls
+      const skillsData = skillsResult.status === 'fulfilled' ? skillsResult.value : null;
+      const categoriesData = categoriesResult.status === 'fulfilled' ? categoriesResult.value : null;
+
+      // Log any failures for debugging
+      if (skillsResult.status === 'rejected') {
+        console.error('Failed to load skills:', skillsResult.reason);
+      }
+      if (categoriesResult.status === 'rejected') {
+        console.error('Failed to load categories:', categoriesResult.reason);
+      }
+
       setSkills(skillsData || []);
-      setCategories(categoriesData.categories || []);
+      setCategories(categoriesData?.categories || []);
     } catch (error) {
       console.error('Failed to load initial data:', error);
     }

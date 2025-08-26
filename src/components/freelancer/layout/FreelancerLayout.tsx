@@ -99,6 +99,16 @@ export function FreelancerLayout({ children }: FreelancerLayoutProps) {
   const { user } = useAuth();
   const pathname = usePathname();
 
+  const isOnboardingRoute = pathname?.includes('/onboarding') || pathname?.includes('/setup');
+  
+  if (isOnboardingRoute) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Mobile sidebar */}
@@ -190,7 +200,7 @@ function Sidebar() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-3 text-center">
+        {/* <div className="grid grid-cols-2 gap-3 text-center">
           <div className="bg-green-50 rounded-lg p-2">
             <p className="text-lg font-semibold text-green-600">4.8</p>
             <p className="text-xs text-gray-600">Rating</p>
@@ -199,7 +209,7 @@ function Sidebar() {
             <p className="text-lg font-semibold text-blue-600">23</p>
             <p className="text-xs text-gray-600">Projects</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Navigation */}
@@ -246,30 +256,6 @@ function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Footer */}
-      <div className="flex-shrink-0 border-t border-gray-200 p-4">
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3">
-          <div className="flex items-center">
-            <Award className="h-5 w-5 text-green-500 mr-2" />
-            <div className="text-sm">
-              <p className="font-medium text-gray-900">Pro Member</p>
-              <p className="text-xs text-gray-600">Upgrade available</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-3 flex space-x-2">
-          <Button variant="ghost" size="sm" className="flex-1 text-xs">
-            <HelpCircle className="h-4 w-4 mr-1" />
-            Help
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-1 text-xs">
-            <Settings className="h-4 w-4 mr-1" />
-            Settings
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }

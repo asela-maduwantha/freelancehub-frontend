@@ -86,9 +86,12 @@ const ContractDashboard: React.FC = () => {
       const response = await contractApi.getMyContracts({
         status: activeTab === 'all' ? undefined : activeTab
       });
+      
+      // The API now handles all error cases and always returns a valid ContractListResponse
       setContracts(response.contracts as any);
     } catch (error) {
       console.error('Error fetching contracts:', error);
+      setContracts([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -186,11 +189,6 @@ const ContractDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Contract Management</h1>
-          <p className="text-gray-600 mt-1">Manage your active contracts and track project progress</p>
-        </div>
-        
         {/* Timer Widget */}
         {isTimerRunning && currentTimeEntry && (
           <Card className="mt-4 lg:mt-0">

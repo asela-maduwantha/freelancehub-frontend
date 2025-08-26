@@ -238,11 +238,6 @@ const EarningsDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Earnings Dashboard</h1>
-          <p className="text-gray-600 mt-1">Track your earnings, payments, and withdrawals</p>
-        </div>
-
         <div className="flex space-x-4 mt-4 lg:mt-0">
           <select
             value={dateRange}

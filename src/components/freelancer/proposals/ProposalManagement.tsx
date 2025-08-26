@@ -65,10 +65,13 @@ export function ProposalManagement() {
       }
 
       const response = await proposalApi.getMyProposals(filters);
-      setProposals(response.proposals || []);
+      
+      // Handle case where response might be undefined
+      const proposals = response?.proposals || [];
+      setProposals(proposals);
       
       // Calculate stats
-      const all = response.proposals || [];
+      const all = proposals;
       const pending = all.filter(p => p.status === 'pending').length;
       const accepted = all.filter(p => p.status === 'accepted').length;
       const rejected = all.filter(p => p.status === 'rejected').length;
@@ -139,19 +142,7 @@ export function ProposalManagement() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Proposals</h1>
-          <p className="text-gray-600">Track and manage your project proposals</p>
-        </div>
-        <Button className="bg-green-600 hover:bg-green-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Browse Projects
-        </Button>
-      </div>
-
+    <div className="max-w-7xl mx-auto">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         <motion.div

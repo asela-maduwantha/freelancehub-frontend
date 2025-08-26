@@ -345,7 +345,6 @@ const NotificationCenter: React.FC = () => {
             )}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
             <p className="text-gray-600">
               {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
             </p>

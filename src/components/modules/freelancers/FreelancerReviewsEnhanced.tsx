@@ -42,15 +42,27 @@ export const FreelancerReviewsEnhanced: React.FC<FreelancerReviewsEnhancedProps>
           })
         };
 
-        const [reviewsResponse, statsResponse] = await Promise.all([
+        const [reviewsResult, statsResult] = await Promise.allSettled([
           reviewApi.getReviews(reviewFilters),
           reviewApi.getUserReviewStats(freelancerId)
         ]);
 
-        setReviews(reviewsResponse.reviews);
-        setTotalPages(reviewsResponse.totalPages);
+        // Extract values with fallbacks for failed calls
+        const reviewsResponse = reviewsResult.status === 'fulfilled' ? reviewsResult.value : null;
+        const statsResponse = statsResult.status === 'fulfilled' ? statsResult.value : null;
+
+        // Log any failures for debugging
+        if (reviewsResult.status === 'rejected') {
+          console.error('Failed to load reviews:', reviewsResult.reason);
+        }
+        if (statsResult.status === 'rejected') {
+          console.error('Failed to load review stats:', statsResult.reason);
+        }
+
+        setReviews(reviewsResponse?.reviews || []);
+        setTotalPages(reviewsResponse?.totalPages || 1);
         
-        if (statsResponse.success) {
+        if (statsResponse?.success) {
           setStats(statsResponse.data);
         }
 

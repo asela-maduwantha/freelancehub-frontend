@@ -52,10 +52,13 @@ export default function MessageDashboard({ userId, selectedConversationId }: Mes
     try {
       setLoading(true);
       const response = await messageApi.getConversations();
-      setConversations(response.conversations);
       
-      if (response.conversations.length > 0 && !selectedConversation) {
-        setSelectedConversation(response.conversations[0]);
+      // Handle case where response might be undefined
+      const conversations = response?.conversations || [];
+      setConversations(conversations);
+      
+      if (conversations.length > 0 && !selectedConversation) {
+        setSelectedConversation(conversations[0]);
       }
     } catch (err) {
       console.error('Error fetching conversations:', err);
@@ -70,7 +73,7 @@ export default function MessageDashboard({ userId, selectedConversationId }: Mes
         limit: 50,
         sortOrder: 'asc'
       });
-      setMessages(response.messages);
+      setMessages(response?.messages || []);
       
       // Mark messages as read
       await messageApi.markAsRead(conversationId);
@@ -90,7 +93,9 @@ export default function MessageDashboard({ userId, selectedConversationId }: Mes
         messageType: 'text'
       });
 
-      setMessages(prev => [...prev, response.data]);
+      if (response?.data) {
+        setMessages(prev => [...prev, response.data]);
+      }
       setNewMessage('');
     } catch (err) {
       console.error('Error sending message:', err);

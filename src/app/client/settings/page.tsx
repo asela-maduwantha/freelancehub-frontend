@@ -108,15 +108,31 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const [profileRes, notificationRes, privacyRes] = await Promise.all([
+      const [profileResult, notificationResult, privacyResult] = await Promise.allSettled([
         api.get("/users/me"),
         api.get("/users/me/notification-settings"),
         api.get("/users/me/privacy-settings"),
       ]);
 
-      setProfile((profileRes.data as any)?.user);
-      setNotifications((notificationRes.data as any)?.settings);
-      setPrivacy((privacyRes.data as any)?.settings);
+      // Extract values with fallbacks for failed calls
+      const profileRes = profileResult.status === 'fulfilled' ? profileResult.value : null;
+      const notificationRes = notificationResult.status === 'fulfilled' ? notificationResult.value : null;
+      const privacyRes = privacyResult.status === 'fulfilled' ? privacyResult.value : null;
+
+      // Log any failures for debugging
+      if (profileResult.status === 'rejected') {
+        console.error('Failed to load profile:', profileResult.reason);
+      }
+      if (notificationResult.status === 'rejected') {
+        console.error('Failed to load notification settings:', notificationResult.reason);
+      }
+      if (privacyResult.status === 'rejected') {
+        console.error('Failed to load privacy settings:', privacyResult.reason);
+      }
+
+      setProfile((profileRes?.data as any)?.user || null);
+      setNotifications((notificationRes?.data as any)?.settings || {});
+      setPrivacy((privacyRes?.data as any)?.settings || {});
     } catch (error) {
       console.error("Failed to load settings:", error);
       toast.error("Failed to load settings");

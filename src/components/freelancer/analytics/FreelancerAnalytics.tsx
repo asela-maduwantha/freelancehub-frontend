@@ -165,10 +165,7 @@ export function FreelancerAnalytics() {
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Performance Overview</h2>
-          <p className="text-gray-600">Track your freelance business metrics and growth</p>
-        </div>
+      
         
         <div className="flex items-center gap-3">
           <select

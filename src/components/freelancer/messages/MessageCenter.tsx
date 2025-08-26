@@ -64,11 +64,14 @@ export function MessageCenter() {
         page: 1,
         limit: 50
       });
-      setConversations(response.conversations || []);
+      
+      // Handle case where response might be undefined
+      const conversations = response?.conversations || [];
+      setConversations(conversations);
       
       // Select first conversation if none selected
-      if (!selectedConversation && response.conversations && response.conversations.length > 0) {
-        setSelectedConversation(response.conversations[0]);
+      if (!selectedConversation && conversations.length > 0) {
+        setSelectedConversation(conversations[0]);
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
@@ -86,7 +89,7 @@ export function MessageCenter() {
         sortBy: 'createdAt',
         sortOrder: 'asc'
       });
-      setMessages(response.messages || []);
+      setMessages(response?.messages || []);
       
       // TODO: Mark conversation as read when API is available
       // await messageApi.markConversationAsRead(conversationId);
@@ -121,7 +124,7 @@ export function MessageCenter() {
       
       // Add message to local state immediately
       const newMsg: Message = {
-        ...response.data,
+        ...(response?.data || {}),
         sender: {
           _id: user.id || '',
           firstName: (user as any)?.firstName || user.name || '',
@@ -224,13 +227,12 @@ export function MessageCenter() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px] flex">
         {/* Conversations List */}
         <div className="w-1/3 border-r border-gray-200 flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Messages</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
