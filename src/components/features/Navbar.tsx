@@ -89,7 +89,7 @@ const Navbar = () => {
               whileTap={{ scale: 0.95 }}
             >
               <Link
-                href="/signup"
+                href="/auth/role-selection"
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg"
               >
                 Sign Up
@@ -158,7 +158,7 @@ const Navbar = () => {
                   transition={{ delay: 0.6 }}
                 >
                   <Link
-                    href="/signup"
+                    href="/auth/role-selection"
                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 rounded-lg text-center font-medium transition-all duration-300 shadow-md"
                     onClick={() => setIsOpen(false)}
                   >

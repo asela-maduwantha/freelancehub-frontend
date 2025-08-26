@@ -13,62 +13,72 @@ import {
   Award,
   Zap
 } from "lucide-react";
+import { usePlatformStats } from "@/hooks/useLanding";
+import { SkeletonStats } from "@/components/shared/LoadingComponents";
 
-const stats = [
+// Default stats structure - will be populated from API
+const defaultStats = [
   {
     icon: <Users className="w-8 h-8" />,
     label: "Active Freelancers",
-    value: 1250,
+    value: 0,
     suffix: "+",
     color: "from-blue-500 to-blue-600",
     description: "Verified professionals ready to work",
-    increment: 2
+    increment: 2,
+    key: 'totalFreelancers'
   },
   {
     icon: <Briefcase className="w-8 h-8" />,
     label: "Projects Completed",
-    value: 850,
+    value: 0,
     suffix: "+",
     color: "from-green-500 to-green-600", 
     description: "Successfully delivered projects",
-    increment: 1
+    increment: 1,
+    key: 'projectsCompleted'
   },
   {
     icon: <DollarSign className="w-8 h-8" />,
     label: "Total Earnings",
-    value: 45,
+    value: 0,
     suffix: "M+",
     color: "from-purple-500 to-purple-600",
     description: "Rupees earned by freelancers",
     prefix: "₨",
-    increment: 0.1
+    increment: 0.1,
+    key: 'totalEarnings',
+    formatValue: (val: number) => (val / 1000000).toFixed(1) // Convert to millions
   },
   {
     icon: <Star className="w-8 h-8" />,
     label: "Average Rating",
-    value: 4.9,
+    value: 0,
     suffix: "/5",
     color: "from-yellow-500 to-yellow-600",
     description: "Client satisfaction rating",
-    increment: 0.01
+    increment: 0.01,
+    key: 'averageRating'
   },
   {
-    icon: <Clock className="w-8 h-8" />,
-    label: "Response Time",
-    value: 2.4,
-    suffix: " hrs",
+    icon: <Users className="w-8 h-8" />,
+    label: "Total Clients",
+    value: 0,
+    suffix: "+",
     color: "from-teal-500 to-teal-600",
-    description: "Average freelancer response",
-    increment: 0.01
+    description: "Satisfied clients worldwide",
+    increment: 1,
+    key: 'totalClients'
   },
   {
-    icon: <Award className="w-8 h-8" />,
-    label: "Success Rate",
-    value: 98,
-    suffix: "%",
+    icon: <Briefcase className="w-8 h-8" />,
+    label: "Total Projects",
+    value: 0,
+    suffix: "+",
     color: "from-indigo-500 to-indigo-600",
-    description: "Project completion rate",
-    increment: 0.1
+    description: "Projects posted on platform",
+    increment: 1,
+    key: 'totalProjects'
   }
 ];
 
@@ -88,6 +98,24 @@ const provinces = [
 export default function LiveStats() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const { stats: apiStats, loading: statsLoading, error: statsError } = usePlatformStats();
+  
+  // Merge API data with default stats structure
+  const stats = defaultStats.map(stat => {
+    if (apiStats && stat.key && apiStats[stat.key as keyof typeof apiStats]) {
+      const apiValue = apiStats[stat.key as keyof typeof apiStats];
+      let value = apiValue;
+      
+      // Apply formatting if needed
+      if (stat.formatValue) {
+        value = parseFloat(stat.formatValue(apiValue));
+      }
+      
+      return { ...stat, value };
+    }
+    return stat;
+  });
+  
   const [currentStats, setCurrentStats] = useState(stats.map(stat => ({ ...stat, currentValue: 0 })));
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [onlineCount, setOnlineCount] = useState(342);
@@ -201,10 +229,13 @@ export default function LiveStats() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Stats Grid */}
           <div className="lg:col-span-3">
-            <div
-              ref={ref}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
+            {statsLoading ? (
+              <SkeletonStats />
+            ) : (
+              <div
+                ref={ref}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
               {currentStats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -256,7 +287,8 @@ export default function LiveStats() {
                   />
                 </motion.div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Live Activity Feed */}

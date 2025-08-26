@@ -86,7 +86,7 @@ const CTA = () => {
               whileTap={{ scale: 0.95 }}
             >
               <Link
-                href="/register?type=client"
+                href="/auth/role-selection?defaultRole=client"
                 className="group inline-flex items-center bg-white text-green-600 hover:bg-green-50 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl"
               >
                 Hire Talent
@@ -99,7 +99,7 @@ const CTA = () => {
               whileTap={{ scale: 0.95 }}
             >
               <Link
-                href="/register?type=freelancer"
+                href="/auth/role-selection?defaultRole=freelancer"
                 className="group inline-flex items-center bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl"
               >
                 Find Work

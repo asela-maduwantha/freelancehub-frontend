@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import { freelancerApi, FreelancerProfile, FreelancerFilters, FreelancerListResponse } from '../lib/api/freelancer';
-import { skillsApi, Skill } from '../lib/api/skills';
-import { adaptFreelancerList, adaptFreelancerProfile } from '../lib/adapters/freelancerAdapter';
-import { toast } from '../context/toast-context';
+import { freelancerApi, FreelancerProfile, FreelancerFilters } from '../lib/api/freelancerApi';
 
 // Hook for fetching freelancers with pagination and filtering
 export const useFreelancers = (initialFilters: FreelancerFilters = {}) => {
@@ -21,61 +18,52 @@ export const useFreelancers = (initialFilters: FreelancerFilters = {}) => {
       setLoading(true);
       setError(null);
       const currentFilters = newFilters || filters;
-      const response: FreelancerListResponse = await freelancerApi.getFreelancers(currentFilters);
+      const response = await freelancerApi.getAllFreelancers(currentFilters);
       
-      // Use adapter to transform data
-      const adaptedFreelancers = adaptFreelancerList(response.users || []);
-      setFreelancers(adaptedFreelancers as any);
+      setFreelancers(response.freelancers);
       setPagination({
-        total: response.total || 0,
-        page: response.page || 1,
-        totalPages: response.totalPages || 1
+        total: response.total,
+        page: response.page,
+        totalPages: Math.ceil(response.total / (response.limit || 10))
       });
     } catch (err) {
       setError('Failed to fetch freelancers');
-      toast.error('Failed to load freelancers');
+      console.error('Error fetching freelancers:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateFilters = (newFilters: Partial<FreelancerFilters>) => {
+  useEffect(() => {
+    fetchFreelancers();
+  }, []);
+
+  const updateFilters = async (newFilters: FreelancerFilters) => {
     const updatedFilters = { ...filters, ...newFilters, page: 1 };
     setFilters(updatedFilters);
-    fetchFreelancers(updatedFilters);
+    await fetchFreelancers(updatedFilters);
   };
 
   const loadMore = async () => {
-    const nextPage = pagination.page + 1;
-    if (nextPage <= pagination.totalPages) {
+    if (pagination.page < pagination.totalPages) {
+      const newFilters = { ...filters, page: pagination.page + 1 };
       try {
         setLoading(true);
-        const newFilters = { ...filters, page: nextPage };
-        const response: FreelancerListResponse = await freelancerApi.getFreelancers(newFilters);
-        
-        const adaptedFreelancers = adaptFreelancerList(response.users || []);
-        setFreelancers(prev => [...prev, ...adaptedFreelancers as any]);
+        const response = await freelancerApi.getAllFreelancers(newFilters);
+        setFreelancers(prev => [...prev, ...response.freelancers]);
         setPagination({
-          total: response.total || 0,
-          page: response.page || nextPage,
-          totalPages: response.totalPages || 1
+          total: response.total,
+          page: response.page,
+          totalPages: Math.ceil(response.total / (response.limit || 10))
         });
         setFilters(newFilters);
       } catch (err) {
-        toast.error('Failed to load more freelancers');
+        setError('Failed to load more freelancers');
       } finally {
         setLoading(false);
       }
     }
   };
-
-  const refresh = () => {
-    fetchFreelancers();
-  };
-
-  useEffect(() => {
-    fetchFreelancers();
-  }, []);
 
   return {
     freelancers,
@@ -85,11 +73,11 @@ export const useFreelancers = (initialFilters: FreelancerFilters = {}) => {
     pagination,
     updateFilters,
     loadMore,
-    refresh
+    refetch: fetchFreelancers
   };
 };
 
-// Hook for fetching a single freelancer
+// Hook for fetching a single freelancer by ID
 export const useFreelancer = (id: string) => {
   const [freelancer, setFreelancer] = useState<FreelancerProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,12 +88,11 @@ export const useFreelancer = (id: string) => {
       try {
         setLoading(true);
         setError(null);
-        const data = await freelancerApi.getFreelancer(id);
-        const adaptedData = adaptFreelancerProfile(data);
-        setFreelancer(adaptedData as any);
+        const data = await freelancerApi.getProfile(id);
+        setFreelancer(data);
       } catch (err) {
-        setError('Failed to fetch freelancer details');
-        toast.error('Failed to load freelancer profile');
+        setError('Failed to fetch freelancer');
+        console.error('Error fetching freelancer:', err);
       } finally {
         setLoading(false);
       }
@@ -119,13 +106,13 @@ export const useFreelancer = (id: string) => {
   return { freelancer, loading, error };
 };
 
-// Hook for freelancer search
+// Hook for searching freelancers
 export const useFreelancerSearch = () => {
   const [results, setResults] = useState<FreelancerProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = async (query: string, filters: FreelancerFilters = {}) => {
+  const search = async (query: string) => {
     if (!query.trim()) {
       setResults([]);
       return;
@@ -134,12 +121,12 @@ export const useFreelancerSearch = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await freelancerApi.searchFreelancers(query, filters);
-      const adaptedResults = adaptFreelancerList(response.users || []);
-      setResults(adaptedResults as any);
+      const response = await freelancerApi.searchFreelancers(query);
+      setResults(response);
     } catch (err) {
-      setError('Failed to search freelancers');
-      toast.error('Search failed');
+      setError('Search failed');
+      console.error('Search error:', err);
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -150,157 +137,169 @@ export const useFreelancerSearch = () => {
     setError(null);
   };
 
-  return { results, loading, error, search, clearResults };
-};
-
-// Hook for skills management
-export const useSkills = () => {
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [popularSkills, setPopularSkills] = useState<Skill[]>([]);
-  const [categories, setCategories] = useState<{ _id: string; name: string; }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSkillsData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const [allSkills, popular] = await Promise.all([
-          skillsApi.getAllSkills(),
-          skillsApi.getPopularSkills(20)
-        ]);
-
-        setSkills(allSkills);
-        setPopularSkills(popular);
-        
-        // Try to fetch categories, but don't fail if not available
-        try {
-          const cats = await skillsApi.getCategories();
-          setCategories(cats);
-        } catch (catErr) {
-          console.warn('Categories not available:', catErr);
-          setCategories([]);
-        }
-      } catch (err) {
-        setError('Failed to fetch skills data');
-        toast.error('Failed to load skills');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSkillsData();
-  }, []);
-
-  const searchSkills = async (query: string): Promise<Skill[]> => {
-    try {
-      return await skillsApi.searchSkills(query);
-    } catch (err) {
-      toast.error('Failed to search skills');
-      return [];
-    }
-  };
-
   return {
-    skills,
-    popularSkills,
-    categories,
+    results,
     loading,
     error,
-    searchSkills
+    search,
+    clearResults
   };
 };
 
-// Hook for freelancer reviews
-export const useFreelancerReviews = (freelancerId: string) => {
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
+// Hook for featured freelancers with mock data for development
+export const useFeaturedFreelancers = (limit: number = 8) => {
+  const [freelancers, setFreelancers] = useState<FreelancerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchReviews = async () => {
+    const fetchFeaturedFreelancers = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const [reviewsData, statsData] = await Promise.all([
-          freelancerApi.getFreelancerReviews(freelancerId),
-          freelancerApi.getFreelancerReviewStats(freelancerId)
-        ]);
-
-        setReviews((reviewsData as any).reviews || []);
-        setStats(statsData);
-      } catch (err) {
-        setError('Failed to fetch reviews');
-        toast.error('Failed to load reviews');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (freelancerId) {
-      fetchReviews();
-    }
-  }, [freelancerId]);
-
-  return { reviews, stats, loading, error };
-};
-
-// Hook for featured freelancers
-export const useFeaturedFreelancers = (limit = 8) => {
-  const [freelancers, setFreelancers] = useState<FreelancerProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await freelancerApi.getFeaturedFreelancers(limit);
-        setFreelancers(data);
+        // Try to get real data first
+        const response = await freelancerApi.getAllFreelancers({ limit });
+        if (response.freelancers.length > 0) {
+          setFreelancers(response.freelancers);
+        } else {
+          // Fallback to mock data for development
+          const mockFreelancers: FreelancerProfile[] = [
+            {
+              id: '1',
+              userId: '1',
+              firstName: 'John',
+              lastName: 'Doe',
+              title: 'Full Stack Developer',
+              bio: 'Experienced developer with 5+ years in React and Node.js',
+              location: 'New York, NY',
+              address: 'New York, NY, USA',
+              hourlyRate: 75,
+              experience: '5+ years',
+              rating: 4.8,
+              completedProjects: 23,
+              isAvailable: true,
+              skills: ['React', 'Node.js', 'TypeScript', 'MongoDB'],
+              education: [],
+              certifications: [],
+              portfolioLinks: [],
+              isProfileComplete: true,
+              profileCompleteness: 90,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+            {
+              id: '2',
+              userId: '2',
+              firstName: 'Jane',
+              lastName: 'Smith',
+              title: 'UI/UX Designer',
+              bio: 'Creative designer specializing in user experience and interface design',
+              location: 'San Francisco, CA',
+              address: 'San Francisco, CA, USA',
+              hourlyRate: 65,
+              experience: '3+ years',
+              rating: 4.9,
+              completedProjects: 18,
+              isAvailable: true,
+              skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research'],
+              education: [],
+              certifications: [],
+              portfolioLinks: [],
+              isProfileComplete: true,
+              profileCompleteness: 85,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+            {
+              id: '3',
+              userId: '3',
+              firstName: 'Mike',
+              lastName: 'Johnson',
+              title: 'Mobile App Developer',
+              bio: 'iOS and Android developer with expertise in React Native',
+              location: 'Austin, TX',
+              address: 'Austin, TX, USA',
+              hourlyRate: 80,
+              experience: '4+ years',
+              rating: 4.7,
+              completedProjects: 31,
+              isAvailable: false,
+              skills: ['React Native', 'Swift', 'Kotlin', 'Firebase'],
+              education: [],
+              certifications: [],
+              portfolioLinks: [],
+              isProfileComplete: true,
+              profileCompleteness: 92,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            },
+            {
+              id: '4',
+              userId: '4',
+              firstName: 'Sarah',
+              lastName: 'Wilson',
+              title: 'Data Scientist',
+              bio: 'Machine learning expert with experience in Python and R',
+              location: 'Boston, MA',
+              address: 'Boston, MA, USA',
+              hourlyRate: 90,
+              experience: '6+ years',
+              rating: 4.9,
+              completedProjects: 42,
+              isAvailable: true,
+              skills: ['Python', 'R', 'TensorFlow', 'Pandas'],
+              education: [],
+              certifications: [],
+              portfolioLinks: [],
+              isProfileComplete: true,
+              profileCompleteness: 95,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }
+          ];
+          
+          setFreelancers(mockFreelancers.slice(0, limit));
+        }
       } catch (err) {
         setError('Failed to fetch featured freelancers');
-        toast.error('Failed to load featured freelancers');
+        console.error('Error fetching featured freelancers:', err);
+        
+        // Set mock data on error too
+        const mockFreelancers: FreelancerProfile[] = [
+          {
+            id: '1',
+            userId: '1',
+            firstName: 'John',
+            lastName: 'Doe',
+            title: 'Full Stack Developer',
+            bio: 'Experienced developer with 5+ years in React and Node.js',
+            location: 'New York, NY',
+            address: 'New York, NY, USA',
+            hourlyRate: 75,
+            experience: '5+ years',
+            rating: 4.8,
+            completedProjects: 23,
+            isAvailable: true,
+            skills: ['React', 'Node.js', 'TypeScript', 'MongoDB'],
+            education: [],
+            certifications: [],
+            portfolioLinks: [],
+            isProfileComplete: true,
+            profileCompleteness: 90,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ];
+        
+        setFreelancers(mockFreelancers.slice(0, limit));
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFeatured();
+    fetchFeaturedFreelancers();
   }, [limit]);
-
-  return { freelancers, loading, error };
-};
-
-// Hook for similar freelancers
-export const useSimilarFreelancers = (freelancerId: string, limit = 4) => {
-  const [freelancers, setFreelancers] = useState<FreelancerProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSimilar = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await freelancerApi.getSimilarFreelancers(freelancerId, limit);
-        setFreelancers(data);
-      } catch (err) {
-        setError('Failed to fetch similar freelancers');
-        toast.error('Failed to load similar freelancers');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (freelancerId) {
-      fetchSimilar();
-    }
-  }, [freelancerId, limit]);
 
   return { freelancers, loading, error };
 };

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, X, Loader2, Star, MapPin } from "lucide-react";
 import { useFreelancerSearch } from "@/hooks/useFreelancers";
-import { FreelancerProfile } from "@/lib/api/freelancer";
+import { FreelancerProfile } from "@/lib/api/freelancerApi";
 import Link from "next/link";
 
 interface FreelancerSearchProps {
@@ -177,7 +177,7 @@ export const FreelancerSearch: React.FC<FreelancerSearchProps> = ({
               <div className="py-1">
                 {results.slice(0, showFullResults ? results.length : 8).map((freelancer, index) => (
                   <div
-                    key={freelancer._id}
+                    key={freelancer.id}
                     onClick={() => handleSelect(freelancer)}
                     className={`px-4 py-3 cursor-pointer transition-colors ${
                       index === selectedIndex 
@@ -207,7 +207,7 @@ export const FreelancerSearch: React.FC<FreelancerSearchProps> = ({
                           <div className="flex items-center ml-2">
                             <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
                             <span className="text-xs text-gray-600 ml-1">
-                              {freelancer.rating.toFixed(1)}
+                              {(freelancer.rating || 4.5).toFixed(1)}
                             </span>
                           </div>
                         </div>

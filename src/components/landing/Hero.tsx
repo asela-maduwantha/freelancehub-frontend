@@ -4,28 +4,36 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useAnimation } from "framer-motion";
 import { Typewriter } from "react-simple-typewriter";
-import { Play, Star, Users, Clock, CheckCircle } from "lucide-react";
-
-const stats = [
-  { number: 1250, suffix: "+", label: "Active Freelancers" },
-  { number: 850, suffix: "+", label: "Projects Completed" },
-  { number: 4.9, suffix: "/5", label: "Average Rating" },
-  { number: 24, suffix: "hrs", label: "Avg. Response Time" },
-];
-
-const skillTags = [
-  "Web Development", "UI/UX Design", "Content Writing", "Digital Marketing",
-  "Mobile Apps", "Logo Design", "SEO", "Social Media", "Data Analysis",
-  "Graphic Design", "WordPress", "React", "Python", "Photography"
-];
+import { Play, Star, Users, CheckCircle } from "lucide-react";
+import { usePlatformStats, useCategories } from "@/hooks/useLanding";
 
 export default function Hero() {
   const [activeStats, setActiveStats] = useState<number[]>([]);
   const controls = useAnimation();
+  
+  // API hooks
+  const { stats, loading: statsLoading } = usePlatformStats();
+  const { categories, loading: categoriesLoading } = useCategories();
+
+  // Transform stats for display
+  const displayStats = [
+    { number: stats?.totalFreelancers || 1250, suffix: "+", label: "Active Freelancers" },
+    { number: stats?.projectsCompleted || 850, suffix: "+", label: "Projects Completed" },
+    { number: stats?.averageRating || 4.9, suffix: "/5", label: "Average Rating" },
+    { number: 24, suffix: "hrs", label: "Avg. Response Time" },
+  ];
+
+  const skillTags = categories.length > 0 
+    ? categories.slice(0, 14).map(cat => cat.name)
+    : [
+        "Web Development", "UI/UX Design", "Content Writing", "Digital Marketing",
+        "Mobile Apps", "Logo Design", "SEO", "Social Media", "Data Analysis",
+        "Graphic Design", "WordPress", "React", "Python", "Photography"
+      ];
 
   useEffect(() => {
     // Animate stats counter
-    stats.forEach((stat, index) => {
+    displayStats.forEach((stat, index) => {
       setTimeout(() => {
         let current = 0;
         const increment = stat.number / 50;
@@ -53,7 +61,7 @@ export default function Hero() {
         ease: "easeInOut"
       }
     });
-  }, [controls]);
+  }, [controls, displayStats]);
 
   return (
     <section className="relative py-20 overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50">
@@ -147,14 +155,14 @@ export default function Hero() {
               className="flex flex-col sm:flex-row gap-4 pt-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Link
-                  href="/register"
+                  href="/auth/role-selection"
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg text-lg font-medium transition-all duration-300 text-center flex items-center gap-2 shadow-lg hover:shadow-xl"
                 >
                   Get Started Free
@@ -181,20 +189,20 @@ export default function Hero() {
               </motion.div>
             </motion.div>
 
-            {/* Animated Stats */}
+            {/* Animated Stats
             <motion.div
               className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-gray-200"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
             >
-              {stats.map((stat, index) => (
+              {displayStats.map((stat, index) => (
                 <motion.div
                   key={index}
                   className="text-center"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ delay: 1 + index * 0.1 }}
+                  transition={{ delay: 0.8 + index * 0.1 }}
                 >
                   <motion.div 
                     className="text-2xl font-bold text-gray-900"
@@ -206,7 +214,7 @@ export default function Hero() {
                   <div className="text-sm text-gray-600">{stat.label}</div>
                 </motion.div>
               ))}
-            </motion.div>
+            </motion.div> */}
           </div>
 
           {/* Right side with image and floating elements */}
@@ -271,7 +279,7 @@ export default function Hero() {
                   className="bg-white px-3 py-1 rounded-full text-sm shadow-md whitespace-nowrap"
                   initial={{ x: 50, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 2.5 + index * 0.1 }}
+                  transition={{ delay: 1.2 + index * 0.1 }}
                   whileHover={{ scale: 1.1, backgroundColor: "#f0fdf4" }}
                 >
                   {skill}

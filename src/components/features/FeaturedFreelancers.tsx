@@ -54,8 +54,8 @@ export const FeaturedFreelancers: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {freelancers.map((freelancer) => (
             <Link
-              key={freelancer._id}
-              href={`/freelancers/${freelancer._id}`}
+              key={freelancer.id}
+              href={`/freelancers/${freelancer.id}`}
               className="group"
             >
               <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-6 h-full">
@@ -94,13 +94,13 @@ export const FeaturedFreelancers: React.FC = () => {
                     </div>
                     <div className="flex items-center">
                       <Star size={12} className="text-yellow-400 fill-yellow-400 mr-1" />
-                      <span>{freelancer.rating.toFixed(1)}</span>
+                      <span>{(freelancer.rating || 4.5).toFixed(1)}</span>
                     </div>
                   </div>
 
                   {/* Skills */}
                   <div className="flex flex-wrap justify-center gap-1 mb-4">
-                    {(freelancer.skills || []).slice(0, 3).map((skill) => (
+                    {(freelancer.skills || []).slice(0, 3).map((skill: string) => (
                       <span
                         key={skill}
                         className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs"
@@ -118,7 +118,7 @@ export const FeaturedFreelancers: React.FC = () => {
                   {/* Rate and Projects */}
                   <div className="border-t border-gray-100 pt-3">
                     <div className="text-sm text-gray-600 mb-1">
-                      {freelancer.completedProjects} projects completed
+                      {freelancer.completedProjects || 0} projects completed
                     </div>
                     <div className="font-semibold text-lg">
                       Rs. {freelancer.hourlyRate?.toLocaleString() || "N/A"}
@@ -169,7 +169,7 @@ export const FeaturedFreelancers: React.FC = () => {
             </div>
             <div>
               <div className="text-3xl font-bold text-blue-600 mb-2">
-                {(freelancers.reduce((acc, f) => acc + f.rating, 0) / freelancers.length).toFixed(1)}
+                {(freelancers.reduce((acc, f) => acc + (f.rating || 4.5), 0) / freelancers.length).toFixed(1)}
               </div>
               <div className="text-gray-600">Average Rating</div>
             </div>

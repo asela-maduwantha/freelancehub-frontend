@@ -1,4 +1,5 @@
 import Hero from "@/components/landing/Hero";
+import Search from "@/components/landing/Search";
 import Navbar from "@/components/features/Navbar";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
@@ -15,6 +16,7 @@ export default function Home() {
       <Navbar />
       <main className="min-h-screen">
         <Hero />
+        <Search />
         <Features />
         <HowItWorks />
         <TrendingSkills />

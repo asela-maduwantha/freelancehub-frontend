@@ -3,8 +3,10 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Star, Quote, ChevronLeft, ChevronRight, Play, Heart } from "lucide-react";
+import { useTestimonials } from "@/hooks/useLanding";
 
-const testimonials = [
+// Default testimonials as fallback
+const defaultTestimonials = [
   {
     id: 1,
     content:
@@ -87,6 +89,23 @@ const liveActivity = [
 const Testimonials = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const { testimonials: apiTestimonials, loading: testimonialsLoading, error: testimonialsError } = useTestimonials();
+  
+  // Merge API testimonials with default structure
+  const testimonials = apiTestimonials.length > 0 ? apiTestimonials.map((apiTest, index) => ({
+    id: index + 1,
+    content: apiTest.comment,
+    author: apiTest.clientName || apiTest.freelancerName || 'Anonymous',
+    position: apiTest.clientCompany ? `Client, ${apiTest.clientCompany}` : 'Freelancer',
+    avatar: "/user.jpg",
+    rating: apiTest.rating,
+    isFreelancer: !!apiTest.freelancerName,
+    project: apiTest.projectType,
+    budget: "₨50,000", // Default since not provided in API
+    timeline: "2 weeks", // Default since not provided in API
+    skills: [apiTest.projectType] // Using project type as skill
+  })) : defaultTestimonials;
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);

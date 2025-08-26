@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Paperclip, Search, MoreVertical, Phone, Video, User, Archive, Trash2 } from 'lucide-react';
-import { messageApi, type Message, type Conversation } from '@/lib/api/messages';
+import { messageApi, Message, Conversation } from '@/lib/api/messages';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -30,7 +30,7 @@ export default function MessageDashboard({ userId, selectedConversationId }: Mes
 
   useEffect(() => {
     if (selectedConversationId) {
-      const conversation = conversations.find(c => c._id === selectedConversationId);
+      const conversation = conversations.find(c => c.id === selectedConversationId);
       if (conversation) {
         setSelectedConversation(conversation);
         fetchMessages(selectedConversationId);
