@@ -1,4 +1,5 @@
 import apiClient from './axios-instance';
+import { publicApi } from '../lib/api/public';
 
 // Type definitions for API responses
 export interface PlatformStats {
@@ -41,11 +42,19 @@ export const landingApi = {
   // Get platform statistics
   async getStats(): Promise<PlatformStats> {
     try {
-      const response = await apiClient.get<ApiResponse<PlatformStats>>('/v1/public/stats');
-      if (response.data.success) {
-        return response.data.data;
+      const response = await publicApi.getPlatformStats();
+      if (response.success) {
+        // Map the response data to match the expected interface
+        return {
+          totalProjects: response.data.totalProjects,
+          totalFreelancers: response.data.totalFreelancers,
+          totalClients: response.data.totalClients,
+          totalEarnings: parseFloat(response.data.totalEarnings.replace(/[^0-9.-]+/g, "")),
+          projectsCompleted: response.data.completedProjects,
+          averageRating: 4.8, // Default value if not provided
+        };
       }
-      throw new Error(response.data.message || 'Failed to fetch stats');
+      throw new Error('Failed to fetch stats');
     } catch (error) {
       console.warn('Failed to fetch platform stats, using fallback data:', error);
       // Fallback dummy data if backend is not available
@@ -63,11 +72,19 @@ export const landingApi = {
   // Get popular categories
   async getCategories(): Promise<Category[]> {
     try {
-      const response = await apiClient.get<ApiResponse<Category[]>>('/v1/public/categories');
-      if (response.data.success) {
-        return response.data.data;
+      const response = await publicApi.getCategories();
+      if (response.success) {
+        // Map the response data to match the expected interface
+        return response.data.map(category => ({
+          id: category.id,
+          name: category.name,
+          description: category.description,
+          icon: category.icon || "code",
+          projectCount: category.projectCount,
+          featured: true // Assume all are featured for now
+        }));
       }
-      throw new Error(response.data.message || 'Failed to fetch categories');
+      throw new Error('Failed to fetch categories');
     } catch (error) {
       console.warn('Failed to fetch categories, using fallback data:', error);
       // Fallback dummy data if backend is not available
@@ -127,11 +144,21 @@ export const landingApi = {
   // Get featured testimonials
   async getTestimonials(): Promise<Testimonial[]> {
     try {
-      const response = await apiClient.get<ApiResponse<Testimonial[]>>('/v1/public/testimonials');
-      if (response.data.success) {
-        return response.data.data;
+      const response = await publicApi.getTestimonials();
+      if (response.success) {
+        // Map the response data to match the expected interface
+        return response.data.map(testimonial => ({
+          id: testimonial.id,
+          clientName: testimonial.name,
+          freelancerName: undefined,
+          clientCompany: testimonial.company,
+          rating: testimonial.rating,
+          comment: testimonial.content,
+          projectType: "Various", // Default value
+          featured: testimonial.featured
+        }));
       }
-      throw new Error(response.data.message || 'Failed to fetch testimonials');
+      throw new Error('Failed to fetch testimonials');
     } catch (error) {
       console.warn('Failed to fetch testimonials, using fallback data:', error);
       // Fallback dummy data if backend is not available
