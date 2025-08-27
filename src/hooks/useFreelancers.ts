@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { freelancerApi, FreelancerProfile, FreelancerFilters } from '../lib/api/freelancerApi';
+import { freelancerApi, userApi } from '../api/services/users';
+import { FreelancerProfile, FreelancerFilters } from '../types';
 
 // Hook for fetching freelancers with pagination and filtering
 export const useFreelancers = (initialFilters: FreelancerFilters = {}) => {
@@ -18,14 +19,16 @@ export const useFreelancers = (initialFilters: FreelancerFilters = {}) => {
       setLoading(true);
       setError(null);
       const currentFilters = newFilters || filters;
-      const response = await freelancerApi.getAllFreelancers(currentFilters);
+      const response = await freelancerApi.searchFreelancers(currentFilters);
       
-      setFreelancers(response.freelancers);
-      setPagination({
-        total: response.total,
-        page: response.page,
-        totalPages: Math.ceil(response.total / (response.limit || 10))
-      });
+      if (response.success && response.data) {
+        setFreelancers(response.data.freelancers || []);
+        setPagination({
+          total: response.pagination?.total || 0,
+          page: response.pagination?.page || 1,
+          totalPages: response.pagination?.totalPages || 0
+        });
+      }
     } catch (err) {
       setError('Failed to fetch freelancers');
       console.error('Error fetching freelancers:', err);
@@ -49,14 +52,16 @@ export const useFreelancers = (initialFilters: FreelancerFilters = {}) => {
       const newFilters = { ...filters, page: pagination.page + 1 };
       try {
         setLoading(true);
-        const response = await freelancerApi.getAllFreelancers(newFilters);
-        setFreelancers(prev => [...prev, ...response.freelancers]);
-        setPagination({
-          total: response.total,
-          page: response.page,
-          totalPages: Math.ceil(response.total / (response.limit || 10))
-        });
-        setFilters(newFilters);
+        const response = await freelancerApi.searchFreelancers(newFilters);
+        if (response.success && response.data) {
+          setFreelancers(prev => [...prev, ...(response.data.freelancers || [])]);
+          setPagination({
+            total: response.pagination?.total || 0,
+            page: response.pagination?.page || 1,
+            totalPages: response.pagination?.totalPages || 0
+          });
+          setFilters(newFilters);
+        }
       } catch (err) {
         setError('Failed to load more freelancers');
       } finally {
@@ -88,8 +93,10 @@ export const useFreelancer = (id: string) => {
       try {
         setLoading(true);
         setError(null);
-        const data = await freelancerApi.getProfile(id);
-        setFreelancer(data);
+        const response = await userApi.getUserProfile(id);
+        if (response.success && response.data) {
+          setFreelancer(response.data as FreelancerProfile);
+        }
       } catch (err) {
         setError('Failed to fetch freelancer');
         console.error('Error fetching freelancer:', err);
@@ -121,8 +128,10 @@ export const useFreelancerSearch = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await freelancerApi.searchFreelancers(query);
-      setResults(response);
+      const response = await freelancerApi.searchFreelancers({ skills: [query] });
+      if (response.success && response.data) {
+        setResults(response.data.freelancers || []);
+      }
     } catch (err) {
       setError('Search failed');
       console.error('Search error:', err);
@@ -159,103 +168,119 @@ export const useFeaturedFreelancers = (limit: number = 8) => {
         setError(null);
         
         // Try to get real data first
-        const response = await freelancerApi.getAllFreelancers({ limit });
-        if (response.freelancers.length > 0) {
-          setFreelancers(response.freelancers);
+        const response = await freelancerApi.searchFreelancers({ limit });
+        if (response.success && response.data && response.data.freelancers.length > 0) {
+          setFreelancers(response.data.freelancers);
         } else {
           // Fallback to mock data for development
           const mockFreelancers: FreelancerProfile[] = [
             {
               id: '1',
-              userId: '1',
+              email: 'john.doe@example.com',
+              username: 'johndoe',
               firstName: 'John',
               lastName: 'Doe',
+              primaryRole: 'freelancer',
               title: 'Full Stack Developer',
               bio: 'Experienced developer with 5+ years in React and Node.js',
-              location: 'New York, NY',
-              address: 'New York, NY, USA',
-              hourlyRate: 75,
-              experience: '5+ years',
+              location: { country: 'USA', city: 'New York' },
+              hourlyRate: { amount: 75, currency: 'USD' },
+              availability: 'available',
               rating: 4.8,
+              reviewsCount: 23,
               completedProjects: 23,
-              isAvailable: true,
+              verified: true,
+              status: 'active',
+              memberSince: '2020-01-01',
               skills: ['React', 'Node.js', 'TypeScript', 'MongoDB'],
+              experience: [],
               education: [],
               certifications: [],
-              portfolioLinks: [],
-              isProfileComplete: true,
-              profileCompleteness: 90,
-              createdAt: new Date(),
-              updatedAt: new Date()
+              portfolio: [],
+              languages: [],
+              createdAt: '2020-01-01T00:00:00.000Z',
+              updatedAt: '2024-08-27T00:00:00.000Z'
             },
             {
               id: '2',
-              userId: '2',
+              email: 'jane.smith@example.com',
+              username: 'janesmith',
               firstName: 'Jane',
               lastName: 'Smith',
+              primaryRole: 'freelancer',
               title: 'UI/UX Designer',
               bio: 'Creative designer specializing in user experience and interface design',
-              location: 'San Francisco, CA',
-              address: 'San Francisco, CA, USA',
-              hourlyRate: 65,
-              experience: '3+ years',
+              location: { country: 'USA', city: 'San Francisco' },
+              hourlyRate: { amount: 65, currency: 'USD' },
+              availability: 'available',
               rating: 4.9,
+              reviewsCount: 18,
               completedProjects: 18,
-              isAvailable: true,
+              verified: true,
+              status: 'active',
+              memberSince: '2020-06-01',
               skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research'],
+              experience: [],
               education: [],
               certifications: [],
-              portfolioLinks: [],
-              isProfileComplete: true,
-              profileCompleteness: 85,
-              createdAt: new Date(),
-              updatedAt: new Date()
+              portfolio: [],
+              languages: [],
+              createdAt: '2020-06-01T00:00:00.000Z',
+              updatedAt: '2024-08-27T00:00:00.000Z'
             },
             {
               id: '3',
-              userId: '3',
+              email: 'mike.johnson@example.com',
+              username: 'mikejohnson',
               firstName: 'Mike',
               lastName: 'Johnson',
+              primaryRole: 'freelancer',
               title: 'Mobile App Developer',
               bio: 'iOS and Android developer with expertise in React Native',
-              location: 'Austin, TX',
-              address: 'Austin, TX, USA',
-              hourlyRate: 80,
-              experience: '4+ years',
+              location: { country: 'USA', city: 'Austin' },
+              hourlyRate: { amount: 80, currency: 'USD' },
+              availability: 'busy',
               rating: 4.7,
+              reviewsCount: 31,
               completedProjects: 31,
-              isAvailable: false,
+              verified: true,
+              status: 'active',
+              memberSince: '2019-03-15',
               skills: ['React Native', 'Swift', 'Kotlin', 'Firebase'],
+              experience: [],
               education: [],
               certifications: [],
-              portfolioLinks: [],
-              isProfileComplete: true,
-              profileCompleteness: 92,
-              createdAt: new Date(),
-              updatedAt: new Date()
+              portfolio: [],
+              languages: [],
+              createdAt: '2019-03-15T00:00:00.000Z',
+              updatedAt: '2024-08-27T00:00:00.000Z'
             },
             {
               id: '4',
-              userId: '4',
+              email: 'sarah.wilson@example.com',
+              username: 'sarahwilson',
               firstName: 'Sarah',
               lastName: 'Wilson',
+              primaryRole: 'freelancer',
               title: 'Data Scientist',
               bio: 'Machine learning expert with experience in Python and R',
-              location: 'Boston, MA',
-              address: 'Boston, MA, USA',
-              hourlyRate: 90,
-              experience: '6+ years',
+              location: { country: 'USA', city: 'Boston' },
+              hourlyRate: { amount: 90, currency: 'USD' },
+              availability: 'available',
               rating: 4.9,
+              reviewsCount: 42,
               completedProjects: 42,
-              isAvailable: true,
+              verified: true,
+              status: 'active',
+              memberSince: '2018-11-20',
               skills: ['Python', 'R', 'TensorFlow', 'Pandas'],
+              experience: [],
               education: [],
               certifications: [],
-              portfolioLinks: [],
-              isProfileComplete: true,
-              profileCompleteness: 95,
-              createdAt: new Date(),
-              updatedAt: new Date()
+              portfolio: [],
+              languages: [],
+              createdAt: '2018-11-20T00:00:00.000Z',
+              updatedAt: '2024-08-27T00:00:00.000Z'
             }
           ];
           
@@ -269,26 +294,30 @@ export const useFeaturedFreelancers = (limit: number = 8) => {
         const mockFreelancers: FreelancerProfile[] = [
           {
             id: '1',
-            userId: '1',
+            email: 'john.doe@example.com',
+            username: 'johndoe',
             firstName: 'John',
             lastName: 'Doe',
+            primaryRole: 'freelancer',
             title: 'Full Stack Developer',
             bio: 'Experienced developer with 5+ years in React and Node.js',
-            location: 'New York, NY',
-            address: 'New York, NY, USA',
-            hourlyRate: 75,
-            experience: '5+ years',
+            location: { country: 'USA', city: 'New York' },
+            hourlyRate: { amount: 75, currency: 'USD' },
+            availability: 'available',
             rating: 4.8,
+            reviewsCount: 23,
             completedProjects: 23,
-            isAvailable: true,
+            verified: true,
+            status: 'active',
+            memberSince: '2020-01-01',
             skills: ['React', 'Node.js', 'TypeScript', 'MongoDB'],
+            experience: [],
             education: [],
             certifications: [],
-            portfolioLinks: [],
-            isProfileComplete: true,
-            profileCompleteness: 90,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            portfolio: [],
+            languages: [],
+            createdAt: '2020-01-01T00:00:00.000Z',
+            updatedAt: '2024-08-27T00:00:00.000Z'
           }
         ];
         

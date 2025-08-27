@@ -1,26 +1,13 @@
 import apiClient from './axios-instance';
-import { publicApi } from '../lib/api/public';
+import { publicApi } from './services/public';
+import { PlatformStats, PopularCategory, ApiResponse } from '../types';
 
-// Type definitions for API responses
-export interface PlatformStats {
-  totalProjects: number;
-  totalFreelancers: number;
-  totalClients: number;
-  totalEarnings: number;
-  projectsCompleted: number;
-  averageRating: number;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  projectCount: number;
+// Local types for landing page
+export interface Category extends PopularCategory {
   featured: boolean;
 }
 
-export interface Testimonial {
+export interface LandingTestimonial {
   id: string;
   clientName?: string;
   freelancerName?: string;
@@ -31,27 +18,21 @@ export interface Testimonial {
   featured: boolean;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
-
 // Landing page API functions
 export const landingApi = {
   // Get platform statistics
   async getStats(): Promise<PlatformStats> {
     try {
       const response = await publicApi.getPlatformStats();
-      if (response.success) {
+      if (response.success && response.data) {
         // Map the response data to match the expected interface
         return {
           totalProjects: response.data.totalProjects,
           totalFreelancers: response.data.totalFreelancers,
           totalClients: response.data.totalClients,
-          totalEarnings: parseFloat(response.data.totalEarnings.replace(/[^0-9.-]+/g, "")),
-          projectsCompleted: response.data.completedProjects,
-          averageRating: 4.8, // Default value if not provided
+          totalEarnings: response.data.totalEarnings,
+          projectsCompleted: response.data.projectsCompleted,
+          averageRating: response.data.averageRating || 4.8,
         };
       }
       throw new Error('Failed to fetch stats');
@@ -72,15 +53,11 @@ export const landingApi = {
   // Get popular categories
   async getCategories(): Promise<Category[]> {
     try {
-      const response = await publicApi.getCategories();
-      if (response.success) {
+      const response = await publicApi.getPopularCategories();
+      if (response.success && response.data) {
         // Map the response data to match the expected interface
-        return response.data.map(category => ({
-          id: category.id,
-          name: category.name,
-          description: category.description,
-          icon: category.icon || "code",
-          projectCount: category.projectCount,
+        return response.data.map((category: any) => ({
+          ...category,
           featured: true // Assume all are featured for now
         }));
       }
@@ -142,20 +119,20 @@ export const landingApi = {
   },
 
   // Get featured testimonials
-  async getTestimonials(): Promise<Testimonial[]> {
+  async getTestimonials(): Promise<LandingTestimonial[]> {
     try {
-      const response = await publicApi.getTestimonials();
-      if (response.success) {
+      const response = await publicApi.getFeaturedTestimonials();
+      if (response.success && response.data) {
         // Map the response data to match the expected interface
-        return response.data.map(testimonial => ({
+        return response.data.map((testimonial: any) => ({
           id: testimonial.id,
-          clientName: testimonial.name,
-          freelancerName: undefined,
-          clientCompany: testimonial.company,
+          clientName: testimonial.clientName,
+          freelancerName: testimonial.freelancerName,
+          clientCompany: testimonial.clientCompany,
           rating: testimonial.rating,
-          comment: testimonial.content,
-          projectType: "Various", // Default value
-          featured: testimonial.featured
+          comment: testimonial.comment,
+          projectType: testimonial.projectType || "Various",
+          featured: true
         }));
       }
       throw new Error('Failed to fetch testimonials');

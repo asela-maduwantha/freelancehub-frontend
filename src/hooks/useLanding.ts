@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { landingApi, type PlatformStats, type Category, type Testimonial } from '@/api/landing';
+import { landingApi, type Category, type LandingTestimonial } from '@/api/landing';
+import { type PlatformStats } from '@/types';
 
 // Hook for platform statistics
 export function usePlatformStats() {
@@ -55,7 +56,7 @@ export function useCategories() {
 
 // Hook for testimonials
 export function useTestimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonials, setTestimonials] = useState<LandingTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

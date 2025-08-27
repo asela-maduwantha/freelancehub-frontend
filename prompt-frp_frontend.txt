@@ -29,7 +29,7 @@ Create a modern, responsive landing page for FreelanceHub with the following sec
 **Curl Commands:**
 ```bash
 # Get platform statistics for landing page
-curl -X GET "http://localhost:3000/v1/public/stats" \
+curl -X GET "http://localhost:8000/api/v1/public/stats" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -46,7 +46,7 @@ curl -X GET "http://localhost:3000/v1/public/stats" \
 }
 
 # Get popular categories
-curl -X GET "http://localhost:3000/v1/public/categories" \
+curl -X GET "http://localhost:8000/api/v1/public/categories" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -73,7 +73,7 @@ curl -X GET "http://localhost:3000/v1/public/categories" \
 }
 
 # Get featured testimonials
-curl -X GET "http://localhost:3000/v1/public/testimonials" \
+curl -X GET "http://localhost:8000/api/v1/public/testimonials" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -114,7 +114,7 @@ Create a public projects browsing page where visitors can explore available proj
 **Curl Commands:**
 ```bash
 # Browse public projects with filters
-curl -X GET "http://localhost:3000/v1/projects/public?page=1&limit=12&category=web-development&minBudget=100&maxBudget=5000&projectType=fixed" \
+curl -X GET "http://localhost:8000/api/v1/projects/public?page=1&limit=12&category=web-development&minBudget=100&maxBudget=5000&projectType=fixed" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -154,7 +154,7 @@ curl -X GET "http://localhost:3000/v1/projects/public?page=1&limit=12&category=w
 }
 
 # Get project categories for filters
-curl -X GET "http://localhost:3000/v1/projects/categories" \
+curl -X GET "http://localhost:8000/api/v1/public/categories" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -193,7 +193,7 @@ Create a freelancer directory page for browsing talent:
 **Curl Commands:**
 ```bash
 # Browse freelancers publicly
-curl -X GET "http://localhost:3000/v1/freelancers/public?page=1&limit=12&skills=react,nodejs&location=colombo&minRate=10&maxRate=100" \
+curl -X GET "http://localhost:8000/api/v1/public/featured-freelancers?page=1&limit=12&skills=react,nodejs&location=colombo&minRate=10&maxRate=100" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -240,7 +240,7 @@ curl -X GET "http://localhost:3000/v1/freelancers/public?page=1&limit=12&skills=
 }
 
 # Get skills list for filtering
-curl -X GET "http://localhost:3000/v1/skills" \
+curl -X GET "http://localhost:8000/api/v1/public/skills" \
   -H "Content-Type: application/json"
 
 # Response:
@@ -293,7 +293,7 @@ Create a modern login page with dual authentication methods:
 **Curl Commands:**
 ```bash
 # Traditional login
-curl -X POST "http://localhost:3000/v1/auth/login" \
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -323,7 +323,7 @@ curl -X POST "http://localhost:3000/v1/auth/login" \
 }
 
 # Get WebAuthn challenge for login
-curl -X POST "http://localhost:3000/v1/auth/login/challenge" \
+curl -X POST "http://localhost:8000/api/v1/auth/login/challenge" \
   -H "Content-Type: application/json" \
   -d '{
     "identifier": "user@example.com"
@@ -345,7 +345,7 @@ curl -X POST "http://localhost:3000/v1/auth/login/challenge" \
 }
 
 # Verify WebAuthn login
-curl -X POST "http://localhost:3000/v1/auth/login/verify" \
+curl -X POST "http://localhost:8000/api/v1/auth/login/verify" \
   -H "Content-Type: application/json" \
   -d '{
     "identifier": "user@example.com",
@@ -390,7 +390,7 @@ Create a comprehensive registration page with role selection:
 **Curl Commands:**
 ```bash
 # Register new user
-curl -X POST "http://localhost:3000/v1/auth/register" \
+curl -X POST "http://localhost:8000/api/v1/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "newuser@example.com",
@@ -426,7 +426,7 @@ curl -X POST "http://localhost:3000/v1/auth/register" \
 }
 
 # Verify email
-curl -X POST "http://localhost:3000/v1/auth/verify-email" \
+curl -X POST "http://localhost:8000/api/v1/auth/verify-email" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "newuser@example.com",
@@ -448,7 +448,7 @@ curl -X POST "http://localhost:3000/v1/auth/verify-email" \
 }
 
 # Send email OTP
-curl -X POST "http://localhost:3000/v1/auth/send-email-otp" \
+curl -X POST "http://localhost:8000/api/v1/auth/send-email-otp" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "newuser@example.com",
@@ -480,7 +480,7 @@ Create password reset flow with modern UX:
 **Curl Commands:**
 ```bash
 # Request password reset
-curl -X POST "http://localhost:3000/v1/auth/forgot-password" \
+curl -X POST "http://localhost:8000/api/v1/auth/forgot-password" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com"
@@ -498,7 +498,7 @@ curl -X POST "http://localhost:3000/v1/auth/forgot-password" \
 }
 
 # Reset password with OTP
-curl -X POST "http://localhost:3000/v1/auth/reset-password" \
+curl -X POST "http://localhost:8000/api/v1/auth/reset-password" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -536,7 +536,7 @@ Create a comprehensive freelancer dashboard with:
 **Curl Commands:**
 ```bash
 # Get freelancer dashboard data
-curl -X GET "http://localhost:3000/v1/freelancer/dashboard" \
+curl -X GET "http://localhost:8000/api/v1/freelancer/dashboard" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -581,7 +581,7 @@ curl -X GET "http://localhost:3000/v1/freelancer/dashboard" \
 }
 
 # Get freelancer statistics
-curl -X GET "http://localhost:3000/v1/freelancer/stats" \
+curl -X GET "http://localhost:8000/api/v1/freelancer/stats" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -612,7 +612,7 @@ curl -X GET "http://localhost:3000/v1/freelancer/stats" \
 }
 
 # Get recent activity
-curl -X GET "http://localhost:3000/v1/freelancer/activity?limit=10" \
+curl -X GET "http://localhost:8000/api/v1/freelancer/activity?limit=10" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -657,7 +657,7 @@ Create advanced project browsing for freelancers:
 **Curl Commands:**
 ```bash
 # Browse projects as freelancer
-curl -X GET "http://localhost:3000/v1/projects?page=1&limit=20&category=development&minBudget=500" \
+curl -X GET "http://localhost:8000/api/v1/projects?page=1&limit=20&category=development&minBudget=500" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -712,7 +712,7 @@ curl -X GET "http://localhost:3000/v1/projects?page=1&limit=20&category=developm
 }
 
 # Get recommended projects
-curl -X GET "http://localhost:3000/v1/projects/recommended" \
+curl -X GET "http://localhost:8000/api/v1/projects/recommended" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -740,7 +740,7 @@ curl -X GET "http://localhost:3000/v1/projects/recommended" \
 }
 
 # Save/bookmark project
-curl -X POST "http://localhost:3000/v1/projects/{projectId}/bookmark" \
+curl -X GET "http://localhost:8000/api/v1/projects/{projectId}/bookmark" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -766,7 +766,7 @@ Create proposal management system:
 **Curl Commands:**
 ```bash
 # Submit proposal
-curl -X POST "http://localhost:3000/v1/projects/{projectId}/proposals" \
+curl -X POST "http://localhost:8000/api/v1/projects/{projectId}/proposals" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -801,7 +801,7 @@ curl -X POST "http://localhost:3000/v1/projects/{projectId}/proposals" \
 }
 
 # Get freelancer proposals
-curl -X GET "http://localhost:3000/v1/freelancer/proposals?status=active&page=1" \
+curl -X GET "http://localhost:8000/api/v1/projects/freelancer/proposals?status=active&page=1" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -846,7 +846,7 @@ curl -X GET "http://localhost:3000/v1/freelancer/proposals?status=active&page=1"
 }
 
 # Update proposal
-curl -X PUT "http://localhost:3000/v1/proposals/{proposalId}" \
+curl -X PUT "http://localhost:8000/api/v1/proposals/{proposalId}" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -889,7 +889,7 @@ Create project management interface for freelancers:
 **Curl Commands:**
 ```bash
 # Get active projects
-curl -X GET "http://localhost:3000/v1/freelancer/projects/active" \
+curl -X GET "http://localhost:8000/api/v1/freelancer/projects/active" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -931,7 +931,7 @@ curl -X GET "http://localhost:3000/v1/freelancer/projects/active" \
 }
 
 # Update project progress
-curl -X PUT "http://localhost:3000/v1/projects/{projectId}/progress" \
+curl -X PUT "http://localhost:8000/api/v1/projects/{projectId}/progress" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -956,7 +956,7 @@ curl -X PUT "http://localhost:3000/v1/projects/{projectId}/progress" \
 }
 
 # Submit milestone
-curl -X POST "http://localhost:3000/v1/projects/{projectId}/milestones/{milestoneId}/submit" \
+curl -X POST "http://localhost:8000/api/v1/projects/{projectId}/milestones/{milestoneId}/submit" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -995,7 +995,7 @@ Create comprehensive profile management:
 **Curl Commands:**
 ```bash
 # Get freelancer profile
-curl -X GET "http://localhost:3000/v1/auth/me" \
+curl -X GET "http://localhost:8000/api/v1/auth/me" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1033,7 +1033,7 @@ curl -X GET "http://localhost:3000/v1/auth/me" \
 }
 
 # Update freelancer profile
-curl -X PUT "http://localhost:3000/v1/freelancer/profile" \
+curl -X PUT "http://localhost:8000/api/v1/freelancer/profile" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1066,7 +1066,7 @@ curl -X PUT "http://localhost:3000/v1/freelancer/profile" \
 }
 
 # Upload portfolio item
-curl -X POST "http://localhost:3000/v1/freelancer/portfolio" \
+curl -X POST "http://localhost:8000/api/v1/freelancer/portfolio" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: multipart/form-data" \
   -F "title=E-commerce Website" \
@@ -1112,7 +1112,7 @@ Create financial management dashboard:
 **Curl Commands:**
 ```bash
 # Get earnings overview
-curl -X GET "http://localhost:3000/v1/freelancer/earnings?period=monthly&year=2024" \
+curl -X GET "http://localhost:8000/api/v1/freelancer/earnings?period=monthly&year=2024" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1153,7 +1153,7 @@ curl -X GET "http://localhost:3000/v1/freelancer/earnings?period=monthly&year=20
 }
 
 # Get payment history
-curl -X GET "http://localhost:3000/v1/freelancer/payments?page=1&limit=20" \
+curl -X GET "http://localhost:8000/api/v1/freelancer/payments?page=1&limit=20" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1190,7 +1190,7 @@ curl -X GET "http://localhost:3000/v1/freelancer/payments?page=1&limit=20" \
 }
 
 # Request payout
-curl -X POST "http://localhost:3000/v1/freelancer/payout" \
+curl -X POST "http://localhost:8000/api/v1/freelancer/payout" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1237,7 +1237,7 @@ Create client-focused dashboard with:
 **Curl Commands:**
 ```bash
 # Get client dashboard
-curl -X GET "http://localhost:3000/v1/client/dashboard" \
+curl -X GET "http://localhost:8000/api/v1/client/dashboard" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1292,7 +1292,7 @@ curl -X GET "http://localhost:3000/v1/client/dashboard" \
 }
 
 # Get client statistics
-curl -X GET "http://localhost:3000/v1/client/stats" \
+curl -X GET "http://localhost:8000/api/v1/client/stats" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1325,7 +1325,7 @@ curl -X GET "http://localhost:3000/v1/client/stats" \
 }
 
 # Get recent applications
-curl -X GET "http://localhost:3000/v1/client/recent-applications?limit=10" \
+curl -X GET "http://localhost:8000/api/v1/client/recent-applications?limit=10" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1379,7 +1379,7 @@ Create intuitive project posting wizard:
 **Curl Commands:**
 ```bash
 # Create new project
-curl -X POST "http://localhost:3000/v1/projects" \
+curl -X POST "http://localhost:8000/api/v1/projects" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1428,7 +1428,7 @@ curl -X POST "http://localhost:3000/v1/projects" \
 }
 
 # Get project templates
-curl -X GET "http://localhost:3000/v1/projects/templates?category=web_development" \
+curl -X GET "http://localhost:8000/api/v1/projects/templates?category=web_development" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1489,7 +1489,7 @@ Create project management interface for clients:
 **Curl Commands:**
 ```bash
 # Get client projects
-curl -X GET "http://localhost:3000/v1/client/projects?status=active&page=1" \
+curl -X GET "http://localhost:8000/api/v1/client/projects?status=active&page=1" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1538,7 +1538,7 @@ curl -X GET "http://localhost:3000/v1/client/projects?status=active&page=1" \
 }
 
 # Get project proposals
-curl -X GET "http://localhost:3000/v1/projects/{projectId}/proposals" \
+curl -X GET "http://localhost:8000/api/v1/projects/{projectId}/proposals" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1590,7 +1590,7 @@ curl -X GET "http://localhost:3000/v1/projects/{projectId}/proposals" \
 }
 
 # Accept proposal
-curl -X POST "http://localhost:3000/v1/projects/proposals/{proposalId}/accept" \
+curl -X POST "http://localhost:8000/api/v1/projects/proposals/{proposalId}/accept" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1625,7 +1625,7 @@ curl -X POST "http://localhost:3000/v1/projects/proposals/{proposalId}/accept" \
 }
 
 # Approve milestone
-curl -X POST "http://localhost:3000/v1/projects/{projectId}/milestones/{milestoneId}/approve" \
+curl -X POST "http://localhost:8000/api/v1/projects/{projectId}/milestones/{milestoneId}/approve" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1662,7 +1662,7 @@ Create advanced freelancer discovery system:
 **Curl Commands:**
 ```bash
 # Search freelancers
-curl -X GET "http://localhost:3000/v1/freelancers?skills=react,nodejs&minRate=20&maxRate=80&availability=available" \
+curl -X GET "http://localhost:8000/api/v1/freelancers?skills=react,nodejs&minRate=20&maxRate=80&availability=available" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1721,7 +1721,7 @@ curl -X GET "http://localhost:3000/v1/freelancers?skills=react,nodejs&minRate=20
 }
 
 # Invite freelancer to project
-curl -X POST "http://localhost:3000/v1/projects/{projectId}/invite" \
+curl -X POST "http://localhost:8000/api/v1/projects/{projectId}/invite" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1747,7 +1747,7 @@ curl -X POST "http://localhost:3000/v1/projects/{projectId}/invite" \
 }
 
 # Save freelancer to favorites
-curl -X POST "http://localhost:3000/v1/client/favorites/freelancers" \
+curl -X POST "http://localhost:8000/api/v1/client/favorites/freelancers" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1782,7 +1782,7 @@ Create payment management system for clients:
 **Curl Commands:**
 ```bash
 # Create payment intent
-curl -X POST "http://localhost:3000/v1/payments/intent" \
+curl -X POST "http://localhost:8000/api/v1/payments/intent" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1816,7 +1816,7 @@ curl -X POST "http://localhost:3000/v1/payments/intent" \
 }
 
 # Get payment history
-curl -X GET "http://localhost:3000/v1/client/payments?page=1&limit=20" \
+curl -X GET "http://localhost:8000/api/v1/client/payments?page=1&limit=20" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1867,7 +1867,7 @@ curl -X GET "http://localhost:3000/v1/client/payments?page=1&limit=20" \
 }
 
 # Process milestone payment
-curl -X POST "http://localhost:3000/v1/payments/milestone" \
+curl -X POST "http://localhost:8000/api/v1/payments/milestone" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1917,7 +1917,7 @@ Create real-time messaging interface:
 **Curl Commands:**
 ```bash
 # Send message
-curl -X POST "http://localhost:3000/v1/messaging/messages" \
+curl -X POST "http://localhost:8000/api/v1/messaging/messages" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1945,7 +1945,7 @@ curl -X POST "http://localhost:3000/v1/messaging/messages" \
 }
 
 # Get conversations
-curl -X GET "http://localhost:3000/v1/messaging/conversations?page=1&limit=20" \
+curl -X GET "http://localhost:8000/api/v1/messaging/conversations?page=1&limit=20" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -1992,7 +1992,7 @@ curl -X GET "http://localhost:3000/v1/messaging/conversations?page=1&limit=20" \
 }
 
 # Get conversation messages
-curl -X GET "http://localhost:3000/v1/messaging/conversations/{conversationId}/messages?page=1" \
+curl -X GET "http://localhost:8000/api/v1/messaging/conversations/{conversationId}/messages?page=1" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -2045,7 +2045,7 @@ Create comprehensive notifications system:
 **Curl Commands:**
 ```bash
 # Get notifications
-curl -X GET "http://localhost:3000/v1/notifications?page=1&limit=20&status=unread" \
+curl -X GET "http://localhost:8000/api/v1/notifications?page=1&limit=20&status=unread" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -2098,7 +2098,7 @@ curl -X GET "http://localhost:3000/v1/notifications?page=1&limit=20&status=unrea
 }
 
 # Mark notification as read
-curl -X PUT "http://localhost:3000/v1/notifications/{notificationId}/read" \
+curl -X PUT "http://localhost:8000/api/v1/notifications/{notificationId}/read" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -2115,7 +2115,7 @@ curl -X PUT "http://localhost:3000/v1/notifications/{notificationId}/read" \
 }
 
 # Update notification preferences
-curl -X PUT "http://localhost:3000/v1/notifications/preferences" \
+curl -X PUT "http://localhost:8000/api/v1/notifications/preferences" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2171,7 +2171,7 @@ Create review and rating system:
 **Curl Commands:**
 ```bash
 # Create review
-curl -X POST "http://localhost:3000/v1/reviews" \
+curl -X POST "http://localhost:8000/api/v1/reviews" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2212,7 +2212,7 @@ curl -X POST "http://localhost:3000/v1/reviews" \
 }
 
 # Get reviews
-curl -X GET "http://localhost:3000/v1/reviews?userId=user_id&page=1&limit=10" \
+curl -X GET "http://localhost:8000/api/v1/reviews?userId=user_id&page=1&limit=10" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -2268,7 +2268,7 @@ curl -X GET "http://localhost:3000/v1/reviews?userId=user_id&page=1&limit=10" \
 }
 
 # Respond to review
-curl -X POST "http://localhost:3000/v1/reviews/{reviewId}/response" \
+curl -X POST "http://localhost:8000/api/v1/reviews/{reviewId}/response" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2304,7 +2304,7 @@ Create file management system:
 **Curl Commands:**
 ```bash
 # Upload single file
-curl -X POST "http://localhost:3000/uploads/single" \
+curl -X POST "http://localhost:8000/api/v1/uploads/single" \
   -H "Authorization: Bearer {access_token}" \
   -F "file=@document.pdf" \
   -F "category=project_file"
@@ -2332,7 +2332,7 @@ curl -X POST "http://localhost:3000/uploads/single" \
 }
 
 # Upload multiple files
-curl -X POST "http://localhost:3000/uploads/multiple" \
+curl -X POST "http://localhost:8000/api/v1/uploads/multiple" \
   -H "Authorization: Bearer {access_token}" \
   -F "files=@image1.jpg" \
   -F "files=@image2.jpg" \
@@ -2376,7 +2376,7 @@ curl -X POST "http://localhost:3000/uploads/multiple" \
 }
 
 # Get user files
-curl -X GET "http://localhost:3000/uploads/user-files?category=project_file&page=1" \
+curl -X GET "http://localhost:8000/api/v1/uploads/user-files?category=project_file&page=1" \
   -H "Authorization: Bearer {access_token}"
 
 # Response:
@@ -2431,7 +2431,7 @@ Create comprehensive settings management:
 **Curl Commands:**
 ```bash
 # Update profile settings
-curl -X PUT "http://localhost:3000/v1/auth/profile" \
+curl -X PUT "http://localhost:8000/api/v1/auth/profile" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2465,7 +2465,7 @@ curl -X PUT "http://localhost:3000/v1/auth/profile" \
 }
 
 # Change password
-curl -X PUT "http://localhost:3000/v1/auth/change-password" \
+curl -X PUT "http://localhost:8000/api/v1/auth/change-password" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2485,7 +2485,7 @@ curl -X PUT "http://localhost:3000/v1/auth/change-password" \
 }
 
 # Update privacy settings
-curl -X PUT "http://localhost:3000/v1/auth/privacy" \
+curl -X PUT "http://localhost:8000/api/v1/auth/privacy" \
   -H "Authorization: Bearer {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2532,7 +2532,7 @@ Create comprehensive admin dashboard:
 **Curl Commands:**
 ```bash
 # Get admin dashboard stats
-curl -X GET "http://localhost:3000/admin/dashboard/stats" \
+curl -X GET "http://localhost:8000/api/v1/admin/dashboard/stats" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2576,7 +2576,7 @@ curl -X GET "http://localhost:3000/admin/dashboard/stats" \
 }
 
 # Get platform analytics
-curl -X GET "http://localhost:3000/admin/analytics?period=monthly&year=2024" \
+curl -X GET "http://localhost:8000/api/v1/admin/analytics?period=monthly&year=2024" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2617,7 +2617,7 @@ curl -X GET "http://localhost:3000/admin/analytics?period=monthly&year=2024" \
 }
 
 # Get system health
-curl -X GET "http://localhost:3000/admin/system/health" \
+curl -X GET "http://localhost:8000/api/v1/admin/system/health" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2667,7 +2667,7 @@ Create user management interface:
 **Curl Commands:**
 ```bash
 # Get users list
-curl -X GET "http://localhost:3000/admin/users?page=1&limit=20&role=freelancer&status=active" \
+curl -X GET "http://localhost:8000/api/v1/admin/users?page=1&limit=20&role=freelancer&status=active" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2712,7 +2712,7 @@ curl -X GET "http://localhost:3000/admin/users?page=1&limit=20&role=freelancer&s
 }
 
 # Get user details
-curl -X GET "http://localhost:3000/admin/users/{userId}" \
+curl -X GET "http://localhost:8000/api/v1/admin/users/{userId}" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2751,7 +2751,7 @@ curl -X GET "http://localhost:3000/admin/users/{userId}" \
 }
 
 # Update user status
-curl -X PUT "http://localhost:3000/admin/users/{userId}/status" \
+curl -X PUT "http://localhost:8000/api/v1/admin/users/{userId}/status" \
   -H "Authorization: Bearer {admin_access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2789,7 +2789,7 @@ Create admin project oversight:
 **Curl Commands:**
 ```bash
 # Get projects for admin review
-curl -X GET "http://localhost:3000/admin/projects?status=pending&page=1" \
+curl -X GET "http://localhost:8000/api/v1/admin/projects?status=pending&page=1" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2829,7 +2829,7 @@ curl -X GET "http://localhost:3000/admin/projects?status=pending&page=1" \
 }
 
 # Approve/reject project
-curl -X PUT "http://localhost:3000/admin/projects/{projectId}/status" \
+curl -X PUT "http://localhost:8000/api/v1/admin/projects/{projectId}/status" \
   -H "Authorization: Bearer {admin_access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2853,7 +2853,7 @@ curl -X PUT "http://localhost:3000/admin/projects/{projectId}/status" \
 }
 
 # Handle dispute
-curl -X POST "http://localhost:3000/admin/disputes/{disputeId}/resolve" \
+curl -X POST "http://localhost:8000/api/v1/admin/disputes/{disputeId}/resolve" \
   -H "Authorization: Bearer {admin_access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2893,7 +2893,7 @@ Create financial oversight dashboard:
 **Curl Commands:**
 ```bash
 # Get financial overview
-curl -X GET "http://localhost:3000/admin/finance/overview?period=monthly" \
+curl -X GET "http://localhost:8000/api/v1/admin/finance/overview?period=monthly" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2932,7 +2932,7 @@ curl -X GET "http://localhost:3000/admin/finance/overview?period=monthly" \
 }
 
 # Get transaction details
-curl -X GET "http://localhost:3000/admin/finance/transactions?page=1&limit=50" \
+curl -X GET "http://localhost:8000/api/v1/admin/finance/transactions?page=1&limit=50" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -2976,7 +2976,7 @@ curl -X GET "http://localhost:3000/admin/finance/transactions?page=1&limit=50" \
 }
 
 # Approve payout
-curl -X PUT "http://localhost:3000/admin/finance/payouts/{payoutId}/approve" \
+curl -X PUT "http://localhost:8000/api/v1/admin/finance/payouts/{payoutId}/approve" \
   -H "Authorization: Bearer {admin_access_token}"
 
 # Response:
@@ -3010,7 +3010,7 @@ Create content management system:
 **Curl Commands:**
 ```bash
 # Update platform content
-curl -X PUT "http://localhost:3000/admin/content/terms-of-service" \
+curl -X PUT "http://localhost:8000/api/v1/admin/content/terms-of-service" \
   -H "Authorization: Bearer {admin_access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -3036,7 +3036,7 @@ curl -X PUT "http://localhost:3000/admin/content/terms-of-service" \
 }
 
 # Manage categories
-curl -X POST "http://localhost:3000/admin/categories" \
+curl -X POST "http://localhost:8000/api/v1/admin/categories" \
   -H "Authorization: Bearer {admin_access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -3066,7 +3066,7 @@ curl -X POST "http://localhost:3000/admin/categories" \
 }
 
 # Manage skills
-curl -X POST "http://localhost:3000/admin/skills" \
+curl -X POST "http://localhost:8000/api/v1/admin/skills" \
   -H "Authorization: Bearer {admin_access_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -3096,10 +3096,47 @@ curl -X POST "http://localhost:3000/admin/skills" \
 ```
 
 ---
+
+## 7. ADDITIONAL FEATURES
+
+### 7.1 Help & Support Center
+**Prompt:**
+Create comprehensive help system:
+- FAQ section with search functionality
+- Help articles with categories
+- Contact support form
+- Live chat integration
+- Video tutorials and guides
+- Community forum
+- Knowledge base with voting system
+
+### 7.2 Mobile App Interfaces
+**Prompt:**
+Create mobile-responsive versions of all above interfaces with:
+- Touch-optimized navigation
+- Mobile-specific interactions
+- Offline capability where applicable
+- Push notifications
+- Camera integration for file uploads
+- Mobile payment integration
+
+### 7.3 Advanced Analytics Dashboard
+**Prompt:**
+Create analytics interfaces for users:
+- Performance metrics and insights
+- Revenue/earnings analytics
+- Profile view analytics
+- Project success metrics
+- Comparative analytics with platform averages
+- Goal setting and tracking
+
+---
+
 ## Implementation Guidelines
 
 ### Design System Requirements:
 - Use consistent color scheme and typography
+- Implement dark/light theme support
 - Ensure accessibility (WCAG 2.1 AA compliance)
 - Mobile-first responsive design
 - Loading states and skeleton screens
@@ -3134,7 +3171,9 @@ curl -X POST "http://localhost:3000/admin/skills" \
 ---
 
 ## API Base URL Configuration
-Replace `http://localhost:3000` with your production API URL when deploying. All endpoints assume this base URL structure.
+Replace `http://localhost:8000` with your production API URL when deploying. All endpoints assume this base URL structure with `/api/v1/` prefix.
+
+**Base URL Pattern**: `http://localhost:8000/api/v1/`
 
 ## Authentication Header
 Most authenticated endpoints require the Authorization header:

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, X, Loader2, Star, MapPin } from "lucide-react";
 import { useFreelancerSearch } from "@/hooks/useFreelancers";
-import { FreelancerProfile } from "@/lib/api/freelancerApi";
+import { FreelancerProfile } from "@/types";
 import Link from "next/link";
 
 interface FreelancerSearchProps {
