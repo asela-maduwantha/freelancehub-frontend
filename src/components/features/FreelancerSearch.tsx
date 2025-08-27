@@ -187,7 +187,7 @@ export const FreelancerSearch: React.FC<FreelancerSearchProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <img
-                        src={freelancer.profilePicture || "/api/placeholder/40/40"}
+                        src={freelancer.profilePhoto || "/api/placeholder/40/40"}
                         alt={`${freelancer.firstName} ${freelancer.lastName}`}
                         className="w-10 h-10 rounded-full object-cover border border-gray-200"
                         onError={(e) => {
@@ -217,12 +217,6 @@ export const FreelancerSearch: React.FC<FreelancerSearchProps> = ({
                         </p>
                         
                         <div className="flex items-center mt-1 space-x-3 text-xs text-gray-500">
-                          <div className="flex items-center">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            <span className="truncate">
-                              {freelancer.address?.split(',')[0] || "Remote"}
-                            </span>
-                          </div>
                           <span>•</span>
                           <span>Rs. {freelancer.hourlyRate?.toLocaleString() || "N/A"}/hr</span>
                           {(freelancer.skills || []).length > 0 && (
