@@ -127,14 +127,25 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
     
     setLoading(true);
     try {
-      const response = await freelancerApi.updateProfile(formData as FreelancerProfileUpdateData);
+      // Transform data to match backend expectations
+      const profileData: FreelancerProfileUpdateData = {
+        title: formData.title || '',
+        bio: formData.bio || '',
+        skills: formData.skills || [],
+        hourlyRate: formData.hourlyRate || { amount: 0, currency: 'USD' },
+        availability: formData.availability || 'available',
+        experienceLevel: formData.experienceLevel || 'intermediate'
+      };
+      
+      const response = await freelancerApi.updateProfile(profileData);
       
       if (response.success) {
-        onSuccess(formData as FreelancerProfileUpdateData);
+        onSuccess(profileData);
       } else {
         onError(response.error?.message || 'Failed to update profile');
       }
     } catch (error: any) {
+      console.error('Profile update error:', error);
       onError('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
@@ -147,33 +158,35 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="space-y-8"
     >
       <div className="text-center mb-8">
-        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <User className="w-6 h-6 text-blue-600" />
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <User className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
           Professional Information
         </h2>
-        <p className="text-gray-600">
-          Tell us about your professional background and expertise
+        <p className="text-gray-600 text-lg max-w-md mx-auto">
+          Tell us about your professional background and expertise to help clients find you
         </p>
       </div>
 
-      <FormField
-        label="Professional Title"
-        type="text"
-        placeholder="e.g., Full Stack Developer, UI/UX Designer, Content Writer"
-        value={formData.title || ''}
-        onChange={(e) => handleInputChange('title', e.target.value)}
-        error={errors.title}
-        helperText="This will be displayed as your headline"
-        required
-      />
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <FormField
+          label="Professional Title"
+          type="text"
+          placeholder="e.g., Full Stack Developer, UI/UX Designer, Content Writer"
+          value={formData.title || ''}
+          onChange={(e) => handleInputChange('title', e.target.value)}
+          error={errors.title}
+          helperText="This will be displayed as your headline on your profile"
+          required
+        />
+      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
           Professional Bio <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -181,9 +194,9 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
           onChange={(e) => handleInputChange('bio', e.target.value)}
           placeholder="Write a compelling description of your background, skills, and what makes you unique as a freelancer..."
           rows={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-colors"
         />
-        <div className="flex justify-between items-center mt-2">
+        <div className="flex justify-between items-center mt-3">
           <span className="text-sm text-gray-500">
             {formData.bio?.length || 0}/500 characters
           </span>
@@ -192,20 +205,27 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
           </span>
         </div>
         {errors.bio && (
-          <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
+          <p className="mt-2 text-sm text-red-600 flex items-center">
+            <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+            {errors.bio}
+          </p>
         )}
       </div>
 
       {/* Experience Level */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <label className="block text-sm font-medium text-gray-700 mb-4">
           Experience Level
         </label>
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-4">
           {experienceLevels.map((level) => (
             <label
               key={level.value}
-              className="relative flex cursor-pointer rounded-lg border border-gray-300 p-4 hover:border-blue-500 transition-colors"
+              className={`relative flex cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:shadow-md ${
+                formData.experienceLevel === level.value
+                  ? 'border-blue-500 bg-blue-50 shadow-sm'
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}
             >
               <input
                 type="radio"
@@ -215,9 +235,9 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
                 onChange={(e) => handleInputChange('experienceLevel', e.target.value)}
                 className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-1"
               />
-              <div className="ml-3">
-                <div className="font-medium text-gray-900">{level.label}</div>
-                <div className="text-sm text-gray-500">{level.description}</div>
+              <div className="ml-4">
+                <div className="font-semibold text-gray-900 text-lg">{level.label}</div>
+                <div className="text-sm text-gray-600 mt-1">{level.description}</div>
               </div>
             </label>
           ))}
@@ -232,23 +252,23 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="space-y-8"
     >
       <div className="text-center mb-8">
-        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <DollarSign className="w-6 h-6 text-green-600" />
+        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <DollarSign className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
           Skills & Pricing
         </h2>
-        <p className="text-gray-600">
-          Set your skills and pricing to attract the right clients
+        <p className="text-gray-600 text-lg max-w-md mx-auto">
+          Set your skills and pricing to attract the right clients and projects
         </p>
       </div>
 
       {/* Skills */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <label className="block text-sm font-medium text-gray-700 mb-4">
           Your Skills <span className="text-red-500">*</span>
         </label>
         <SkillSelector
@@ -257,22 +277,29 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
           error={errors.skills}
           maxSkills={15}
         />
+        {errors.skills && (
+          <p className="mt-2 text-sm text-red-600 flex items-center">
+            <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+            {errors.skills}
+          </p>
+        )}
       </div>
 
       {/* Hourly Rate */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <label className="block text-sm font-medium text-gray-700 mb-4">
           Hourly Rate <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-2 gap-4">
           <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Currency</label>
             <select
               value={formData.hourlyRate?.currency || 'USD'}
               onChange={(e) => handleInputChange('hourlyRate', {
                 ...formData.hourlyRate,
                 currency: e.target.value
               })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               {currencies.map((currency) => (
                 <option key={currency.code} value={currency.code}>
@@ -282,6 +309,7 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
             </select>
           </div>
           <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Amount per hour</label>
             <input
               type="number"
               min="5"
@@ -294,28 +322,35 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
                 currency: formData.hourlyRate?.currency || 'USD',
                 amount: parseInt(e.target.value) || 0
               })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
         </div>
         {errors.hourlyRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.hourlyRate}</p>
+          <p className="mt-2 text-sm text-red-600 flex items-center">
+            <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+            {errors.hourlyRate}
+          </p>
         )}
-        <p className="mt-2 text-sm text-gray-500">
-          This is your base rate. You can always adjust it for specific projects.
+        <p className="mt-3 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+          💡 This is your base rate. You can always adjust it for specific projects.
         </p>
       </div>
 
       {/* Availability */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <label className="block text-sm font-medium text-gray-700 mb-4">
           Availability <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-4">
           {availabilityOptions.map((option) => (
             <label
               key={option.value}
-              className="relative flex cursor-pointer rounded-lg border border-gray-300 p-4 hover:border-blue-500 transition-colors"
+              className={`relative flex cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:shadow-md ${
+                formData.availability === option.value
+                  ? 'border-green-500 bg-green-50 shadow-sm'
+                  : 'border-gray-200 hover:border-green-300'
+              }`}
             >
               <input
                 type="radio"
@@ -323,17 +358,20 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
                 value={option.value}
                 checked={formData.availability === option.value}
                 onChange={(e) => handleInputChange('availability', e.target.value)}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-1"
+                className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500 mt-1"
               />
-              <div className="ml-3">
-                <div className="font-medium text-gray-900">{option.label}</div>
-                <div className="text-sm text-gray-500">{option.description}</div>
+              <div className="ml-4">
+                <div className="font-semibold text-gray-900 text-lg">{option.label}</div>
+                <div className="text-sm text-gray-600 mt-1">{option.description}</div>
               </div>
             </label>
           ))}
         </div>
         {errors.availability && (
-          <p className="mt-1 text-sm text-red-600">{errors.availability}</p>
+          <p className="mt-2 text-sm text-red-600 flex items-center">
+            <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+            {errors.availability}
+          </p>
         )}
       </div>
     </motion.div>
@@ -348,21 +386,22 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+      <div className="flex items-center justify-between mt-10 pt-8 border-t border-gray-200">
         <Button
           variant="outline"
           onClick={handleBack}
+          className="px-6 py-3"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           {[1, 2].map((step) => (
             <div
               key={step}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                step === currentSubStep ? 'bg-blue-500' : 
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                step === currentSubStep ? 'bg-blue-500 scale-110' : 
                 step < currentSubStep ? 'bg-green-500' : 'bg-gray-300'
               }`}
             />
@@ -372,9 +411,19 @@ const ProfileCompletion = ({ onSuccess, onError, onBack }: ProfileCompletionProp
         <Button
           onClick={handleNext}
           disabled={loading}
+          className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
         >
-          {loading ? 'Saving...' : currentSubStep === 2 ? 'Save Profile' : 'Continue'}
-          <ArrowRight className="w-4 h-4 ml-2" />
+          {loading ? (
+            <div className="flex items-center">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Saving...
+            </div>
+          ) : (
+            <>
+              {currentSubStep === 2 ? 'Save Profile' : 'Continue'}
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </>
+          )}
         </Button>
       </div>
     </div>

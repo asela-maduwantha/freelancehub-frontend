@@ -1,82 +1,56 @@
-"use client";
-import React from "react";
-import { Loader2 } from "lucide-react";
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-export interface ButtonProps {
-  children: React.ReactNode;
-  variant?: "primary" | "secondary" | "outline" | "danger" | "ghost";
-  size?: "sm" | "md" | "lg";
-  fullWidth?: boolean;
-  isLoading?: boolean;
-  disabled?: boolean;
-  type?: "button" | "submit" | "reset";
-  icon?: React.ReactNode;
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  className?: string;
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  children,
-  variant = "primary",
-  size = "md",
-  fullWidth = false,
-  isLoading = false,
-  disabled = false,
-  type = "button",
-  icon,
-  onClick,
-  className = "",
-}) => {
-  // Base styles
-  const baseStyles =
-    "rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors flex items-center justify-center";
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
 
-  // Size styles
-  const sizeStyles = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
-  };
-
-  // Variant styles
-  const variantStyles = {
-    primary: "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500",
-    secondary:
-      "bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300",
-    outline:
-      "border border-green-600 text-green-600 hover:bg-green-50 focus:ring-green-500",
-    danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500",
-    ghost: "bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-300",
-  };
-
-  // Width styles
-  const widthStyles = fullWidth ? "w-full" : "";
-
-  // Disabled styles
-  const disabledStyles =
-    disabled || isLoading
-      ? "opacity-60 cursor-not-allowed pointer-events-none"
-      : "";
-
-  return (
-    <button
-      type={type}
-      className={`
-        ${baseStyles}
-        ${sizeStyles[size]}
-        ${variantStyles[variant]}
-        ${widthStyles}
-        ${disabledStyles}
-        ${className}
-      `}
-      onClick={onClick}
-      disabled={disabled || isLoading}
-    >
-      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {!isLoading && icon && <span className="mr-2">{icon}</span>}
-      {children}
-    </button>
-  );
-};
-
-export default Button;
+export { Button, buttonVariants }

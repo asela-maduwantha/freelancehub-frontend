@@ -131,26 +131,27 @@ const EmailVerification = ({
       className="max-w-md mx-auto"
     >
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-          <Mail className="w-8 h-8 text-blue-600" />
+      <div className="text-center mb-10">
+        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+          <Mail className="w-10 h-10 text-white" />
         </div>
         
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-4xl font-bold text-gray-900 mb-3">
           Check Your Email
         </h2>
         
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-lg">
           We've sent a 6-digit verification code to
         </p>
         
-        <p className="text-lg font-medium text-blue-600 mt-1">
+        <p className="text-xl font-semibold text-blue-600 mt-2 bg-blue-50 px-4 py-2 rounded-lg inline-block">
           {email}
         </p>
       </div>
 
       {/* OTP Input */}
-      <div className="mb-6">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Enter Verification Code</h3>
         <OTPInput
           value={otp}
           onChange={setOtp}
@@ -175,13 +176,13 @@ const EmailVerification = ({
 
       {/* Verify Button (for manual verification) */}
       {otp.length === 6 && !loading && (
-        <div className="mb-6">
+        <div className="mb-8">
           <Button
             onClick={handleVerifyOTP}
             disabled={loading}
-            className="w-full"
+            className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg"
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <CheckCircle2 className="w-5 h-5 mr-2" />
             Verify Email
           </Button>
         </div>
@@ -223,13 +224,28 @@ const EmailVerification = ({
       </div>
 
       {/* Help Section */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Having trouble?</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Check your spam/junk folder</li>
-          <li>• Make sure {email} is correct</li>
-          <li>• Wait a few minutes for the email to arrive</li>
-          <li>• Contact support if you continue having issues</li>
+      <div className="mt-8 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+          Having trouble?
+        </h4>
+        <ul className="text-sm text-gray-600 space-y-2">
+          <li className="flex items-start">
+            <span className="w-1 h-1 bg-gray-400 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+            Check your spam/junk folder
+          </li>
+          <li className="flex items-start">
+            <span className="w-1 h-1 bg-gray-400 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+            Make sure {email} is correct
+          </li>
+          <li className="flex items-start">
+            <span className="w-1 h-1 bg-gray-400 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+            Wait a few minutes for the email to arrive
+          </li>
+          <li className="flex items-start">
+            <span className="w-1 h-1 bg-gray-400 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+            Contact support if you continue having issues
+          </li>
         </ul>
       </div>
 

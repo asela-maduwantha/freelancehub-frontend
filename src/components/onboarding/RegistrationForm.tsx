@@ -6,20 +6,18 @@ import FormField from '@/components/ui/FormField';
 import PasswordStrength from '@/components/ui/PasswordStrength';
 import LocationSelector from '@/components/ui/LocationSelector';
 import Button from '@/components/ui/Button';
-import { RegisterData } from '@/types';
+import { RegisterData, RegisterRequest } from '@/types';
 import { authApi } from '@/api/services/auth';
 import { freelancerApi } from '@/api/services/freelancer';
 
 interface RegistrationFormProps {
-  onSuccess: (data: RegisterData) => void;
+  onSuccess: (data: any) => void;
   onError: (error: string) => void;
 }
 
 const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
   const [formData, setFormData] = useState<Partial<RegisterData>>({
-    role: 'freelancer',
-    termsAccepted: false,
-    privacyAccepted: false,
+    primaryRole: 'freelancer'
   });
   
   const [validationStates, setValidationStates] = useState<Record<string, 'idle' | 'validating' | 'valid' | 'invalid'>>({});
@@ -28,32 +26,6 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, feedback: [] as string[], isValid: false });
 
-  // Debounced username check
-  useEffect(() => {
-    if (formData.username && formData.username.length >= 3) {
-      const timer = setTimeout(async () => {
-        setValidationStates(prev => ({ ...prev, username: 'validating' }));
-        try {
-          const response = await freelancerApi.checkUsernameAvailability(formData.username!);
-          setUsernameAvailable(response.data?.available || false);
-          setValidationStates(prev => ({ 
-            ...prev, 
-            username: response.data?.available ? 'valid' : 'invalid' 
-          }));
-          
-          if (!response.data?.available) {
-            setErrors(prev => ({ ...prev, username: 'Username is already taken' }));
-          } else {
-            setErrors(prev => ({ ...prev, username: '' }));
-          }
-        } catch (error) {
-          setValidationStates(prev => ({ ...prev, username: 'idle' }));
-        }
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [formData.username]);
 
   // Password strength validation
   useEffect(() => {
@@ -146,8 +118,6 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
     if (!formData.location?.country) newErrors.location = 'Location is required';
     if (!formData.password) newErrors.password = 'Password is required';
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Password confirmation is required';
-    if (!formData.termsAccepted) newErrors.terms = 'You must accept the terms and conditions';
-    if (!formData.privacyAccepted) newErrors.privacy = 'You must accept the privacy policy';
     
     if (!passwordStrength.isValid) {
       newErrors.password = 'Password does not meet requirements';
@@ -168,10 +138,11 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
     
     setLoading(true);
     try {
-      const response = await authApi.register(formData as RegisterData);
-      
+    const { confirmPassword, ...registerPayload } = formData;
+    const response = await authApi.register(registerPayload as RegisterRequest);
+
       if (response.success) {
-        onSuccess(formData as RegisterData);
+        onSuccess(response.data);
       } else {
         onError(response.error?.message || 'Registration failed');
       }
@@ -193,19 +164,25 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
+      className="max-w-2xl mx-auto"
     >
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="text-center mb-10">
+        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <User className="w-10 h-10 text-white" />
+        </div>
+        <h2 className="text-4xl font-bold text-gray-900 mb-3">
           Create Your Freelancer Account
         </h2>
-        <p className="text-gray-600">
-          Join thousands of talented freelancers on FreelanceHub
+        <p className="text-gray-600 text-lg max-w-md mx-auto">
+          Join thousands of talented freelancers and start earning today
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Email and Username */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Email Address"
             type="email"
@@ -231,10 +208,13 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
             helperText="Only lowercase letters, numbers, and underscores"
             required
           />
+          </div>
         </div>
 
         {/* Name */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="First Name"
             type="text"
@@ -254,10 +234,13 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
             error={errors.lastName}
             required
           />
+          </div>
         </div>
 
         {/* Phone and Date of Birth */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Phone Number"
             type="tel"
@@ -278,10 +261,13 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
             leftIcon={<Calendar className="w-4 h-4" />}
             required
           />
+          </div>
         </div>
 
         {/* Location */}
-        <div>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Location</h3>
+          <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Location <span className="text-red-500">*</span>
           </label>
@@ -290,10 +276,13 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
             onChange={(location) => handleInputChange('location', location)}
             error={errors.location}
           />
+          </div>
         </div>
 
         {/* Passwords */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Security</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <FormField
               label="Password"
@@ -332,55 +321,24 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
             showPasswordToggle
             required
           />
-        </div>
-
-        {/* Terms and Privacy */}
-        <div className="space-y-4">
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="terms"
-              checked={formData.termsAccepted || false}
-              onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
-              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="terms" className="text-sm text-gray-700">
-              I agree to the{' '}
-              <a href="/terms" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
-                Terms and Conditions
-              </a>
-              <span className="text-red-500 ml-1">*</span>
-            </label>
           </div>
-          {errors.terms && <p className="text-sm text-red-600">{errors.terms}</p>}
-          
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="privacy"
-              checked={formData.privacyAccepted || false}
-              onChange={(e) => handleInputChange('privacyAccepted', e.target.checked)}
-              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="privacy" className="text-sm text-gray-700">
-              I agree to the{' '}
-              <a href="/privacy" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
-                Privacy Policy
-              </a>
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-          </div>
-          {errors.privacy && <p className="text-sm text-red-600">{errors.privacy}</p>}
         </div>
 
         {/* Submit Button */}
         <div className="pt-6">
           <Button
             type="submit"
-            disabled={loading || !formData.termsAccepted || !formData.privacyAccepted}
-            className="w-full py-3 text-lg"
+            disabled={loading}
+            className="w-full py-4 text-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                Creating Account...
+              </div>
+            ) : (
+              'Create Account'
+            )}
           </Button>
         </div>
 
@@ -388,7 +346,7 @@ const RegistrationForm = ({ onSuccess, onError }: RegistrationFormProps) => {
         <div className="text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <a href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <a href="/auth/login" className="text-green-600 hover:text-green-700 font-medium">
               Sign in
             </a>
           </p>

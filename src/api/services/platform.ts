@@ -382,4 +382,23 @@ export const activityApi = {
   }
 };
 
+// Stats APIs
+export const getClientStats = async () => {
+  try {
+    const response = await apiClient.get('/api/v1/client/stats');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getFreelancerStats = async () => {
+  try {
+    const response = await apiClient.get('/api/v1/freelancer/stats');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export { messagingApi as default };

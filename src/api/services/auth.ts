@@ -3,7 +3,7 @@ import apiClient from '../axios-instance';
 import { 
   ApiResponse, 
   LoginCredentials, 
-  RegisterData, 
+  RegisterRequest, 
   AuthResponse,
   AuthUser,
   FreelancerAuthResponse,
@@ -24,7 +24,7 @@ export const authApi = {
   },
 
   // Register new user (returns basic user info, full profile comes after verification)
-  register: async (userData: RegisterData): Promise<ApiResponse<{ user: AuthUser; verificationRequired: boolean }>> => {
+  register: async (userData: RegisterRequest): Promise<ApiResponse<{ user: AuthUser; verificationRequired: boolean }>> => {
     const response = await apiClient.post('/api/v1/auth/register', userData);
     return response.data as ApiResponse<{ user: AuthUser; verificationRequired: boolean }>;
   },
@@ -63,9 +63,9 @@ export const authApi = {
     return response.data as ApiResponse<AuthResponse>;
   },
 
-  // Email verification
-  verifyEmail: async (data: EmailVerificationData): Promise<ApiResponse<any>> => {
-    const response = await apiClient.post('/api/v1/auth/verify-email', data);
+  // Email verification with OTP
+  verifyEmailOtp: async (data: { email: string; otp: string }): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/api/v1/auth/verify-email-otp', data);
     return response.data as ApiResponse<any>;
   },
 

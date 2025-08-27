@@ -256,4 +256,32 @@ export const freelancerProjectApi = {
   }
 };
 
+// Helper functions for components
+export const getAllProjects = async (filters?: any) => {
+  try {
+    const response = await projectApi.getProjects(filters);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getClientProjects = async () => {
+  try {
+    const response = await clientProjectApi.getClientProjects();
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectById = async (projectId: string) => {
+  try {
+    const response = await projectApi.getProject(projectId);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default projectApi;

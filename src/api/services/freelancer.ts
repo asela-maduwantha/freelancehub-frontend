@@ -17,7 +17,17 @@ export const freelancerApi = {
 
   // Update freelancer profile
   updateProfile: async (data: FreelancerProfileUpdateData): Promise<ApiResponse<FreelancerProfile>> => {
-    const response = await apiClient.put('/api/v1/freelancer/profile', data);
+    // Transform data to match backend structure
+    const backendData = {
+      title: data.title,
+      bio: data.bio,
+      skills: data.skills,
+      hourlyRate: data.hourlyRate,
+      availability: data.availability,
+      experienceLevel: data.experienceLevel
+    };
+    
+    const response = await apiClient.put('/api/v1/freelancer/profile', backendData);
     return response.data as ApiResponse<FreelancerProfile>;
   },
 
@@ -82,11 +92,6 @@ export const freelancerApi = {
     }>;
   },
 
-  // Check username availability
-  checkUsernameAvailability: async (username: string): Promise<ApiResponse<{ available: boolean }>> => {
-    const response = await apiClient.get(`/api/v1/freelancer/check-username?username=${encodeURIComponent(username)}`);
-    return response.data as ApiResponse<{ available: boolean }>;
-  },
 
   // Get skill suggestions
   getSkillSuggestions: async (query: string): Promise<ApiResponse<string[]>> => {

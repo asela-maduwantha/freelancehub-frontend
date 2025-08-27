@@ -1,6 +1,16 @@
 import apiClient from './axios-instance';
 import { publicApi } from './services/public';
 import { PlatformStats, PopularCategory, ApiResponse } from '../types';
+import { 
+  validatePlatformStats, 
+  validateCategory, 
+  validateTestimonial,
+  isBackendPlatformStats,
+  isBackendCategory,
+  isBackendTestimonial,
+  handleApiError,
+  transformBackendResponse
+} from '../lib/integration-validator';
 
 // Local types for landing page
 export interface Category extends PopularCategory {
@@ -24,20 +34,19 @@ export const landingApi = {
   async getStats(): Promise<PlatformStats> {
     try {
       const response = await publicApi.getPlatformStats();
-      if (response.success && response.data) {
-        // Map the response data to match the expected interface
-        return {
-          totalProjects: response.data.totalProjects,
-          totalFreelancers: response.data.totalFreelancers,
-          totalClients: response.data.totalClients,
-          totalEarnings: response.data.totalEarnings,
-          projectsCompleted: response.data.projectsCompleted,
-          averageRating: response.data.averageRating || 4.8,
-        };
+      const validatedData = transformBackendResponse(
+        response,
+        validatePlatformStats,
+        isBackendPlatformStats
+      );
+      
+      if (validatedData) {
+        return validatedData;
       }
-      throw new Error('Failed to fetch stats');
+      
+      throw new Error('Failed to validate platform stats data');
     } catch (error) {
-      console.warn('Failed to fetch platform stats, using fallback data:', error);
+      console.warn('Failed to fetch platform stats, using fallback data:', handleApiError(error));
       // Fallback dummy data if backend is not available
       return {
         totalProjects: 12450,
@@ -54,12 +63,20 @@ export const landingApi = {
   async getCategories(): Promise<Category[]> {
     try {
       const response = await publicApi.getPopularCategories();
-      if (response.success && response.data) {
-        // Map the response data to match the expected interface
-        return response.data.map((category: any) => ({
-          ...category,
-          featured: true // Assume all are featured for now
-        }));
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // Validate and transform each category
+        const validatedCategories = response.data
+          .map((category: any) => {
+            if (isBackendCategory(category)) {
+              return validateCategory(category);
+            }
+            return null;
+          })
+          .filter(Boolean) as Category[];
+        
+        if (validatedCategories.length > 0) {
+          return validatedCategories;
+        }
       }
       throw new Error('Failed to fetch categories');
     } catch (error) {
@@ -122,18 +139,20 @@ export const landingApi = {
   async getTestimonials(): Promise<LandingTestimonial[]> {
     try {
       const response = await publicApi.getFeaturedTestimonials();
-      if (response.success && response.data) {
-        // Map the response data to match the expected interface
-        return response.data.map((testimonial: any) => ({
-          id: testimonial.id,
-          clientName: testimonial.clientName,
-          freelancerName: testimonial.freelancerName,
-          clientCompany: testimonial.clientCompany,
-          rating: testimonial.rating,
-          comment: testimonial.comment,
-          projectType: testimonial.projectType || "Various",
-          featured: true
-        }));
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // Validate and transform each testimonial
+        const validatedTestimonials = response.data
+          .map((testimonial: any) => {
+            if (isBackendTestimonial(testimonial)) {
+              return validateTestimonial(testimonial);
+            }
+            return null;
+          })
+          .filter(Boolean) as LandingTestimonial[];
+        
+        if (validatedTestimonials.length > 0) {
+          return validatedTestimonials;
+        }
       }
       throw new Error('Failed to fetch testimonials');
     } catch (error) {

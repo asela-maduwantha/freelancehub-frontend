@@ -232,4 +232,17 @@ export const clientProposalApi = {
   }
 };
 
+// Helper functions for components
+export const submitProposal = async (projectId: string, proposalData: any) => {
+  try {
+    const response = await proposalApi.submitProposal({
+      projectId,
+      ...proposalData
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export { proposalApi as default };

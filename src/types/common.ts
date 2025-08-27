@@ -119,9 +119,10 @@ export interface RegisterData {
   location: Location;
   password: string;
   confirmPassword: string;
-  termsAccepted: boolean;
-  privacyAccepted: boolean;
-  role: 'freelancer' | 'client';
+  primaryRole: 'freelancer' | 'client';
+}
+
+export interface RegisterRequest extends Omit<RegisterData, 'confirmPassword'> {
 }
 
 export interface LoginCredentials {
