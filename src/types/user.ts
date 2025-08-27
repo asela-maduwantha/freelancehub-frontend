@@ -24,6 +24,7 @@ export interface FreelancerProfile extends User {
   primaryRole: 'freelancer';
   title?: string;
   skills: string[] | Skill[];
+  experienceLevel?: 'beginner' | 'intermediate' | 'expert';
   hourlyRate?: Money;
   availability: AvailabilityStatus;
   rating: number;
@@ -61,6 +62,12 @@ export interface PortfolioItem {
   createdAt: string;
   featured: boolean;
   category?: string;
+  completionDate?: string;
+  links?: {
+    demo?: string;
+    github?: string;
+    other?: string;
+  };
 }
 
 export interface ExperienceItem {
@@ -215,6 +222,7 @@ export interface FreelancerProfileUpdateData extends ProfileUpdateData {
   skills?: string[];
   hourlyRate?: Money;
   availability?: AvailabilityStatus;
+  experienceLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
 export interface ClientProfileUpdateData extends ProfileUpdateData {
@@ -222,4 +230,46 @@ export interface ClientProfileUpdateData extends ProfileUpdateData {
   companySize?: string;
   industry?: string;
   website?: string;
+}
+
+// Onboarding specific types
+export interface OnboardingData {
+  step: number;
+  completed: boolean;
+  profileCompletion: number;
+  data: {
+    registration?: Partial<RegisterData>;
+    profile?: Partial<FreelancerProfileUpdateData>;
+    portfolio?: PortfolioItem[];
+    security?: {
+      passkeySetup: boolean;
+      twoFactorEnabled: boolean;
+    };
+  };
+}
+
+export interface PortfolioItemData {
+  title: string;
+  description: string;
+  technologies: string[];
+  images: FileUpload[];
+  links: {
+    demo?: string;
+    github?: string;
+    other?: string;
+  };
+  completionDate: string;
+  category: string;
+}
+
+export interface ExperienceLevel {
+  value: 'beginner' | 'intermediate' | 'expert';
+  label: string;
+  description: string;
+}
+
+export interface AvailabilityOption {
+  value: AvailabilityStatus;
+  label: string;
+  description: string;
 }

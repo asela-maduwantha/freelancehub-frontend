@@ -80,6 +80,141 @@ export interface Timeline {
   deadline?: string;
 }
 
+// Onboarding specific types
+export interface OnboardingStep {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  current: boolean;
+}
+
+export interface PasswordStrength {
+  score: number; // 0-4
+  feedback: string[];
+  isValid: boolean;
+}
+
+export interface Country {
+  code: string;
+  name: string;
+  phoneCode: string;
+  flag: string;
+}
+
+export interface City {
+  name: string;
+  country: string;
+  region?: string;
+}
+
+// Auth specific types
+export interface RegisterData {
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  dateOfBirth: string;
+  location: Location;
+  password: string;
+  confirmPassword: string;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  role: 'freelancer' | 'client';
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface AuthResponse<TUser = AuthUser> {
+  success: boolean;
+  user: TUser;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
+  message?: string;
+}
+
+// Base authenticated user interface
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  role: UserRoleType;
+  profilePhoto?: string;
+  status: UserStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Specific auth response types for each role
+export type FreelancerAuthResponse = AuthResponse<AuthUser & { role: 'freelancer' }>;
+export type ClientAuthResponse = AuthResponse<AuthUser & { role: 'client' }>;
+export type AdminAuthResponse = AuthResponse<AuthUser & { role: 'admin' }>;
+
+export interface EmailVerificationData {
+  token?: string;
+  otp?: string;
+  email?: string;
+}
+
+export interface WebAuthnChallenge {
+  challenge: string;
+  user: {
+    id: string;
+    name: string;
+    displayName: string;
+  };
+  rp: {
+    name: string;
+    id: string;
+  };
+  pubKeyCredParams: Array<{
+    type: string;
+    alg: number;
+  }>;
+  authenticatorSelection?: {
+    authenticatorAttachment?: string;
+    userVerification?: string;
+  };
+  timeout?: number;
+}
+
+export interface WebAuthnResponse {
+  id: string;
+  rawId: string;
+  response: {
+    attestationObject?: string;
+    clientDataJSON: string;
+    signature?: string;
+    authenticatorData?: string;
+  };
+  type: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetData {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
 export interface UserRole {
   FREELANCER: 'freelancer';
   CLIENT: 'client';

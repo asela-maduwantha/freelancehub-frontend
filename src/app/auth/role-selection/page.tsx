@@ -82,11 +82,16 @@ function RoleSelectionContent() {
     
     setIsLoading(true);
     
-    // Store the selected role and redirect to registration
+    // Store the selected role and redirect to appropriate onboarding flow
     sessionStorage.setItem('selectedRole', selectedRole);
     
-    // Redirect to registration page with role parameter
-    router.push(`/auth/register?type=${selectedRole}`);
+    // Redirect based on selected role
+    if (selectedRole === 'freelancer') {
+      router.push('/auth/freelancer-signup');
+    } else if (selectedRole === 'client') {
+      // TODO: Implement client onboarding flow
+      router.push('/auth/client-signup');
+    }
   };
 
   return (

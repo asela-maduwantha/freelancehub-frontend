@@ -4,6 +4,8 @@ import publicApi from './services/public';
 import projectApi, { clientProjectApi, freelancerProjectApi } from './services/projects';
 import proposalApi, { freelancerProposalApi, clientProposalApi } from './services/proposals';
 import userApi, { freelancerApi, clientApi } from './services/users';
+import freelancerProfileApi from './services/freelancer';
+import utilityApi from './services/utility';
 import messagingApi, { 
   paymentApi, 
   notificationApi, 
@@ -42,6 +44,12 @@ export {
   freelancerApi,
   clientApi
 };
+
+// Freelancer onboarding and profile APIs
+export { freelancerProfileApi };
+
+// Utility APIs
+export { utilityApi };
 
 // Platform feature APIs
 export { 
@@ -83,10 +91,12 @@ export const api = {
   
   // Utilities
   utils: apiUtils,
+  utility: utilityApi,
   
   // Role-specific APIs
   freelancer: {
     profile: freelancerApi,
+    onboarding: freelancerProfileApi,
     projects: freelancerProjectApi,
     proposals: freelancerProposalApi,
   },

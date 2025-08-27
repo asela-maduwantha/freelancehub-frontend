@@ -4,7 +4,10 @@ import {
   ApiResponse, 
   LoginCredentials, 
   RegisterData, 
-  AuthResponse, 
+  AuthResponse,
+  AuthUser,
+  FreelancerAuthResponse,
+  ClientAuthResponse,
   WebAuthnChallenge,
   WebAuthnResponse,
   PasswordResetRequest,
@@ -20,14 +23,14 @@ export const authApi = {
     return response.data as ApiResponse<AuthResponse>;
   },
 
-  // Register new user
-  register: async (userData: RegisterData): Promise<ApiResponse<{ user: any; verificationRequired: boolean }>> => {
+  // Register new user (returns basic user info, full profile comes after verification)
+  register: async (userData: RegisterData): Promise<ApiResponse<{ user: AuthUser; verificationRequired: boolean }>> => {
     const response = await apiClient.post('/api/v1/auth/register', userData);
-    return response.data as ApiResponse<{ user: any; verificationRequired: boolean }>;
+    return response.data as ApiResponse<{ user: AuthUser; verificationRequired: boolean }>;
   },
 
-  // Get current user info
-  getCurrentUser: async (): Promise<ApiResponse<{ user: any }>> => {
+  // Get current user info (returns role-specific data)
+  getCurrentUser: async (): Promise<ApiResponse<{ user: AuthUser }>> => {
     const response = await apiClient.get('/api/v1/auth/me');
     return response.data as ApiResponse<{ user: any }>;
   },
@@ -151,6 +154,27 @@ export const authApi = {
       reason
     });
     return response.data as ApiResponse<any>;
+  },
+
+  // Verify email OTP
+  verifyEmailOtp: async (data: { email: string; otp: string }): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/api/v1/auth/verify-email-otp', data);
+    return response.data as ApiResponse<any>;
+  },
+
+  // WebAuthn/Passkey registration challenge
+  getPasskeyRegistrationChallenge: async (): Promise<ApiResponse<WebAuthnChallenge>> => {
+    const response = await apiClient.post('/api/v1/auth/passkey/registration-challenge');
+    return response.data as ApiResponse<WebAuthnChallenge>;
+  },
+
+  // Register passkey
+  registerPasskey: async (data: {
+    challengeId: string;
+    registrationResponse: WebAuthnResponse;
+  }): Promise<ApiResponse<{ credentialId: string; deviceName: string }>> => {
+    const response = await apiClient.post('/api/v1/auth/passkey/register', data);
+    return response.data as ApiResponse<{ credentialId: string; deviceName: string }>;
   },
 
   // Export user data
