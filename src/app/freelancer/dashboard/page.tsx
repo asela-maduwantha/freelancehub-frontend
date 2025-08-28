@@ -254,13 +254,10 @@ export default function FreelancerDashboard() {
                   Dashboard
                 </Link>
                 <Link href="/freelancer/projects" className="text-gray-600 hover:text-gray-900">
-                  My Projects
-                </Link>
-                <Link href="/freelancer/browse" className="text-gray-600 hover:text-gray-900">
                   Find Work
                 </Link>
                 <Link href="/freelancer/proposals" className="text-gray-600 hover:text-gray-900">
-                  Proposals
+                  My Proposals
                 </Link>
                 <Link href="/freelancer/messages" className="text-gray-600 hover:text-gray-900">
                   Messages
@@ -335,7 +332,7 @@ export default function FreelancerDashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-4">
-            <Link href="/freelancer/browse">
+            <Link href="/freelancer/projects">
               <Button variant="premium" className="font-poppins">
                 <Search className="h-4 w-4 mr-2" />
                 Find New Projects

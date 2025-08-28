@@ -126,6 +126,56 @@ class ApiClient {
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
+
+  // File upload request (for FormData)
+  async upload<T>(endpoint: string, formData: FormData): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+    
+    // Ensure we have the latest token from localStorage
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('accessToken');
+    }
+    
+    const headers: Record<string, string> = {};
+
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    const config: RequestInit = {
+      method: 'POST',
+      body: formData,
+      headers,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.warn('Failed to parse error response:', parseError);
+        }
+        
+        const apiError = new Error(errorMessage);
+        (apiError as any).status = response.status;
+        (apiError as any).statusText = response.statusText;
+        (apiError as any).endpoint = endpoint;
+        
+        throw apiError;
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`File upload failed: ${endpoint}`, error);
+      throw error;
+    }
+  }
 }
 
 // Create API client instance
@@ -445,6 +495,44 @@ export const projectAPI = {
   // Get project by ID
   async getProject(projectId: string): Promise<any> {
     return apiClient.get(`/projects/${projectId}`);
+  },
+};
+
+// File Upload API functions
+export const uploadAPI = {
+  // Upload single file
+  async uploadSingleFile(file: File, category: string, relatedTo?: string, onModel?: string): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+    if (relatedTo) formData.append('relatedTo', relatedTo);
+    if (onModel) formData.append('onModel', onModel);
+
+    return apiClient.upload('/uploads/single', formData);
+  },
+
+  // Upload multiple files
+  async uploadMultipleFiles(files: File[], category: string, relatedTo?: string, onModel?: string): Promise<any> {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('category', category);
+    if (relatedTo) formData.append('relatedTo', relatedTo);
+    if (onModel) formData.append('onModel', onModel);
+
+    return apiClient.upload('/uploads/multiple', formData);
+  },
+
+  // Get user files
+  async getUserFiles(params: any = {}): Promise<any> {
+    const queryParams = new URLSearchParams(params).toString();
+    return apiClient.get(`/uploads${queryParams ? `?${queryParams}` : ''}`);
+  },
+
+  // Delete file
+  async deleteFile(fileId: string): Promise<any> {
+    return apiClient.delete(`/uploads/${fileId}`);
   },
 };
 
