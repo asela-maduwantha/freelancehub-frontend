@@ -15,6 +15,71 @@ interface OnboardingData {
   preferences?: any;
 }
 
+// Data transformation function to convert frontend format to API format
+const transformProfileData = (onboardingData: OnboardingData) => {
+  // Validate required data
+  if (!onboardingData.professional) {
+    throw new Error('Professional information is required');
+  }
+
+  if (!onboardingData.skills) {
+    throw new Error('Skills information is required');
+  }
+
+  // Transform professional data
+  const professional = {
+    title: onboardingData.professional.title,
+    description: onboardingData.professional.bio, // Convert bio to description
+    experience: onboardingData.professional.experience,
+    availability: onboardingData.professional.availability || 'available',
+    workingHours: {
+      timezone: 'UTC-5', // Default timezone, can be made configurable
+      monday: { start: '09:00', end: '17:00', available: true },
+      tuesday: { start: '09:00', end: '17:00', available: true },
+      wednesday: { start: '09:00', end: '17:00', available: true },
+      thursday: { start: '09:00', end: '17:00', available: true },
+      friday: { start: '09:00', end: '17:00', available: true },
+      saturday: { start: '10:00', end: '16:00', available: false },
+      sunday: { start: '10:00', end: '16:00', available: false }
+    }
+  };
+
+  // Transform skills data
+  const skills = {
+    primary: onboardingData.skills.primarySkills || [],
+    secondary: onboardingData.skills.secondarySkills || [],
+    categories: ['Web Development'], // Default category, can be made configurable
+    detailed: (onboardingData.skills.primarySkills || []).map((skill: string) => ({
+      name: skill,
+      level: 'intermediate', // Default level, can be made configurable
+      yearsOfExperience: 2 // Default experience, can be made configurable
+    }))
+  };
+
+  // Transform languages data (default to English if not provided)
+  const languages = {
+    languages: [
+      { name: 'English', proficiency: 'native' }
+    ]
+  };
+
+  // Transform pricing data if available
+  const pricing = onboardingData.professional?.hourlyRate ? {
+    hourlyRate: {
+      min: onboardingData.professional.hourlyRate,
+      max: onboardingData.professional.hourlyRate + 10,
+      currency: 'USD'
+    }
+  } : undefined;
+
+  return {
+    professional,
+    skills,
+    languages,
+    pricing
+  };
+};
+
 export default function OnboardingStep4() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -40,6 +105,12 @@ export default function OnboardingStep4() {
   }, [router]);
 
   const handleCompleteOnboarding = async () => {
+    // Validate that required data is present
+    if (!onboardingData.professional || !onboardingData.skills) {
+      alert('Please complete steps 1 and 2 before proceeding.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -54,18 +125,21 @@ export default function OnboardingStep4() {
 
       console.log('Starting onboarding completion with token:', accessToken.substring(0, 20) + '...');
 
-      // Combine all onboarding data
-      const completeProfileData = {
-        professional: onboardingData.professional,
-        skills: onboardingData.skills,
-        portfolio: onboardingData.portfolio,
-        preferences: onboardingData.preferences
-      };
-
-      console.log('Submitting profile data:', completeProfileData);
+      // Transform the data to match API expectations
+      let transformedData;
+      try {
+        transformedData = transformProfileData(onboardingData);
+      } catch (error) {
+        console.error('Data transformation error:', error);
+        alert('Please complete all required steps before proceeding.');
+        return;
+      }
+      
+      console.log('Original data:', onboardingData);
+      console.log('Transformed data:', transformedData);
 
       // Submit complete profile to API
-      const result = await freelancerAPI.createCompleteProfile(completeProfileData);
+      const result = await freelancerAPI.createCompleteProfile(transformedData);
       console.log('API call successful:', result);
 
       // Clear onboarding data
@@ -74,31 +148,31 @@ export default function OnboardingStep4() {
       // Navigate to freelancer dashboard
       router.push('/freelancer/dashboard');
       
-         } catch (error: any) {
-       console.error('Error completing onboarding:', error);
-       
-       // Check if it's an authentication error (multiple ways to detect)
-       const isAuthError = 
-         error.message?.includes('401') || 
-         error.message?.includes('Unauthorized') ||
-         error.status === 401 ||
-         error.statusText?.includes('Unauthorized');
-       
-       if (isAuthError) {
-         console.log('Authentication error detected, redirecting to login');
-         // Clear invalid tokens and redirect to login
-         localStorage.removeItem('accessToken');
-         localStorage.removeItem('refreshToken');
-         localStorage.removeItem('user');
-         router.push('/login?message=session_expired');
-         return;
-       }
-       
-       // For other errors, still redirect to dashboard
-       console.log('Non-auth error, redirecting to dashboard');
-       localStorage.removeItem('onboardingData');
-       router.push('/freelancer/dashboard');
-     } finally {
+    } catch (error: any) {
+      console.error('Error completing onboarding:', error);
+      
+      // Check if it's an authentication error (multiple ways to detect)
+      const isAuthError = 
+        error.message?.includes('401') || 
+        error.message?.includes('Unauthorized') ||
+        error.status === 401 ||
+        error.statusText?.includes('Unauthorized');
+      
+      if (isAuthError) {
+        console.log('Authentication error detected, redirecting to login');
+        // Clear invalid tokens and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        router.push('/login?message=session_expired');
+        return;
+      }
+      
+      // For other errors, still redirect to dashboard
+      console.log('Non-auth error, redirecting to dashboard');
+      localStorage.removeItem('onboardingData');
+      router.push('/freelancer/dashboard');
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -169,6 +243,64 @@ export default function OnboardingStep4() {
             <p className="text-xl text-gray-600 font-inter">
               Your profile is complete and ready to attract clients
             </p>
+          </div>
+
+          {/* Step Completion Status */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Step Completion Status</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Step 1: Professional Information</span>
+                <div className="flex items-center">
+                  {onboardingData.professional ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 border-2 border-red-300 rounded-full"></div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Step 2: Skills & Expertise</span>
+                <div className="flex items-center">
+                  {onboardingData.skills ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 border-2 border-red-300 rounded-full"></div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Step 3: Portfolio (Optional)</span>
+                <div className="flex items-center">
+                  {onboardingData.portfolio?.items?.length > 0 ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 border-2 border-gray-300 rounded-full"></div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Warning for missing required steps */}
+            {(!onboardingData.professional || !onboardingData.skills) && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-yellow-800">
+                      Required steps not completed
+                    </h3>
+                    <div className="mt-2 text-sm text-yellow-700">
+                      <p>Please complete steps 1 and 2 before proceeding. You can go back to complete them.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Profile Summary */}
@@ -337,7 +469,7 @@ export default function OnboardingStep4() {
 
               <Button
                 onClick={handleCompleteOnboarding}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !onboardingData.professional || !onboardingData.skills}
                 variant="premium"
                 size="lg"
                 className="font-poppins"
