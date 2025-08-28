@@ -394,6 +394,25 @@ export const freelancerAPI = {
   },
 };
 
+// Contract API functions
+export const contractAPI = {
+  // Get contracts
+  async getContracts(params: any = {}): Promise<any> {
+    const queryParams = new URLSearchParams(params).toString();
+    return apiClient.get(`/contracts${queryParams ? `?${queryParams}` : ''}`);
+  },
+
+  // Get contract by ID
+  async getContract(contractId: string): Promise<any> {
+    return apiClient.get(`/contracts/${contractId}`);
+  },
+
+  // Get contract statistics
+  async getContractStats(): Promise<any> {
+    return apiClient.get('/contracts/stats');
+  },
+};
+
 // Project API functions
 export const projectAPI = {
   // Get all projects (public)
