@@ -382,6 +382,21 @@ export const freelancerAPI = {
     return apiClient.post('/freelancer/portfolio', portfolioData);
   },
 
+  // Get portfolio items
+  async getPortfolioItems(): Promise<any> {
+    return apiClient.get('/freelancer/portfolio');
+  },
+
+  // Update portfolio item
+  async updatePortfolioItem(itemId: string, portfolioData: any): Promise<any> {
+    return apiClient.put(`/freelancer/portfolio/${itemId}`, portfolioData);
+  },
+
+  // Delete portfolio item
+  async deletePortfolioItem(itemId: string): Promise<any> {
+    return apiClient.delete(`/freelancer/portfolio/${itemId}`);
+  },
+
   // Get freelancer proposals
   async getProposals(params: any = {}): Promise<any> {
     const queryParams = new URLSearchParams(params).toString();
