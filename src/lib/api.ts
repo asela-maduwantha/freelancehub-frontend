@@ -162,6 +162,7 @@ export interface AuthResponse {
     role: string;
     profile: any;
     verification: any;
+    twoFactorEnabled?: boolean;
   };
   expiresIn: number;
 }
@@ -176,6 +177,11 @@ export interface VerifyEmailData {
 export interface VerifyOTPData {
   email: string;
   otp: string;
+}
+
+export interface SendEmailOTPData {
+  email: string;
+  type: 'verification' | 'reset';
 }
 
 export interface ResetPasswordData {
@@ -201,6 +207,11 @@ export const authAPI = {
   // Verify email
   async verifyEmail(data: VerifyEmailData): Promise<{ message: string }> {
     return apiClient.post('/auth/verify-email', data);
+  },
+
+  // Send email OTP
+  async sendEmailOTP(data: SendEmailOTPData): Promise<{ message: string }> {
+    return apiClient.post('/auth/send-email-otp', data);
   },
 
 
