@@ -34,12 +34,16 @@ export default function Navbar() {
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-4">
-            <Button variant="outline" className="hidden sm:inline-flex">
-              Sign In
-            </Button>
-            <Button>
-              Get Started
-            </Button>
+            <Link href="/login">
+              <Button variant="outline" className="hidden sm:inline-flex font-inter">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button variant="premium" className="font-poppins">
+                Get Started
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
