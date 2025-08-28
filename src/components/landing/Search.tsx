@@ -2,22 +2,33 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search as SearchIcon } from "lucide-react";
-import { useCategories } from "@/hooks/useLanding";
+
+// Dummy categories data
+const dummyCategories = [
+  { id: "1", name: "Web Development" },
+  { id: "2", name: "UI/UX Design" },
+  { id: "3", name: "Content Writing" },
+  { id: "4", name: "Digital Marketing" },
+  { id: "5", name: "Mobile Apps" },
+  { id: "6", name: "Logo Design" },
+  { id: "7", name: "SEO" },
+  { id: "8", name: "Social Media" },
+  { id: "9", name: "Data Analysis" },
+  { id: "10", name: "Graphic Design" },
+];
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   
-  // API hooks
-  const { categories, loading: categoriesLoading } = useCategories();
+  // Use dummy categories
+  const categories = dummyCategories;
 
-  const skillTags = categories.length > 0 
-    ? categories.slice(0, 14).map(cat => cat.name)
-    : [
-        "Web Development", "UI/UX Design", "Content Writing", "Digital Marketing",
-        "Mobile Apps", "Logo Design", "SEO", "Social Media", "Data Analysis",
-        "Graphic Design", "WordPress", "React", "Python", "Photography"
-      ];
+  const skillTags = [
+    "Web Development", "UI/UX Design", "Content Writing", "Digital Marketing",
+    "Mobile Apps", "Logo Design", "SEO", "Social Media", "Data Analysis",
+    "Graphic Design", "WordPress", "React", "Python", "Photography"
+  ];
 
   return (
     <section className="py-16 bg-gradient-to-r from-green-50 to-blue-50">
@@ -74,11 +85,10 @@ export default function Search() {
                 whileTap={{ scale: 0.95 }}
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-medium text-lg transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl"
                 onClick={() => {
-                  // Handle search - could navigate to search results page
-                  const searchParams = new URLSearchParams();
-                  if (searchQuery) searchParams.set('q', searchQuery);
-                  if (selectedCategory) searchParams.set('category', selectedCategory);
-                  window.location.href = `/search?${searchParams.toString()}`;
+                  // Demo search - just log the search parameters
+                  console.log('Search query:', searchQuery);
+                  console.log('Selected category:', selectedCategory);
+                  alert(`Demo search: "${searchQuery}" in category "${selectedCategory || 'All'}"`);
                 }}
               >
                 <SearchIcon className="w-6 h-6" />

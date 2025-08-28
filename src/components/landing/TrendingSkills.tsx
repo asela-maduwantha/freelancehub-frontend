@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { TrendingUp, Code, Palette, PenTool, Megaphone, Smartphone, BarChart } from "lucide-react";
-import { useCategories } from "@/hooks/useLanding";
 
 // Icon mapping for categories
 const iconMap = {
@@ -86,32 +85,11 @@ const defaultSkillCategories = [
 export default function TrendingSkills() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
-  // Merge API categories with default structure
-  const skillCategories = defaultSkillCategories.map((defaultCat, index) => {
-    const apiCategory = categories.find(cat => 
-      cat.name.toLowerCase().includes(defaultCat.name.toLowerCase()) ||
-      defaultCat.name.toLowerCase().includes(cat.name.toLowerCase())
-    );
-    
-    if (apiCategory) {
-      const IconComponent = iconMap[apiCategory.icon as keyof typeof iconMap] || defaultCat.icon;
-      return {
-        ...defaultCat,
-        name: apiCategory.name,
-        icon: typeof IconComponent === 'function' ? <IconComponent className="w-5 h-5" /> : defaultCat.icon,
-        projectCount: apiCategory.projectCount,
-        skills: defaultCat.skills.map(skill => ({
-          ...skill,
-          projects: Math.floor(apiCategory.projectCount / defaultCat.skills.length)
-        }))
-      };
-    }
-    return defaultCat;
-  });
+  // Use default skill categories with dummy data
+  const skillCategories = defaultSkillCategories;
 
   // Static positions for background elements to prevent hydration mismatch
   const backgroundElements = [

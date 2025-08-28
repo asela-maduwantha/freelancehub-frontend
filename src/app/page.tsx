@@ -1,6 +1,6 @@
 import Hero from "@/components/landing/Hero";
 import Search from "@/components/landing/Search";
-import Navbar from "@/components/features/Navbar";
+import Navbar from "@/components/landing/Navbar";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
 import TrendingSkills from "@/components/landing/TrendingSkills";

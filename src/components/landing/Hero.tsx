@@ -5,31 +5,24 @@ import Image from "next/image";
 import { motion, useAnimation } from "framer-motion";
 import { Typewriter } from "react-simple-typewriter";
 import { Play, Star, Users, CheckCircle } from "lucide-react";
-import { usePlatformStats, useCategories } from "@/hooks/useLanding";
 
 export default function Hero() {
   const [activeStats, setActiveStats] = useState<number[]>([]);
   const controls = useAnimation();
   
-  // API hooks
-  const { stats, loading: statsLoading } = usePlatformStats();
-  const { categories, loading: categoriesLoading } = useCategories();
-
-  // Transform stats for display
+  // Dummy stats for display
   const displayStats = [
-    { number: stats?.totalFreelancers || 1250, suffix: "+", label: "Active Freelancers" },
-    { number: stats?.projectsCompleted || 850, suffix: "+", label: "Projects Completed" },
-    { number: stats?.averageRating || 4.9, suffix: "/5", label: "Average Rating" },
+    { number: 1250, suffix: "+", label: "Active Freelancers" },
+    { number: 850, suffix: "+", label: "Projects Completed" },
+    { number: 4.9, suffix: "/5", label: "Average Rating" },
     { number: 24, suffix: "hrs", label: "Avg. Response Time" },
   ];
 
-  const skillTags = categories.length > 0 
-    ? categories.slice(0, 14).map(cat => cat.name)
-    : [
-        "Web Development", "UI/UX Design", "Content Writing", "Digital Marketing",
-        "Mobile Apps", "Logo Design", "SEO", "Social Media", "Data Analysis",
-        "Graphic Design", "WordPress", "React", "Python", "Photography"
-      ];
+  const skillTags = [
+    "Web Development", "UI/UX Design", "Content Writing", "Digital Marketing",
+    "Mobile Apps", "Logo Design", "SEO", "Social Media", "Data Analysis",
+    "Graphic Design", "WordPress", "React", "Python", "Photography"
+  ];
 
   useEffect(() => {
     // Animate stats counter

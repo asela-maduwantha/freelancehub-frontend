@@ -7,21 +7,16 @@ import {
   Star, 
   TrendingUp, 
   MapPin, 
-  Clock,
   DollarSign,
-  CheckCircle,
-  Award,
   Zap
 } from "lucide-react";
-import { usePlatformStats } from "@/hooks/useLanding";
-import { SkeletonStats } from "@/components/shared/LoadingComponents";
 
-// Default stats structure - will be populated from API
+// Dummy stats with realistic values
 const defaultStats = [
   {
     icon: <Users className="w-8 h-8" />,
     label: "Active Freelancers",
-    value: 0,
+    value: 1250,
     suffix: "+",
     color: "from-blue-500 to-blue-600",
     description: "Verified professionals ready to work",
@@ -31,7 +26,7 @@ const defaultStats = [
   {
     icon: <Briefcase className="w-8 h-8" />,
     label: "Projects Completed",
-    value: 0,
+    value: 3540,
     suffix: "+",
     color: "from-green-500 to-green-600", 
     description: "Successfully delivered projects",
@@ -41,7 +36,7 @@ const defaultStats = [
   {
     icon: <DollarSign className="w-8 h-8" />,
     label: "Total Earnings",
-    value: 0,
+    value: 12.5,
     suffix: "M+",
     color: "from-purple-500 to-purple-600",
     description: "Rupees earned by freelancers",
@@ -53,7 +48,7 @@ const defaultStats = [
   {
     icon: <Star className="w-8 h-8" />,
     label: "Average Rating",
-    value: 0,
+    value: 4.8,
     suffix: "/5",
     color: "from-yellow-500 to-yellow-600",
     description: "Client satisfaction rating",
@@ -63,7 +58,7 @@ const defaultStats = [
   {
     icon: <Users className="w-8 h-8" />,
     label: "Total Clients",
-    value: 0,
+    value: 890,
     suffix: "+",
     color: "from-teal-500 to-teal-600",
     description: "Satisfied clients worldwide",
@@ -73,7 +68,7 @@ const defaultStats = [
   {
     icon: <Briefcase className="w-8 h-8" />,
     label: "Total Projects",
-    value: 0,
+    value: 4200,
     suffix: "+",
     color: "from-indigo-500 to-indigo-600",
     description: "Projects posted on platform",
@@ -98,23 +93,9 @@ const provinces = [
 export default function LiveStats() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
-  const { stats: apiStats, loading: statsLoading, error: statsError } = usePlatformStats();
   
-  // Merge API data with default stats structure
-  const stats = defaultStats.map(stat => {
-    if (apiStats && stat.key && apiStats[stat.key as keyof typeof apiStats]) {
-      const apiValue = apiStats[stat.key as keyof typeof apiStats];
-      let value = apiValue;
-      
-      // Apply formatting if needed
-      if (stat.formatValue) {
-        value = parseFloat(stat.formatValue(apiValue));
-      }
-      
-      return { ...stat, value };
-    }
-    return stat;
-  });
+  // Use dummy stats data
+  const stats = defaultStats;
   
   const [currentStats, setCurrentStats] = useState(stats.map(stat => ({ ...stat, currentValue: 0 })));
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
@@ -229,14 +210,11 @@ export default function LiveStats() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Stats Grid */}
           <div className="lg:col-span-3">
-            {statsLoading ? (
-              <SkeletonStats />
-            ) : (
-              <div
-                ref={ref}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-              {currentStats.map((stat, index) => (
+            <div
+              ref={ref}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+            {currentStats.map((stat, index) => (
                 <motion.div
                   key={index}
                   className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl border border-green-200 hover:bg-white transition-all duration-500 group shadow-lg hover:shadow-2xl"
@@ -287,8 +265,7 @@ export default function LiveStats() {
                   />
                 </motion.div>
               ))}
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Live Activity Feed */}
