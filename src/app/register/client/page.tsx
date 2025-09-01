@@ -10,11 +10,10 @@ import { authAPI, RegisterData } from '@/lib/api';
 
 interface FormData {
   email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
   password: string;
   confirmPassword: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   location: {
     country: string;
@@ -30,7 +29,6 @@ export default function ClientRegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     email: '',
-    username: '',
     firstName: '',
     lastName: '',
     password: '',
@@ -54,13 +52,6 @@ export default function ClientRegisterPage() {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
-    }
-
-    // Username validation
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
     }
 
     // Name validation
@@ -137,21 +128,25 @@ export default function ClientRegisterPage() {
       // Create registration data according to API format
       const registrationData: RegisterData = {
         email: formData.email,
-        username: formData.username,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        primaryRole: 'client',
-        phone: formData.phone,
-        location: {
-          country: formData.location.country,
-          city: formData.location.city,
-          coordinates: [0, 0] // You can add coordinate lookup later
-        },
-        password: formData.password
+        password: formData.password,
+        role: 'client'
       };
 
       // Make API call to register the user
       const response = await authAPI.register(registrationData);
+      
+      // Store basic profile data for later use
+      const profileData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        location: {
+          country: formData.location.country,
+          city: formData.location.city,
+          timezone: 'UTC' // Default timezone
+        }
+      };
+      localStorage.setItem('pendingProfileData', JSON.stringify(profileData));
       
       // Redirect to OTP verification page
       router.push('/register/verify-otp?email=' + encodeURIComponent(formData.email) + '&role=client');
@@ -224,24 +219,6 @@ export default function ClientRegisterPage() {
                 />
               </div>
               {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-            </div>
-
-            {/* Username */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                  errors.username ? 'border-red-500' : 'border-gray-300'
-                } font-inter`}
-                placeholder="Choose a username"
-              />
-              {errors.username && <p className="mt-1 text-sm text-red-500">{errors.username}</p>}
             </div>
 
             {/* Name Fields */}

@@ -154,10 +154,10 @@ export default function ProfessionalProfile() {
   ];
 
   const availabilityOptions = [
-    { value: 'available', label: 'Available', description: 'Ready to take on new projects' },
-    { value: 'part_time', label: 'Part-time', description: 'Limited availability for new projects' },
-    { value: 'busy', label: 'Busy', description: 'Currently working on multiple projects' },
-    { value: 'unavailable', label: 'Unavailable', description: 'Not taking on new projects' }
+    { value: 'AVAILABLE', label: 'Available', description: 'Ready to take on new projects' },
+    { value: 'PART_TIME', label: 'Part-time', description: 'Limited availability for new projects' },
+    { value: 'BUSY', label: 'Busy', description: 'Currently working on multiple projects' },
+    { value: 'UNAVAILABLE', label: 'Unavailable', description: 'Not taking on new projects' }
   ];
 
   const currencies = [

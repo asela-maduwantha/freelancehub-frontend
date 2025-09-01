@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Folder, Plus, X, ExternalLink, Upload } from 'lucide-react';
 import Link from 'next/link';
+import { userAPI } from '@/lib/api';
 
 interface PortfolioItem {
   title: string;
@@ -149,15 +150,24 @@ export default function OnboardingStep3() {
     setIsLoading(true);
 
     try {
-      // Store step 3 data in localStorage
-      const onboardingData = JSON.parse(localStorage.getItem('onboardingData') || '{}');
-      onboardingData.portfolio = formData;
-      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
+      // Update freelancer profile with portfolio data
+      const freelancerProfileData = {
+        portfolio: formData.items.map(item => ({
+          title: item.title,
+          description: item.description,
+          url: item.projectUrl,
+          tags: item.technologies,
+          images: item.imageUrl ? [item.imageUrl] : []
+        }))
+      };
+
+      await userAPI.updateFreelancerProfile(freelancerProfileData);
 
       // Navigate to step 4
       router.push('/onboarding/step-4');
     } catch (error) {
       console.error('Error saving data:', error);
+      setErrors({ submit: 'Failed to save portfolio data. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -165,14 +175,14 @@ export default function OnboardingStep3() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

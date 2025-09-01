@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { Mail, ArrowLeft, RefreshCw, Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI } from '@/lib/api';
+import { authAPI, userAPI } from '@/lib/api';
 
 function VerifyOTPContent() {
   const router = useRouter();
@@ -84,8 +84,25 @@ function VerifyOTPContent() {
         otp: otpString
       });
 
+      // Store tokens
+      localStorage.setItem('accessToken', response.access_token);
+      localStorage.setItem('refreshToken', response.refresh_token);
+      
       // Store user data
       localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Update profile with pending data if available
+      const pendingProfileData = localStorage.getItem('pendingProfileData');
+      if (pendingProfileData) {
+        try {
+          const profileData = JSON.parse(pendingProfileData);
+          await userAPI.updateProfile(profileData);
+          localStorage.removeItem('pendingProfileData'); // Clean up
+        } catch (profileError) {
+          console.warn('Failed to update profile:', profileError);
+          // Continue with flow even if profile update fails
+        }
+      }
       
       // Redirect based on role
       if (role === 'freelancer') {

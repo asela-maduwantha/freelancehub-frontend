@@ -10,11 +10,10 @@ import { authAPI, RegisterData } from '@/lib/api';
 
 interface FormData {
   email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
   password: string;
   confirmPassword: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   location: {
     country: string;
@@ -30,7 +29,6 @@ export default function FreelancerRegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     email: '',
-    username: '',
     firstName: '',
     lastName: '',
     password: '',
@@ -54,13 +52,6 @@ export default function FreelancerRegisterPage() {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
-    }
-
-    // Username validation
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
     }
 
     // Name validation
@@ -137,21 +128,25 @@ export default function FreelancerRegisterPage() {
       // Create registration data according to API format
       const registrationData: RegisterData = {
         email: formData.email,
-        username: formData.username,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        primaryRole: 'freelancer',
-        phone: formData.phone,
-        location: {
-          country: formData.location.country,
-          city: formData.location.city,
-          coordinates: [0, 0] // You can add coordinate lookup later
-        },
-        password: formData.password
+        password: formData.password,
+        role: 'freelancer'
       };
 
       // Make API call to register the user
       const response = await authAPI.register(registrationData);
+      
+      // Store basic profile data for later use
+      const profileData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        location: {
+          country: formData.location.country,
+          city: formData.location.city,
+          timezone: 'UTC' // Default timezone
+        }
+      };
+      localStorage.setItem('pendingProfileData', JSON.stringify(profileData));
       
       // Redirect to OTP verification page
       router.push('/register/verify-otp?email=' + encodeURIComponent(formData.email) + '&role=freelancer');
@@ -165,7 +160,7 @@ export default function FreelancerRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -192,7 +187,7 @@ export default function FreelancerRegisterPage() {
         >
           {/* Title */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 text-white rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 text-white rounded-full mb-4">
               <Briefcase className="h-8 w-8" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 font-poppins">
@@ -224,24 +219,6 @@ export default function FreelancerRegisterPage() {
                 />
               </div>
               {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-            </div>
-
-            {/* Username */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.username ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Choose a username"
-              />
-              {errors.username && <p className="mt-1 text-sm text-red-500">{errors.username}</p>}
             </div>
 
             {/* Name Fields */}

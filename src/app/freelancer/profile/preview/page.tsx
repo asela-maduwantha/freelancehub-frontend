@@ -283,10 +283,10 @@ export default function ProfilePreview() {
                           {user.profile.availability}
                         </p>
                         <p className="text-sm text-blue-700">
-                          {user.profile.availability === 'available' && 'Ready for new projects'}
-                          {user.profile.availability === 'part_time' && 'Limited availability'}
-                          {user.profile.availability === 'busy' && 'Currently working on projects'}
-                          {user.profile.availability === 'unavailable' && 'Not taking new projects'}
+                          {user.profile.availability === 'AVAILABLE' && 'Ready for new projects'}
+                          {user.profile.availability === 'PART_TIME' && 'Limited availability'}
+                          {user.profile.availability === 'BUSY' && 'Currently working on projects'}
+                          {user.profile.availability === 'UNAVAILABLE' && 'Not taking new projects'}
                         </p>
                       </div>
                     </div>

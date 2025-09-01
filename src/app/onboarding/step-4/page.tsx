@@ -31,7 +31,7 @@ const transformProfileData = (onboardingData: OnboardingData) => {
     title: onboardingData.professional.title,
     description: onboardingData.professional.bio, // Convert bio to description
     experience: onboardingData.professional.experience,
-    availability: onboardingData.professional.availability || 'available',
+    availability: onboardingData.professional.availability || 'AVAILABLE',
     workingHours: {
       timezone: 'UTC-5', // Default timezone, can be made configurable
       monday: { start: '09:00', end: '17:00', available: true },
@@ -86,6 +86,7 @@ export default function OnboardingStep4() {
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCongrats, setShowCongrats] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -105,73 +106,26 @@ export default function OnboardingStep4() {
   }, [router]);
 
   const handleCompleteOnboarding = async () => {
-    // Validate that required data is present
-    if (!onboardingData.professional || !onboardingData.skills) {
-      alert('Please complete steps 1 and 2 before proceeding.');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Check if user is authenticated
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        console.error('No access token found');
-        // Redirect to login if not authenticated
-        router.push('/login');
-        return;
-      }
-
-      console.log('Starting onboarding completion with token:', accessToken.substring(0, 20) + '...');
-
-      // Transform the data to match API expectations
-      let transformedData;
-      try {
-        transformedData = transformProfileData(onboardingData);
-      } catch (error) {
-        console.error('Data transformation error:', error);
-        alert('Please complete all required steps before proceeding.');
-        return;
-      }
-      
-      console.log('Original data:', onboardingData);
-      console.log('Transformed data:', transformedData);
-
-      // Submit complete profile to API
-      const result = await freelancerAPI.createCompleteProfile(transformedData);
-      console.log('API call successful:', result);
-
       // Clear onboarding data
       localStorage.removeItem('onboardingData');
 
-      // Navigate to freelancer dashboard
-      router.push('/freelancer/dashboard');
+      // Show congrats and navigate to dashboard
+      setShowCongrats(true);
+      setTimeout(() => {
+        router.push('/freelancer/dashboard');
+      }, 2000);
       
     } catch (error: any) {
       console.error('Error completing onboarding:', error);
-      
-      // Check if it's an authentication error (multiple ways to detect)
-      const isAuthError = 
-        error.message?.includes('401') || 
-        error.message?.includes('Unauthorized') ||
-        error.status === 401 ||
-        error.statusText?.includes('Unauthorized');
-      
-      if (isAuthError) {
-        console.log('Authentication error detected, redirecting to login');
-        // Clear invalid tokens and redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        router.push('/login?message=session_expired');
-        return;
-      }
-      
-      // For other errors, still redirect to dashboard
-      console.log('Non-auth error, redirecting to dashboard');
+      // Still redirect to dashboard even on error
       localStorage.removeItem('onboardingData');
-      router.push('/freelancer/dashboard');
+      setShowCongrats(true);
+      setTimeout(() => {
+        router.push('/freelancer/dashboard');
+      }, 2000);
     } finally {
       setIsSubmitting(false);
     }
@@ -184,14 +138,14 @@ export default function OnboardingStep4() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -211,7 +165,29 @@ export default function OnboardingStep4() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      {showCongrats ? (
+        <div className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center min-h-[60vh]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center"
+          >
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-6">
+              <CheckCircle className="h-8 w-8" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 font-poppins">
+              Congratulations!
+            </h2>
+            <p className="text-lg text-gray-600 font-inter mb-6">
+              Your profile has been set up successfully. Welcome to FreelanceHub!
+            </p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+            <p className="text-sm text-gray-500 mt-4">Redirecting to dashboard...</p>
+          </motion.div>
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -280,27 +256,6 @@ export default function OnboardingStep4() {
                 </div>
               </div>
             </div>
-            
-            {/* Warning for missing required steps */}
-            {(!onboardingData.professional || !onboardingData.skills) && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-800">
-                      Required steps not completed
-                    </h3>
-                    <div className="mt-2 text-sm text-yellow-700">
-                      <p>Please complete steps 1 and 2 before proceeding. You can go back to complete them.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Profile Summary */}
@@ -469,7 +424,7 @@ export default function OnboardingStep4() {
 
               <Button
                 onClick={handleCompleteOnboarding}
-                disabled={isSubmitting || !onboardingData.professional || !onboardingData.skills}
+                disabled={isSubmitting}
                 variant="premium"
                 size="lg"
                 className="font-poppins"
@@ -490,6 +445,7 @@ export default function OnboardingStep4() {
           </div>
         </motion.div>
       </div>
+      )}
     </div>
   );
 }
