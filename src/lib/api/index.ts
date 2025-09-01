@@ -14,6 +14,9 @@ export { clientAPI } from './client-api';
 export { projectAPI } from './project';
 export { contractAPI } from './contract';
 export { uploadAPI } from './upload';
+export { reviewAPI } from './review';
+export { disputeAPI } from './dispute';
+export { paymentAPI } from './payment';
 
 // Re-export the default apiClient for backward compatibility
 export { apiClient as default } from './client';

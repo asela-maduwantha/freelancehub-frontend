@@ -44,4 +44,13 @@ export const contractAPI = {
   async rejectMilestone(contractId: string, milestoneId: string, feedback: string, revisionRequest: string): Promise<{ message: string }> {
     return apiClient.post(`/contracts/${contractId}/milestones/${milestoneId}/reject`, { feedback, revisionRequest });
   },
+
+  // Submit work for milestone
+  async submitMilestone(contractId: string, milestoneId: string, data: {
+    description: string;
+    files?: string[];
+    deliverables?: string;
+  }): Promise<{ message: string }> {
+    return apiClient.post(`/contracts/${contractId}/milestones/${milestoneId}/submit`, data);
+  },
 };

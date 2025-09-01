@@ -259,6 +259,18 @@ export default function FreelancerDashboard() {
                 <Link href="/freelancer/proposals" className="text-gray-600 hover:text-gray-900">
                   My Proposals
                 </Link>
+                <Link href="/freelancer/contracts" className="text-gray-600 hover:text-gray-900">
+                  Contracts
+                </Link>
+                <Link href="/freelancer/reviews" className="text-gray-600 hover:text-gray-900">
+                  Reviews
+                </Link>
+                <Link href="/freelancer/payments" className="text-gray-600 hover:text-gray-900">
+                  Payments
+                </Link>
+                <Link href="/freelancer/disputes" className="text-gray-600 hover:text-gray-900">
+                  Disputes
+                </Link>
                 <Link href="/freelancer/messages" className="text-gray-600 hover:text-gray-900">
                   Messages
                 </Link>
