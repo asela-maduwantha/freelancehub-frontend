@@ -220,6 +220,9 @@ export default function ClientDashboard() {
                 <Link href="/client/disputes" className="text-gray-600 hover:text-gray-900">
                   Disputes
                 </Link>
+                <Link href="/client/files" className="text-gray-600 hover:text-gray-900">
+                  Files
+                </Link>
                 <Link href="/client/profile" className="text-gray-600 hover:text-gray-900">
                   Profile
                 </Link>

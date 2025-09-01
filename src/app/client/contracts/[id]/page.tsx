@@ -25,6 +25,8 @@ import {
 import Link from 'next/link';
 import { contractAPI } from '@/lib/api';
 import { paymentAPI } from '@/lib/api/payment';
+import EnhancedFileUpload from '@/components/ui/EnhancedFileUpload';
+import { enhancedUploadAPI, FileMetadata } from '@/lib/api/enhanced-upload';
 
 interface Contract {
   id: string;
@@ -96,6 +98,9 @@ export default function ContractDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'milestones' | 'messages' | 'files'>('overview');
   const [newMessage, setNewMessage] = useState('');
+  const [contractFiles, setContractFiles] = useState<FileMetadata[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -318,6 +323,32 @@ export default function ContractDetailsPage() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  const loadContractFiles = async () => {
+    try {
+      const response = await enhancedUploadAPI.getFilesByEntity('contract', contractId, 1, 50);
+      if (response.success) {
+        setContractFiles(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load contract files:', error);
+    }
+  };
+
+  const handleFilesUploaded = (files: FileMetadata[]) => {
+    setContractFiles(prev => [...files, ...prev]);
+    setFileUploadError(null);
+  };
+
+  const handleFileRemoved = (fileId: string) => {
+    setContractFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  useEffect(() => {
+    if (activeTab === 'files' && contract) {
+      loadContractFiles();
+    }
+  }, [activeTab, contract]);
 
   if (!user || isLoading || !contract) {
     return (
@@ -604,53 +635,151 @@ export default function ContractDetailsPage() {
 
             {/* Files Tab */}
             {activeTab === 'files' && (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Project Files</h3>
-                  <div className="space-y-2">
-                    {contract.project.attachments?.map((file) => (
-                      <div key={file.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                        <div className="flex items-center">
-                          <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                          <div>
-                            <p className="font-medium text-gray-900">{file.name}</p>
-                            <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
+              <div className="space-y-6">
+                {/* File Upload Section */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Upload Contract Files</h3>
+
+                  {fileUploadError && (
+                    <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                      <div className="flex items-center">
+                        <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+                        <span className="text-red-800 text-sm">{fileUploadError}</span>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  <EnhancedFileUpload
+                    onFilesUploaded={handleFilesUploaded}
+                    folder="contracts"
+                    maxFiles={10}
+                    maxSize={25}
+                    showPreview={true}
+                    showDownload={false}
+                    showDelete={true}
+                    onFileRemoved={handleFileRemoved}
+                    entityType="contract"
+                    entityId={contractId}
+                  />
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Milestone Deliverables</h3>
-                  <div className="space-y-2">
-                    {contract.milestones.flatMap(milestone =>
-                      milestone.deliverables?.map(deliverable => ({
-                        ...deliverable,
-                        milestoneTitle: milestone.title
-                      })) || []
-                    ).map((deliverable) => (
-                      <div key={deliverable.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                        <div className="flex items-center">
-                          <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                          <div>
-                            <p className="font-medium text-gray-900">{deliverable.name}</p>
-                            <p className="text-sm text-gray-500">From: {deliverable.milestoneTitle}</p>
+                {/* Contract Files List */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Contract Files</h3>
+
+                  {contractFiles.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No files uploaded yet</p>
+                      <p className="text-sm text-gray-400 mt-2">Upload files to share with the freelancer</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {contractFiles.map((file) => (
+                        <div key={file.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center">
+                            <FileText className="h-5 w-5 text-gray-400 mr-3" />
+                            <div>
+                              <p className="font-medium text-gray-900">{file.originalName}</p>
+                              <p className="text-sm text-gray-500">
+                                {enhancedUploadAPI.formatFileSize(file.size)} • Uploaded {new Date(file.uploadedAt).toLocaleDateString()}
+                              </p>
+                              {file.description && (
+                                <p className="text-sm text-gray-600 mt-1">{file.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              onClick={() => window.open(file.url, '_blank')}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = file.url;
+                                link.download = file.originalName;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                {/* Legacy Project Files */}
+                {contract.project.attachments && contract.project.attachments.length > 0 && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Project Files</h3>
+                    <div className="space-y-2">
+                      {contract.project.attachments.map((file) => (
+                        <div key={file.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                          <div className="flex items-center">
+                            <FileText className="h-5 w-5 text-gray-400 mr-3" />
+                            <div>
+                              <p className="font-medium text-gray-900">{file.name}</p>
+                              <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={() => window.open(file.url, '_blank')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Milestone Deliverables */}
+                {contract.milestones.some(m => m.deliverables && m.deliverables.length > 0) && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Milestone Deliverables</h3>
+                    <div className="space-y-2">
+                      {contract.milestones.flatMap(milestone =>
+                        milestone.deliverables?.map(deliverable => ({
+                          ...deliverable,
+                          milestoneTitle: milestone.title
+                        })) || []
+                      ).map((deliverable) => (
+                        <div key={deliverable.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                          <div className="flex items-center">
+                            <FileText className="h-5 w-5 text-gray-400 mr-3" />
+                            <div>
+                              <p className="font-medium text-gray-900">{deliverable.name}</p>
+                              <p className="text-sm text-gray-500">From: {deliverable.milestoneTitle}</p>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={() => window.open(deliverable.url, '_blank')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

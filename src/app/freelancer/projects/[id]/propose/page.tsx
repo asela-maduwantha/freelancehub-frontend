@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { projectAPI, freelancerAPI, uploadAPI, authAPI } from '@/lib/api';
+import EnhancedFileUpload from '@/components/ui/EnhancedFileUpload';
+import { enhancedUploadAPI, FileMetadata } from '@/lib/api/enhanced-upload';
 
 interface Project {
   id: string;
@@ -94,8 +96,8 @@ export default function SubmitProposalPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
 
   const [proposalData, setProposalData] = useState<ProposalData>({
@@ -246,70 +248,25 @@ export default function SubmitProposalPage() {
     setMilestones(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleFileUpload = async (file: File) => {
-    try {
-      setUploadingFile(true);
-      setFileUploadError(null);
-      
-      const response = await uploadAPI.uploadFile(
-        file, 
-        'proposal'
-      );
-      
-      setUploadedFile(file);
-      setProposalData(prev => ({
-        ...prev,
-        attachments: [{
-          filename: file.name,
-          url: response.data.url,
-          fileType: file.type,
-          fileSize: file.size,
-          description: ''
-        }]
-      }));
-      
-      setSuccess('File uploaded successfully!');
-    } catch (err: any) {
-      console.error('File upload failed:', err);
-      setFileUploadError(err.message || 'Failed to upload file');
-    } finally {
-      setUploadingFile(false);
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setFileUploadError('File size must be less than 10MB');
-        return;
-      }
-      
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-        'image/jpeg',
-        'image/png'
-      ];
-      
-      if (!allowedTypes.includes(file.type)) {
-        setFileUploadError('Please upload a valid file type (PDF, DOC, DOCX, TXT, JPG, PNG)');
-        return;
-      }
-      
-      handleFileUpload(file);
-    }
-  };
-
-  const removeFile = () => {
-    setUploadedFile(null);
+  const handleFilesUploaded = (files: FileMetadata[]) => {
+    setUploadedFiles(files);
     setProposalData(prev => ({
       ...prev,
-      attachments: []
+      attachments: files.map(file => ({
+        filename: file.originalName,
+        url: file.url,
+        fileType: file.mimeType,
+        fileSize: file.size,
+        description: ''
+      }))
+    }));
+  };
+
+  const handleFileRemoved = (fileId: string) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+    setProposalData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter(att => att.filename !== uploadedFiles.find(f => f.id === fileId)?.originalName)
     }));
   };
 
@@ -711,8 +668,8 @@ export default function SubmitProposalPage() {
 
           {/* File Upload */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Attachment</h3>
-            
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Attachments</h3>
+
             {fileUploadError && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
                 <div className="flex items-center">
@@ -721,46 +678,42 @@ export default function SubmitProposalPage() {
                 </div>
               </div>
             )}
-            
-            {!uploadedFile ? (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">Upload a file (PDF, DOC, DOCX, TXT, JPG, PNG)</p>
-                <p className="text-gray-500 text-sm mb-4">Maximum file size: 10MB</p>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                  className="hidden"
-                  id="file-upload"
-                  disabled={uploadingFile}
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer disabled:opacity-50"
-                >
-                  {uploadingFile ? 'Uploading...' : 'Choose File'}
-                </label>
-              </div>
-            ) : (
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                    <div>
-                      <p className="font-medium text-gray-900">{uploadedFile.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+
+            <EnhancedFileUpload
+              onFilesUploaded={handleFilesUploaded}
+              folder="proposals"
+              maxFiles={5}
+              maxSize={10}
+              showPreview={true}
+              showDownload={false}
+              showDelete={true}
+              onFileRemoved={handleFileRemoved}
+              entityType="proposal"
+              entityId={projectId}
+            />
+
+            {uploadedFiles.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Uploaded Files:</h4>
+                <div className="space-y-2">
+                  {uploadedFiles.map((file) => (
+                    <div key={file.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center">
+                        <FileText className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="text-sm font-medium text-gray-900">{file.originalName}</span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          ({enhancedUploadAPI.formatFileSize(file.size)})
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleFileRemoved(file.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={removeFile}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                  ))}
                 </div>
               </div>
             )}
