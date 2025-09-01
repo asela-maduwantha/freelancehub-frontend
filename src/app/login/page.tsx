@@ -73,28 +73,17 @@ export default function LoginPage() {
 
       const response = await authAPI.login(loginData);
       
-      // Check if user has 2FA enabled
-      if (response.user.twoFactorEnabled) {
-        // Store user data temporarily and redirect to 2FA verification
-        localStorage.setItem('pendingAuth', JSON.stringify({
-          user: response.user,
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken
-        }));
-        router.push('/login/verify-2fa');
+      // Store tokens and redirect based on user role
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      if (response.user.activeRole === 'client') {
+        router.push('/client/dashboard');
+      } else if (response.user.activeRole === 'freelancer') {
+        router.push('/freelancer/dashboard');
+      } else if (response.user.activeRole === 'admin') {
+        router.push('/admin/dashboard');
       } else {
-        // Store tokens and redirect based on user role
-        localStorage.setItem('user', JSON.stringify(response.user));
-        
-        if (response.user.role === 'client') {
-          router.push('/client/dashboard');
-        } else if (response.user.role === 'freelancer') {
-          router.push('/freelancer/dashboard');
-        } else if (response.user.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/dashboard');
-        }
+        router.push('/dashboard');
       }
       
     } catch (error: any) {

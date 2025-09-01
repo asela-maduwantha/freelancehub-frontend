@@ -22,8 +22,23 @@ export default function ClientWelcomePage() {
     }
   }, [router]);
 
-  const handleStartHiring = () => {
-    router.push('/client/dashboard');
+  const handleStepAction = (step: number) => {
+    switch (step) {
+      case 1:
+        router.push('/client/profile');
+        break;
+      case 2:
+        router.push('/client/freelancers');
+        break;
+      case 3:
+        router.push('/client/projects/new');
+        break;
+      case 4:
+        router.push('/client/contracts');
+        break;
+      default:
+        break;
+    }
   };
 
   const features = [
@@ -62,21 +77,27 @@ export default function ClientWelcomePage() {
   const nextSteps = [
     {
       step: 1,
-      title: "Post Your First Project",
-      description: "Describe what you need and set your budget",
-      action: "Create Project"
+      title: "Complete Your Profile",
+      description: "Add your company details to attract the right freelancers",
+      action: "Setup Profile"
     },
     {
       step: 2,
-      title: "Review Proposals",
-      description: "Freelancers will send you detailed proposals",
-      action: "Coming Soon"
+      title: "Browse Freelancers",
+      description: "Search and find talented freelancers for your projects",
+      action: "Find Talent"
     },
     {
       step: 3,
-      title: "Hire & Collaborate",
-      description: "Choose the best freelancer and start working together",
-      action: "Coming Soon"
+      title: "Post Your First Project",
+      description: "Create a project and start receiving proposals",
+      action: "Create Project"
+    },
+    {
+      step: 4,
+      title: "Manage Contracts & Leave Reviews",
+      description: "Review proposals, hire freelancers, manage milestones, handle payments, and leave reviews",
+      action: "View Contracts"
     }
   ];
 
@@ -148,7 +169,7 @@ export default function ClientWelcomePage() {
               transition={{ delay: 0.5 }}
             >
               <Button
-                onClick={handleStartHiring}
+                onClick={() => handleStepAction(1)}
                 variant="premium"
                 size="xl"
                 className="font-poppins mb-4"
@@ -249,10 +270,9 @@ export default function ClientWelcomePage() {
                     {step.description}
                   </p>
                   <Button
-                    variant={step.step === 1 ? "premium" : "secondary"}
+                    variant="premium"
                     size="sm"
-                    disabled={step.step !== 1}
-                    onClick={step.step === 1 ? handleStartHiring : undefined}
+                    onClick={() => handleStepAction(step.step)}
                     className="font-inter"
                   >
                     {step.action}

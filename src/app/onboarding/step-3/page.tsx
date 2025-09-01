@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Folder, Plus, X, ExternalLink, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Folder, Plus, X, ExternalLink, Upload, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { userAPI } from '@/lib/api';
+import { uploadAPI } from '@/lib/api';
 
 interface PortfolioItem {
   title: string;
@@ -35,6 +37,8 @@ export default function OnboardingStep3() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [currentItem, setCurrentItem] = useState<PortfolioItem>({
     title: '',
     description: '',
@@ -45,6 +49,8 @@ export default function OnboardingStep3() {
     completionDate: ''
   });
   const [newTech, setNewTech] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const categories = [
     { value: 'web-development', label: 'Web Development' },
@@ -70,6 +76,9 @@ export default function OnboardingStep3() {
     if (onboardingData.portfolio) {
       setFormData(onboardingData.portfolio);
     }
+
+    // Debug: Check if file input ref is working
+    console.log('File input ref initialized:', fileInputRef.current);
   }, [router]);
 
   const validateCurrentItem = (): boolean => {
@@ -135,6 +144,7 @@ export default function OnboardingStep3() {
       category: 'web-development',
       completionDate: ''
     });
+    setUploadedImages([]);
     setShowAddForm(false);
     setErrors({});
   };
@@ -146,22 +156,67 @@ export default function OnboardingStep3() {
     }));
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    console.log('File input changed, files selected:', files);
+    if (!files || files.length === 0) {
+      console.log('No files selected');
+      return;
+    }
+
+    console.log(`Uploading ${files.length} files`);
+    setUploadingImages(true);
+    try {
+      const fileArray = Array.from(files);
+      console.log('File array:', fileArray.map(f => ({ name: f.name, size: f.size, type: f.type })));
+      const response = await uploadAPI.uploadFiles(fileArray, 'portfolio');
+      console.log('Upload response:', response);
+
+      if (response.success && response.data) {
+        const urls = response.data.map(item => item.url);
+        console.log('Uploaded URLs:', urls);
+        setUploadedImages(prev => [...prev, ...urls]);
+
+        // Set the first uploaded image as the main image for the current item
+        if (urls.length > 0 && !currentItem.imageUrl) {
+          setCurrentItem(prev => ({
+            ...prev,
+            imageUrl: urls[0]
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setErrors({ upload: 'Failed to upload images. Please try again.' });
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const removeUploadedImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const selectImageForProject = (url: string) => {
+    setCurrentItem(prev => ({
+      ...prev,
+      imageUrl: url
+    }));
+  };
+
+  const handleUploadClick = () => {
+    console.log('Upload button clicked, triggering file input');
+    fileInputRef.current?.click();
+  };
+
   const handleContinue = async () => {
     setIsLoading(true);
 
     try {
-      // Update freelancer profile with portfolio data
-      const freelancerProfileData = {
-        portfolio: formData.items.map(item => ({
-          title: item.title,
-          description: item.description,
-          url: item.projectUrl,
-          tags: item.technologies,
-          images: item.imageUrl ? [item.imageUrl] : []
-        }))
-      };
-
-      await userAPI.updateFreelancerProfile(freelancerProfileData);
+      // Save to localStorage for multi-step process
+      const onboardingData = JSON.parse(localStorage.getItem('onboardingData') || '{}');
+      onboardingData.portfolio = formData;
+      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
 
       // Navigate to step 4
       router.push('/onboarding/step-4');
@@ -192,10 +247,11 @@ export default function OnboardingStep3() {
               <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
             </Link>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">Step 3 of 4</div>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '75%' }}></div>
-              </div>
+              <ProgressIndicator
+                currentStep={3}
+                totalSteps={4}
+                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+              />
             </div>
           </div>
         </div>
@@ -225,9 +281,23 @@ export default function OnboardingStep3() {
             <h1 className="text-3xl font-bold text-gray-900 mb-4 font-poppins">
               Showcase your work
             </h1>
-            <p className="text-xl text-gray-600 font-inter">
+            <p className="text-xl text-gray-600 font-inter mb-8">
               Add portfolio items to demonstrate your expertise
             </p>
+
+            {/* Tips */}
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-8">
+              <h3 className="text-sm font-semibold text-purple-800 mb-2 font-poppins">💡 Pro Tips</h3>
+              <ul className="text-sm text-purple-700 space-y-1 font-inter">
+                <li>• Include 2-3 of your best projects that showcase different skills</li>
+                <li>• Upload screenshots or images to make your portfolio visually appealing</li>
+                <li>• Click the upload button to add multiple images for each project</li>
+                <li>• Select one image as the main project thumbnail</li>
+                <li>• Write clear descriptions that explain the project's impact</li>
+                <li>• Include links to live projects when possible</li>
+                <li>• You can skip this step and add portfolio items later</li>
+              </ul>
+            </div>
           </div>
 
           {/* Portfolio Items */}
@@ -433,6 +503,117 @@ export default function OnboardingStep3() {
                     />
                   </div>
 
+                  {/* Image Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Project Images (Optional)
+                    </label>
+                    <div className="space-y-3">
+                      {/* Hidden File Input */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        disabled={uploadingImages}
+                      />
+
+                      {/* File Upload Button */}
+                      <Button
+                        type="button"
+                        onClick={handleUploadClick}
+                        variant="outline"
+                        className="w-full h-12 border-2 border-dashed border-gray-300 hover:border-green-500 transition-colors"
+                        disabled={uploadingImages}
+                      >
+                        {uploadingImages ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Uploading...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <Upload className="h-4 w-4" />
+                            <span>Upload Images</span>
+                          </div>
+                        )}
+                      </Button>
+
+                      {/* Test Button for Debugging */}
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          console.log('Test button clicked');
+                          if (fileInputRef.current) {
+                            console.log('File input element found, clicking...');
+                            fileInputRef.current.click();
+                          } else {
+                            console.log('File input ref is null');
+                          }
+                        }}
+                        variant="outline"
+                        className="w-full mt-2 text-xs"
+                        size="sm"
+                      >
+                        Test File Input
+                      </Button>
+
+                      {/* Upload Error */}
+                      {errors.upload && <p className="text-sm text-red-500">{errors.upload}</p>}
+
+                      {/* Uploaded Images Preview */}
+                      {uploadedImages.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600">Uploaded Images:</p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {uploadedImages.map((url, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={url}
+                                  alt={`Uploaded ${index + 1}`}
+                                  className={`w-full h-20 object-cover rounded-lg border-2 cursor-pointer transition-all ${
+                                    currentItem.imageUrl === url
+                                      ? 'border-green-500 ring-2 ring-green-200'
+                                      : 'border-gray-200 hover:border-green-400'
+                                  }`}
+                                  onClick={() => selectImageForProject(url)}
+                                />
+                                <button
+                                  onClick={() => removeUploadedImage(index)}
+                                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                                {currentItem.imageUrl === url && (
+                                  <div className="absolute inset-0 bg-green-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+                                    <ImageIcon className="h-6 w-6 text-green-600" />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            Click on an image to select it as the main project image
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Selected Image Display */}
+                      {currentItem.imageUrl && (
+                        <div className="mt-3">
+                          <p className="text-sm text-gray-600 mb-2">Selected Main Image:</p>
+                          <img
+                            src={currentItem.imageUrl}
+                            alt="Selected project image"
+                            className="w-full max-w-xs h-32 object-cover rounded-lg border border-gray-200"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Form Actions */}
                   <div className="flex space-x-3 pt-4">
                     <Button
@@ -455,6 +636,7 @@ export default function OnboardingStep3() {
                           category: 'web-development',
                           completionDate: ''
                         });
+                        setUploadedImages([]);
                       }}
                       variant="outline"
                       className="font-inter"
@@ -483,25 +665,32 @@ export default function OnboardingStep3() {
               </Button>
             </Link>
 
-            <Button
-              onClick={handleContinue}
-              disabled={isLoading}
-              variant="premium"
-              size="lg"
-              className="font-poppins"
-            >
-              {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <span>Continue</span>
-                  <ArrowRight className="h-5 w-5" />
+            <div className="flex items-center space-x-4">
+              {errors.submit && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{errors.submit}</p>
                 </div>
               )}
-            </Button>
+              <Button
+                onClick={handleContinue}
+                disabled={isLoading}
+                variant="premium"
+                size="lg"
+                className="font-poppins"
+              >
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <span>Continue</span>
+                    <ArrowRight className="h-5 w-5" />
+                  </div>
+                )}
+              </Button>
+            </div>
           </div>
         </motion.div>
       </div>

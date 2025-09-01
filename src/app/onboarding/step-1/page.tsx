@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { ProgressIndicator } from "@/components/ui/ProgressIndicator";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -56,29 +57,53 @@ export default function OnboardingStep1() {
     }
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Professional title is required';
+    } else if (formData.title.length < 3) {
+      newErrors.title = 'Title must be at least 3 characters long';
+    } else if (formData.title.length > 50) {
+      newErrors.title = 'Title must be less than 50 characters';
+    }
+
+    if (!formData.bio.trim()) {
+      newErrors.bio = 'Professional bio is required';
+    } else if (formData.bio.length < 50) {
+      newErrors.bio = 'Bio must be at least 50 characters long';
+    } else if (formData.bio.length > 500) {
+      newErrors.bio = 'Bio must be less than 500 characters';
+    }
+
+    if (formData.hourlyRate < 5) {
+      newErrors.hourlyRate = 'Hourly rate must be at least $5';
+    } else if (formData.hourlyRate > 500) {
+      newErrors.hourlyRate = 'Hourly rate must be less than $500';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleContinue = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Update freelancer profile with step 1 data
-      const freelancerProfileData = {
-        title: formData.title,
-        bio: formData.bio,
-        experience: formData.experience,
-        hourlyRate: formData.hourlyRate,
-        availability: formData.availability,
-      };
+      // Save to localStorage for multi-step process
+      const onboardingData = JSON.parse(localStorage.getItem('onboardingData') || '{}');
+      onboardingData.professional = formData;
+      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
 
-      await userAPI.updateFreelancerProfile(freelancerProfileData);
-
-      // Show congrats and navigate to dashboard
-      setShowCongrats(true);
-      setTimeout(() => {
-        router.push("/freelancer/dashboard");
-      }, 2000);
+      // Navigate to next step
+      router.push('/onboarding/step-2');
     } catch (error) {
-      console.error("Error saving data:", error);
-      setErrors({ submit: "Failed to save profile data. Please try again." });
+      console.error('Error saving data:', error);
+      setErrors({ submit: 'Failed to save profile data. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -142,13 +167,11 @@ export default function OnboardingStep1() {
               </span>
             </Link>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">Step 1 of 4</div>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-green-500 h-2 rounded-full"
-                  style={{ width: "25%" }}
-                ></div>
-              </div>
+              <ProgressIndicator
+                currentStep={1}
+                totalSteps={4}
+                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+              />
             </div>
           </div>
         </div>
@@ -173,9 +196,20 @@ export default function OnboardingStep1() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4 font-poppins">
             Tell us about yourself
           </h1>
-          <p className="text-xl text-gray-600 font-inter">
+          <p className="text-xl text-gray-600 font-inter mb-8">
             Help clients understand your expertise and professional background
           </p>
+
+          {/* Tips */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+            <h3 className="text-sm font-semibold text-blue-800 mb-2 font-poppins">💡 Pro Tips</h3>
+            <ul className="text-sm text-blue-700 space-y-1 font-inter">
+              <li>• Use a professional title that clearly describes your main service</li>
+              <li>• Write a bio that highlights your unique value proposition</li>
+              <li>• Be honest about your experience level - clients appreciate transparency</li>
+              <li>• Set a competitive hourly rate based on your experience and market rates</li>
+            </ul>
+          </div>
         </div>
 
         <motion.div
@@ -217,9 +251,14 @@ export default function OnboardingStep1() {
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter ${
+                      errors.title ? 'border-red-300' : 'border-gray-300'
+                    }`}
                     placeholder="e.g., Full-Stack Developer, UI/UX Designer, Content Writer"
                   />
+                  {errors.title && (
+                    <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+                  )}
                   <p className="mt-1 text-sm text-gray-500">
                     This will be the headline of your profile
                   </p>
@@ -238,14 +277,19 @@ export default function OnboardingStep1() {
                     rows={6}
                     value={formData.bio}
                     onChange={(e) => handleInputChange("bio", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-inter"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-inter ${
+                      errors.bio ? 'border-red-300' : 'border-gray-300'
+                    }`}
                     placeholder="Describe your experience, skills, and what makes you unique. Include your background, expertise, and the value you bring to clients..."
                   ></textarea>
+                  {errors.bio && (
+                    <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
+                  )}
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-sm text-gray-500">
                       Tell clients about your background and expertise
                     </p>
-                    <span className="text-sm text-gray-400">
+                    <span className={`text-sm ${formData.bio.length > 500 ? 'text-red-500' : 'text-gray-400'}`}>
                       {formData.bio.length}/500
                     </span>
                   </div>
@@ -309,9 +353,14 @@ export default function OnboardingStep1() {
                           parseInt(e.target.value) || 0
                         )
                       }
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                      className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter ${
+                        errors.hourlyRate ? 'border-red-300' : 'border-gray-300'
+                      }`}
                     />
                   </div>
+                  {errors.hourlyRate && (
+                    <p className="mt-1 text-sm text-red-600">{errors.hourlyRate}</p>
+                  )}
                   <p className="mt-1 text-sm text-gray-500">
                     You can always adjust this later
                   </p>
@@ -353,6 +402,11 @@ export default function OnboardingStep1() {
 
                 {/* Continue Button */}
                 <div className="mt-8 flex justify-end">
+                  {errors.submit && (
+                    <div className="mr-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-600">{errors.submit}</p>
+                    </div>
+                  )}
                   <Button
                     onClick={handleContinue}
                     disabled={isLoading}

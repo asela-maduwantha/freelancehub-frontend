@@ -251,11 +251,9 @@ export default function SubmitProposalPage() {
       setUploadingFile(true);
       setFileUploadError(null);
       
-      const response = await uploadAPI.uploadSingleFile(
+      const response = await uploadAPI.uploadFile(
         file, 
-        'proposal', 
-        projectId, 
-        'Project'
+        'proposal'
       );
       
       setUploadedFile(file);
@@ -263,7 +261,7 @@ export default function SubmitProposalPage() {
         ...prev,
         attachments: [{
           filename: file.name,
-          url: response.file.url,
+          url: response.data.url,
           fileType: file.type,
           fileSize: file.size,
           description: ''

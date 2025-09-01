@@ -101,9 +101,62 @@ export class ApiClient {
     }
   }
 
+  // Public request without authentication
+  private async publicRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
+    };
+
+    // Note: No Authorization header for public requests
+
+    const config: RequestInit = {
+      ...options,
+      headers,
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.warn('Failed to parse error response:', parseError);
+        }
+
+        const apiError = new Error(errorMessage);
+        (apiError as any).status = response.status;
+        (apiError as any).statusText = response.statusText;
+        (apiError as any).endpoint = endpoint;
+
+        throw apiError;
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Public API request failed: ${endpoint}`, error);
+      throw error;
+    }
+  }
+
   // GET request
   async get<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  // Public GET request
+  async getPublic<T>(endpoint: string): Promise<T> {
+    return this.publicRequest<T>(endpoint, { method: 'GET' });
   }
 
   // POST request

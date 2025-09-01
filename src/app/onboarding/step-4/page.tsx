@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, Star, Users, DollarSign, Globe, Shield, Clock, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Star, Users, DollarSign, Globe, Shield, Clock, Search, Folder } from 'lucide-react';
 import Link from 'next/link';
 import { freelancerAPI } from '@/lib/api';
 
@@ -26,58 +27,46 @@ const transformProfileData = (onboardingData: OnboardingData) => {
     throw new Error('Skills information is required');
   }
 
-  // Transform professional data
-  const professional = {
+  // Transform to match the new API structure
+  const profileData = {
     title: onboardingData.professional.title,
-    description: onboardingData.professional.bio, // Convert bio to description
+    bio: onboardingData.professional.bio,
+    skills: [
+      ...(onboardingData.skills.primarySkills || []),
+      ...(onboardingData.skills.secondarySkills || [])
+    ],
     experience: onboardingData.professional.experience,
-    availability: onboardingData.professional.availability || 'AVAILABLE',
+    education: [], // Will be populated if available
+    certifications: (onboardingData.skills.certifications || []).map((cert: string) => ({
+      name: cert,
+      issuer: 'Unknown', // Default issuer
+      date: new Date().toISOString().split('T')[0], // Current date as default
+      url: '' // Empty URL as default
+    })),
+    portfolio: (onboardingData.portfolio?.items || []).map((item: any) => ({
+      title: item.title,
+      description: item.description,
+      images: item.imageUrl ? [item.imageUrl] : [], 
+      url: item.projectUrl || '',
+      tags: item.technologies || []
+    })),
+    hourlyRate: onboardingData.professional.hourlyRate,
+    availability: onboardingData.professional.availability,
     workingHours: {
-      timezone: 'UTC-5', // Default timezone, can be made configurable
-      monday: { start: '09:00', end: '17:00', available: true },
-      tuesday: { start: '09:00', end: '17:00', available: true },
-      wednesday: { start: '09:00', end: '17:00', available: true },
-      thursday: { start: '09:00', end: '17:00', available: true },
-      friday: { start: '09:00', end: '17:00', available: true },
-      saturday: { start: '10:00', end: '16:00', available: false },
-      sunday: { start: '10:00', end: '16:00', available: false }
+      timezone: 'UTC-5', // Default timezone
+      hours: [
+        { day: 'Monday', start: '09:00', end: '17:00' },
+        { day: 'Tuesday', start: '09:00', end: '17:00' },
+        { day: 'Wednesday', start: '09:00', end: '17:00' },
+        { day: 'Thursday', start: '09:00', end: '17:00' },
+        { day: 'Friday', start: '09:00', end: '17:00' },
+        { day: 'Saturday', start: '10:00', end: '16:00' },
+        { day: 'Sunday', start: '10:00', end: '16:00' }
+      ]
     }
   };
 
-  // Transform skills data
-  const skills = {
-    primary: onboardingData.skills.primarySkills || [],
-    secondary: onboardingData.skills.secondarySkills || [],
-    categories: ['Web Development'], // Default category, can be made configurable
-    detailed: (onboardingData.skills.primarySkills || []).map((skill: string) => ({
-      name: skill,
-      level: 'intermediate', // Default level, can be made configurable
-      yearsOfExperience: 2 // Default experience, can be made configurable
-    }))
-  };
-
-  // Transform languages data (default to English if not provided)
-  const languages = {
-    languages: [
-      { name: 'English', proficiency: 'native' }
-    ]
-  };
-
-  // Transform pricing data if available
-  const pricing = onboardingData.professional?.hourlyRate ? {
-    hourlyRate: {
-      min: onboardingData.professional.hourlyRate,
-      max: onboardingData.professional.hourlyRate + 10,
-      currency: 'USD'
-    }
-  } : undefined;
-
-  return {
-    professional,
-    skills,
-    languages,
-    pricing
-  };
+  return profileData;
 };
 
 export default function OnboardingStep4() {
@@ -109,6 +98,12 @@ export default function OnboardingStep4() {
     setIsSubmitting(true);
 
     try {
+      // Transform the onboarding data to match API structure
+      const profileData = transformProfileData(onboardingData);
+
+      // Call the API to update freelancer profile
+      await freelancerAPI.updateProfile(profileData);
+
       // Clear onboarding data
       localStorage.removeItem('onboardingData');
 
@@ -120,7 +115,7 @@ export default function OnboardingStep4() {
       
     } catch (error: any) {
       console.error('Error completing onboarding:', error);
-      // Still redirect to dashboard even on error
+      // Still redirect to dashboard even on error for now
       localStorage.removeItem('onboardingData');
       setShowCongrats(true);
       setTimeout(() => {
@@ -155,10 +150,11 @@ export default function OnboardingStep4() {
               <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
             </Link>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">Step 4 of 4</div>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
-              </div>
+              <ProgressIndicator
+                currentStep={4}
+                totalSteps={4}
+                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+              />
             </div>
           </div>
         </div>
@@ -293,11 +289,27 @@ export default function OnboardingStep4() {
             {onboardingData.portfolio && onboardingData.portfolio.items && onboardingData.portfolio.items.length > 0 && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h4 className="font-medium text-gray-900 mb-3 font-poppins">Portfolio Items</h4>
-                <div className="grid gap-3">
+                <div className="grid gap-4">
                   {onboardingData.portfolio.items.slice(0, 3).map((item: any, index: number) => (
                     <div key={index} className="flex items-center space-x-3 text-sm text-gray-600 font-inter">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>{item.title}</span>
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Folder className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{item.title}</div>
+                        <div className="text-xs text-gray-500">
+                          {item.technologies?.slice(0, 3).join(', ')}
+                          {item.technologies?.length > 3 && ` +${item.technologies.length - 3} more`}
+                        </div>
+                      </div>
                     </div>
                   ))}
                   {onboardingData.portfolio.items.length > 3 && (
@@ -406,12 +418,24 @@ export default function OnboardingStep4() {
 
           {/* Navigation */}
           <div className="flex justify-between items-center">
-            <Link href="/onboarding/step-3">
-              <Button variant="outline" className="font-inter">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-            </Link>
+            <div className="flex space-x-4">
+              <Link href="/onboarding/step-3">
+                <Button variant="outline" className="font-inter">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Edit Portfolio
+                </Button>
+              </Link>
+              <Link href="/onboarding/step-2">
+                <Button variant="outline" className="font-inter">
+                  Edit Skills
+                </Button>
+              </Link>
+              <Link href="/onboarding/step-1">
+                <Button variant="outline" className="font-inter">
+                  Edit Profile
+                </Button>
+              </Link>
+            </div>
 
             <div className="flex space-x-4">
               <Button

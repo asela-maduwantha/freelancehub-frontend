@@ -20,7 +20,8 @@ import {
   Filter,
   Bell,
   Settings,
-  LogOut
+  LogOut,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { clientAPI } from '@/lib/api';
@@ -207,6 +208,21 @@ export default function ClientDashboard() {
                 <Link href="/client/freelancers" className="text-gray-600 hover:text-gray-900">
                   Find Talent
                 </Link>
+                <Link href="/client/contracts" className="text-gray-600 hover:text-gray-900">
+                  Contracts
+                </Link>
+                <Link href="/client/payments" className="text-gray-600 hover:text-gray-900">
+                  Payments
+                </Link>
+                <Link href="/client/reviews" className="text-gray-600 hover:text-gray-900">
+                  Reviews
+                </Link>
+                <Link href="/client/disputes" className="text-gray-600 hover:text-gray-900">
+                  Disputes
+                </Link>
+                <Link href="/client/profile" className="text-gray-600 hover:text-gray-900">
+                  Profile
+                </Link>
                 <Link href="/client/messages" className="text-gray-600 hover:text-gray-900">
                   Messages
                 </Link>
@@ -262,6 +278,30 @@ export default function ClientDashboard() {
               <Button variant="outline" className="font-inter">
                 <Search className="h-4 w-4 mr-2" />
                 Find Freelancers
+              </Button>
+            </Link>
+            <Link href="/client/contracts">
+              <Button variant="outline" className="font-inter">
+                <FileText className="h-4 w-4 mr-2" />
+                View Contracts
+              </Button>
+            </Link>
+            <Link href="/client/payments">
+              <Button variant="outline" className="font-inter">
+                <DollarSign className="h-4 w-4 mr-2" />
+                View Payments
+              </Button>
+            </Link>
+            <Link href="/client/reviews">
+              <Button variant="outline" className="font-inter">
+                <Star className="h-4 w-4 mr-2" />
+                Leave Reviews
+              </Button>
+            </Link>
+            <Link href="/client/disputes">
+              <Button variant="outline" className="font-inter">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Manage Disputes
               </Button>
             </Link>
             <Link href="/client/messages">
@@ -463,14 +503,14 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
 
-                <Link href="/client/settings" className="block">
+                <Link href="/client/profile" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Settings className="h-4 w-4 text-purple-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Account Settings</p>
-                      <p className="text-sm text-gray-500">Manage your profile</p>
+                      <p className="font-medium text-gray-900">Update Profile</p>
+                      <p className="text-sm text-gray-500">Complete your company profile</p>
                     </div>
                   </div>
                 </Link>

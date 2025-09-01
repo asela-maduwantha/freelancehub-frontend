@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Code, X, Plus, Award } from 'lucide-react';
 import Link from 'next/link';
@@ -117,17 +118,10 @@ export default function OnboardingStep2() {
     setIsLoading(true);
 
     try {
-      // Update freelancer profile with skills data
-      const freelancerProfileData = {
-        skills: [...formData.primarySkills, ...formData.secondarySkills],
-        certifications: formData.certifications.map(cert => ({
-          name: cert,
-          issuer: 'Self-certified', // Default value
-          date: new Date().toISOString()
-        }))
-      };
-
-      await userAPI.updateFreelancerProfile(freelancerProfileData);
+      // Save to localStorage for multi-step process
+      const onboardingData = JSON.parse(localStorage.getItem('onboardingData') || '{}');
+      onboardingData.skills = formData;
+      localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
 
       // Navigate to step 3
       router.push('/onboarding/step-3');
@@ -158,10 +152,11 @@ export default function OnboardingStep2() {
               <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
             </Link>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">Step 2 of 4</div>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '50%' }}></div>
-              </div>
+              <ProgressIndicator
+                currentStep={2}
+                totalSteps={4}
+                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+              />
             </div>
           </div>
         </div>
@@ -191,9 +186,20 @@ export default function OnboardingStep2() {
             <h1 className="text-3xl font-bold text-gray-900 mb-4 font-poppins">
               What are your skills?
             </h1>
-            <p className="text-xl text-gray-600 font-inter">
+            <p className="text-xl text-gray-600 font-inter mb-8">
               Showcase your expertise to attract the right clients
             </p>
+
+            {/* Tips */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
+              <h3 className="text-sm font-semibold text-green-800 mb-2 font-poppins">💡 Pro Tips</h3>
+              <ul className="text-sm text-green-700 space-y-1 font-inter">
+                <li>• Add at least 3 primary skills that you're most confident in</li>
+                <li>• Include both technical skills and soft skills</li>
+                <li>• Certifications help build credibility with clients</li>
+                <li>• You can always add more skills to your profile later</li>
+              </ul>
+            </div>
           </div>
 
           {/* Form */}
@@ -368,25 +374,32 @@ export default function OnboardingStep2() {
                 </Button>
               </Link>
 
-              <Button
-                onClick={handleContinue}
-                disabled={isLoading || formData.primarySkills.length < 3}
-                variant="premium"
-                size="lg"
-                className="font-poppins"
-              >
-                {isLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <span>Continue</span>
-                    <ArrowRight className="h-5 w-5" />
+              <div className="flex items-center space-x-4">
+                {errors.submit && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{errors.submit}</p>
                   </div>
                 )}
-              </Button>
+                <Button
+                  onClick={handleContinue}
+                  disabled={isLoading || formData.primarySkills.length < 3}
+                  variant="premium"
+                  size="lg"
+                  className="font-poppins"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span>Continue</span>
+                      <ArrowRight className="h-5 w-5" />
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </motion.div>

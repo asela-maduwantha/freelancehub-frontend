@@ -4,6 +4,12 @@ import { apiClient } from './client';
 
 // Freelancer API functions
 export const freelancerAPI = {
+  // Get freelancers with filtering (public endpoint)
+  async getFreelancers(filters?: any): Promise<any> {
+    const queryParams = filters ? new URLSearchParams(filters).toString() : '';
+    return apiClient.getPublic(`/users/freelancers${queryParams ? `?${queryParams}` : ''}`);
+  },
+
   // Get freelancer proposals
   async getProposals(filters?: any): Promise<any> {
     const queryParams = filters ? new URLSearchParams(filters).toString() : '';
