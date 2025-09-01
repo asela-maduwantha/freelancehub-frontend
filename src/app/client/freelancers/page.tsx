@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { freelancerAPI } from '@/lib/api';
+import Header from '@/components/ui/Header';
 
 interface Freelancer {
   id: string;
@@ -226,24 +227,7 @@ export default function FreelancersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
-            </Link>
-            <Link
-              href="/client/dashboard"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header backLink="/client/dashboard" backText="Back to Dashboard" />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">

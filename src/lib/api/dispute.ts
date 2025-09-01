@@ -82,6 +82,11 @@ export const disputeAPI = {
     return apiClient.put(`/disputes/${disputeId}/status`, { status, resolution });
   },
 
+  // Add message to dispute
+  async addMessage(disputeId: string, message: string): Promise<{ message: string }> {
+    return apiClient.post(`/disputes/${disputeId}/messages`, { message });
+  },
+
   // Add evidence to dispute
   async addEvidence(disputeId: string, evidence: any): Promise<{ message: string }> {
     return apiClient.post(`/disputes/${disputeId}/evidence`, evidence);

@@ -21,30 +21,30 @@ import {
   Bell,
   Settings,
   LogOut,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { clientAPI } from '@/lib/api';
+import Header from '@/components/ui/Header';
 
 interface DashboardStats {
-  activeProjects: number;
   totalProjects: number;
-  totalSpent: number;
-  activeFreelancers: number;
-  pendingProposals: number;
+  activeProjects: number;
   completedProjects: number;
+  totalSpent: number;
+  activeContracts: number;
+  pendingProposals: number;
 }
 
 interface Project {
   id: string;
   title: string;
   status: string;
-  proposalCount: number;
+  createdAt: string;
   budget: {
     amount: number;
-    currency: string;
   };
-  createdAt: string;
 }
 
 interface Proposal {
@@ -87,19 +87,26 @@ export default function ClientDashboard() {
       // Try to load real data from API
       try {
         const dashboardData = await clientAPI.getDashboard();
-        setStats(dashboardData.stats);
+        setStats({
+          totalProjects: dashboardData.totalProjects,
+          activeProjects: dashboardData.activeProjects,
+          completedProjects: dashboardData.completedProjects,
+          totalSpent: dashboardData.totalSpent,
+          activeContracts: dashboardData.activeContracts,
+          pendingProposals: dashboardData.pendingProposals
+        });
         setRecentProjects(dashboardData.recentProjects || []);
-        setRecentProposals(dashboardData.recentApplications || []);
+        setRecentProposals([]); // Clear proposals since they're not in the new response
       } catch (apiError) {
         console.log('API not available, using mock data');
         // Fallback to mock data for demonstration
         setStats({
-          activeProjects: 3,
           totalProjects: 12,
+          activeProjects: 3,
+          completedProjects: 9,
           totalSpent: 8500,
-          activeFreelancers: 5,
-          pendingProposals: 8,
-          completedProjects: 9
+          activeContracts: 5,
+          pendingProposals: 8
         });
 
         setRecentProjects([
@@ -107,25 +114,22 @@ export default function ClientDashboard() {
           id: '1',
           title: 'Build E-commerce Website',
           status: 'active',
-          proposalCount: 12,
-          budget: { amount: 2500, currency: 'USD' },
-          createdAt: '2024-01-15'
+          createdAt: '2024-01-15',
+          budget: { amount: 2500 }
         },
         {
           id: '2',
           title: 'Mobile App UI Design',
           status: 'open',
-          proposalCount: 8,
-          budget: { amount: 1200, currency: 'USD' },
-          createdAt: '2024-01-10'
+          createdAt: '2024-01-10',
+          budget: { amount: 1200 }
         },
         {
           id: '3',
           title: 'Content Writing for Blog',
           status: 'completed',
-          proposalCount: 15,
-          budget: { amount: 800, currency: 'USD' },
-          createdAt: '2024-01-05'
+          createdAt: '2024-01-05',
+          budget: { amount: 800 }
         }
       ]);
 
@@ -189,72 +193,13 @@ export default function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-                <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
-              </Link>
-              <div className="hidden md:flex items-center space-x-6 ml-8">
-                <Link href="/client/dashboard" className="text-green-600 font-semibold">
-                  Dashboard
-                </Link>
-                <Link href="/client/projects" className="text-gray-600 hover:text-gray-900">
-                  Projects
-                </Link>
-                <Link href="/client/freelancers" className="text-gray-600 hover:text-gray-900">
-                  Find Talent
-                </Link>
-                <Link href="/client/contracts" className="text-gray-600 hover:text-gray-900">
-                  Contracts
-                </Link>
-                <Link href="/client/payments" className="text-gray-600 hover:text-gray-900">
-                  Payments
-                </Link>
-                <Link href="/client/reviews" className="text-gray-600 hover:text-gray-900">
-                  Reviews
-                </Link>
-                <Link href="/client/disputes" className="text-gray-600 hover:text-gray-900">
-                  Disputes
-                </Link>
-                <Link href="/client/files" className="text-gray-600 hover:text-gray-900">
-                  Files
-                </Link>
-                <Link href="/client/profile" className="text-gray-600 hover:text-gray-900">
-                  Profile
-                </Link>
-                <Link href="/client/messages" className="text-gray-600 hover:text-gray-900">
-                  Messages
-                </Link>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" className="relative">
-                <Bell className="h-5 w-5" />
-                {stats && stats.pendingProposals > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {stats.pendingProposals}
-                  </span>
-                )}
-              </Button>
-              <div className="flex items-center space-x-2">
-                <img src="/user.jpg" alt={user.firstName} className="h-8 w-8 rounded-full" />
-                <div className="hidden md:block">
-                  <div className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</div>
-                  <div className="text-xs text-gray-500">Client</div>
-                </div>
-              </div>
-              <Button variant="ghost" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        showNavigation={true}
+        currentPage="dashboard"
+        user={user}
+        stats={stats}
+        onLogout={handleLogout}
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -271,43 +216,43 @@ export default function ClientDashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-4">
-            <Link href="/client/projects/new">
+            <Link key="post-project" href="/client/projects/new">
               <Button variant="premium" className="font-poppins">
                 <Plus className="h-4 w-4 mr-2" />
                 Post a Project
               </Button>
             </Link>
-            <Link href="/client/freelancers">
+            <Link key="find-freelancers" href="/client/freelancers">
               <Button variant="outline" className="font-inter">
                 <Search className="h-4 w-4 mr-2" />
                 Find Freelancers
               </Button>
             </Link>
-            <Link href="/client/contracts">
+            <Link key="view-contracts" href="/client/contracts">
               <Button variant="outline" className="font-inter">
                 <FileText className="h-4 w-4 mr-2" />
                 View Contracts
               </Button>
             </Link>
-            <Link href="/client/payments">
+            <Link key="view-payments" href="/client/payments">
               <Button variant="outline" className="font-inter">
                 <DollarSign className="h-4 w-4 mr-2" />
                 View Payments
               </Button>
             </Link>
-            <Link href="/client/reviews">
+            <Link key="leave-reviews" href="/client/reviews">
               <Button variant="outline" className="font-inter">
                 <Star className="h-4 w-4 mr-2" />
                 Leave Reviews
               </Button>
             </Link>
-            <Link href="/client/disputes">
+            <Link key="manage-disputes" href="/client/disputes">
               <Button variant="outline" className="font-inter">
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Manage Disputes
               </Button>
             </Link>
-            <Link href="/client/messages">
+            <Link key="messages" href="/client/messages">
               <Button variant="outline" className="font-inter">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Messages
@@ -322,13 +267,13 @@ export default function ClientDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8"
           >
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div key="total-projects" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeProjects}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalProjects}</p>
                 </div>
                 <div className="p-2 bg-green-100 rounded-lg">
                   <Briefcase className="h-6 w-6 text-green-600" />
@@ -336,23 +281,35 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div key="active-projects" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeProjects}</p>
+                </div>
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div key="total-spent" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Spent</p>
                   <p className="text-2xl font-bold text-gray-900">${stats.totalSpent.toLocaleString()}</p>
                 </div>
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div key="active-contracts" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Freelancers</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeFreelancers}</p>
+                  <p className="text-sm font-medium text-gray-600">Active Contracts</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeContracts}</p>
                 </div>
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <Users className="h-6 w-6 text-purple-600" />
@@ -360,7 +317,19 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div key="completed-projects" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Completed Projects</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.completedProjects}</p>
+                </div>
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div key="pending-proposals" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pending Proposals</p>
@@ -402,11 +371,10 @@ export default function ClientDashboard() {
                             }`}>
                               {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
                             </span>
-                            <span className="flex items-center">
-                              <Eye className="h-4 w-4 mr-1" />
-                              {project.proposalCount} proposals
-                            </span>
                             <span>${project.budget.amount}</span>
+                            <span className="text-xs">
+                              {new Date(project.createdAt).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
                         <Button variant="outline" size="sm" className="font-inter">
@@ -482,7 +450,7 @@ export default function ClientDashboard() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Quick Actions</h3>
               <div className="space-y-3">
-                <Link href="/client/projects/new" className="block">
+                <Link key="quick-post-project" href="/client/projects/new" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-green-100 rounded-lg">
                       <Plus className="h-4 w-4 text-green-600" />
@@ -494,7 +462,7 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
                 
-                <Link href="/client/freelancers" className="block">
+                <Link key="quick-browse-freelancers" href="/client/freelancers" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <Search className="h-4 w-4 text-blue-600" />
@@ -506,7 +474,7 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
 
-                <Link href="/client/profile" className="block">
+                <Link key="quick-update-profile" href="/client/profile" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Settings className="h-4 w-4 text-purple-600" />

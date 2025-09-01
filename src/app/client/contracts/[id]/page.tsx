@@ -27,6 +27,7 @@ import { contractAPI } from '@/lib/api';
 import { paymentAPI } from '@/lib/api/payment';
 import EnhancedFileUpload from '@/components/ui/EnhancedFileUpload';
 import { enhancedUploadAPI, FileMetadata } from '@/lib/api/enhanced-upload';
+import Header from '@/components/ui/Header';
 
 interface Contract {
   id: string;
@@ -360,24 +361,7 @@ export default function ContractDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
-            </Link>
-            <Link
-              href="/client/contracts"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Contracts
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header backLink="/client/contracts" backText="Back to Contracts" />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">

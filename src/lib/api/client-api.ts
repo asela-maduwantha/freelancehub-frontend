@@ -7,7 +7,7 @@ export const clientAPI = {
   // Get client projects
   async getProjects(filters?: any): Promise<any> {
     const queryParams = filters ? new URLSearchParams(filters).toString() : '';
-    return apiClient.get(`/clients/projects${queryParams ? `?${queryParams}` : ''}`);
+    return apiClient.get(`/clients/projects/my-projects${queryParams ? `?${queryParams}` : ''}`);
   },
 
   // Create new project

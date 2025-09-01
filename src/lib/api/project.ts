@@ -13,7 +13,7 @@ export const projectAPI = {
   // Get public projects (for freelancers to browse)
   async getPublicProjects(filters?: any): Promise<any> {
     const queryParams = filters ? new URLSearchParams(filters).toString() : '';
-    return apiClient.get(`/projects/public${queryParams ? `?${queryParams}` : ''}`);
+    return apiClient.getPublic(`/projects/public${queryParams ? `?${queryParams}` : ''}`);
   },
 
   // Get project by ID

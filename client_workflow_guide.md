@@ -82,20 +82,37 @@ This document outlines the complete step-by-step process of what a client can do
 
 6. **Create a Project**
    - **Action:** Post a new project with details like title, description, budget, and requirements.
-   - **Endpoint:** `POST /api/projects`
+   - **Endpoint:** `POST /api/clients/projects`
    - **Headers:** Include `Authorization: Bearer <access_token>`
    - **Request Body Example:**
      ```json
      {
        "title": "Build E-commerce Website",
        "description": "Need a full-stack developer for an online store",
+       "category": "technology",
+       "subcategory": "",
        "requiredSkills": ["JavaScript", "React", "Node.js"],
-       "budgetType": "fixed",
-       "budget": 5000,
-       "duration": "short-term",
-       "workType": ["remote"],
-       "experienceLevel": "standard",
-       "deadline": "2025-10-01T00:00:00.000Z"
+       "type": "fixed",
+       "budget": {
+         "amount": 5000,
+         "currency": "USD",
+         "type": "fixed"
+       },
+       "timeline": {
+         "deadline": "2025-10-01T00:00:00.000Z",
+         "duration": 30,
+         "isUrgent": false,
+         "isFlexible": true
+       },
+       "requirements": {
+         "experienceLevel": "standard",
+         "minimumRating": 4,
+         "minimumCompletedProjects": 5,
+         "preferredLanguages": ["English"],
+         "preferredCountries": []
+       },
+       "visibility": "public",
+       "tags": []
      }
      ```
    - **Response:** Confirmation of project creation with project ID.
@@ -103,21 +120,21 @@ This document outlines the complete step-by-step process of what a client can do
 
 7. **View Own Projects**
    - **Action:** Check the status of posted projects and manage them.
-   - **Endpoint:** `GET /api/projects/my-projects`
+   - **Endpoint:** `GET /api/clients/projects/my-projects`
    - **Headers:** Include `Authorization: Bearer <access_token>`
    - **Response:** List of client's projects with status, proposals count, etc.
    - **Purpose:** Monitor project progress and manage listings.
 
 8. **Review Proposals for a Project**
    - **Action:** View and evaluate proposals submitted by freelancers for a specific project.
-   - **Endpoint:** `GET /api/projects/{projectId}/proposals`
+   - **Endpoint:** `GET /api/clients/projects/{projectId}/proposals`
    - **Headers:** Include `Authorization: Bearer <access_token>`
    - **Response:** List of proposals with freelancer details, bid amounts, and cover letters.
    - **Purpose:** Assess freelancer suitability and select the best candidate.
 
 9. **Accept a Proposal**
    - **Action:** Choose and accept a proposal, which sets the project to in-progress.
-   - **Endpoint:** `POST /api/projects/{projectId}/proposals/{proposalId}/accept`
+   - **Endpoint:** `POST /api/clients/projects/{projectId}/proposals/{proposalId}/accept`
    - **Headers:** Include `Authorization: Bearer <access_token>`
    - **Response:** Confirmation of acceptance.
    - **Purpose:** Hire the freelancer and start the project officially.
