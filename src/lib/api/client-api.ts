@@ -32,12 +32,12 @@ export const clientAPI = {
 
   // Get project proposals
   async getProjectProposals(projectId: string): Promise<any> {
-    return apiClient.get(`/clients/projects/${projectId}/proposals`);
+    return apiClient.get(`/projects/${projectId}/proposals`);
   },
 
-  // Accept proposal
-  async acceptProposal(projectId: string, proposalId: string): Promise<{ message: string }> {
-    return apiClient.post(`/clients/projects/${projectId}/proposals/${proposalId}/accept`);
+  // Accept proposal (creates contract automatically)
+  async acceptProposal(projectId: string, proposalId: string, message: string): Promise<{ message: string; contract: any }> {
+    return apiClient.post(`/clients/projects/${projectId}/proposals/${proposalId}/accept`, { message });
   },
 
   // Reject proposal
@@ -52,6 +52,14 @@ export const clientAPI = {
 
   // Get client dashboard
   async getDashboard(): Promise<any> {
-    return apiClient.get('/clients/dashboard');
+    const response = apiClient.get('/clients/dashboard');
+    console.log(response);
+    return response;
+  },
+
+  // Get all client proposals
+  async getProposals(filters?: any): Promise<any> {
+    const queryParams = filters ? new URLSearchParams(filters).toString() : '';
+    return apiClient.get(`/clients/proposals${queryParams ? `?${queryParams}` : ''}`);
   },
 };

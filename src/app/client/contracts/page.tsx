@@ -20,39 +20,8 @@ import {
 import Link from 'next/link';
 import { contractAPI } from '@/lib/api';
 import Header from '@/components/ui/Header';
-
-interface Contract {
-  id: string;
-  project: {
-    id: string;
-    title: string;
-    description: string;
-  };
-  freelancer: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    avatar?: string;
-    rating: number;
-  };
-  status: 'active' | 'completed' | 'cancelled' | 'disputed';
-  budget: {
-    amount: number;
-    currency: string;
-  };
-  startDate: string;
-  endDate?: string;
-  milestones: Array<{
-    id: string;
-    title: string;
-    description: string;
-    amount: number;
-    status: 'pending' | 'in_progress' | 'completed' | 'rejected';
-    dueDate: string;
-  }>;
-  totalPaid: number;
-  remainingAmount: number;
-}
+import ContractApprovalModal from '@/components/ui/ContractApprovalModal';
+import { Contract } from '@/lib/api/types';
 
 export default function ClientContractsPage() {
   const router = useRouter();
@@ -62,6 +31,7 @@ export default function ClientContractsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -80,46 +50,63 @@ export default function ClientContractsPage() {
   const loadContracts = async () => {
     try {
       const response = await contractAPI.getContracts();
-      setContracts(response.data || []);
+      setContracts(response.contracts || response.data || []);
     } catch (error) {
       console.error('Failed to load contracts:', error);
       // Mock data for demonstration
       const mockContracts: Contract[] = [
         {
-          id: '1',
-          project: {
-            id: '1',
+          _id: '1',
+          projectId: {
+            _id: '1',
             title: 'Build E-commerce Website',
             description: 'Full-stack e-commerce website with payment integration'
           },
-          freelancer: {
-            id: '1',
+          clientId: {
+            _id: '1',
+            firstName: 'Client',
+            lastName: 'User',
+            email: 'client@example.com'
+          },
+          freelancerId: {
+            _id: '1',
             firstName: 'John',
             lastName: 'Developer',
-            rating: 4.9
+            email: 'john@example.com'
           },
+          proposalId: '1',
           status: 'active',
-          budget: { amount: 2200, currency: 'USD' },
-          startDate: '2024-01-20T00:00:00Z',
+          terms: {
+            budget: 2200,
+            paymentType: 'fixed',
+            startDate: '2024-01-20T00:00:00Z',
+            endDate: '2024-02-20T00:00:00Z',
+            paymentSchedule: 'Upon milestone completion'
+          },
+          approvalWorkflow: {
+            clientApproved: false,
+            freelancerApproved: false,
+            approvalOrder: 'client_first'
+          },
           milestones: [
             {
-              id: '1',
+              _id: '1',
               title: 'Setup and Planning',
               description: 'Project setup, requirements gathering, and planning phase',
               amount: 550,
-              status: 'completed',
+              status: 'approved',
               dueDate: '2024-01-25T00:00:00Z'
             },
             {
-              id: '2',
+              _id: '2',
               title: 'Frontend Development',
               description: 'Build responsive frontend with React',
               amount: 1100,
-              status: 'in_progress',
+              status: 'in-progress',
               dueDate: '2024-02-10T00:00:00Z'
             },
             {
-              id: '3',
+              _id: '3',
               title: 'Backend Development',
               description: 'Build REST API and database integration',
               amount: 550,
@@ -127,46 +114,65 @@ export default function ClientContractsPage() {
               dueDate: '2024-02-20T00:00:00Z'
             }
           ],
-          totalPaid: 550,
-          remainingAmount: 1650
+          createdAt: '2024-01-20T00:00:00Z',
+          updatedAt: '2024-01-20T00:00:00Z'
         },
         {
-          id: '2',
-          project: {
-            id: '2',
+          _id: '2',
+          projectId: {
+            _id: '2',
             title: 'Mobile App UI Design',
             description: 'Design modern UI/UX for fitness tracking app'
           },
-          freelancer: {
-            id: '2',
+          clientId: {
+            _id: '2',
+            firstName: 'Client',
+            lastName: 'User2',
+            email: 'client2@example.com'
+          },
+          freelancerId: {
+            _id: '2',
             firstName: 'Sarah',
             lastName: 'Designer',
-            rating: 4.8
+            email: 'sarah@example.com'
           },
+          proposalId: '2',
           status: 'completed',
-          budget: { amount: 1100, currency: 'USD' },
-          startDate: '2024-01-15T00:00:00Z',
-          endDate: '2024-01-30T00:00:00Z',
+          terms: {
+            budget: 1100,
+            paymentType: 'fixed',
+            startDate: '2024-01-15T00:00:00Z',
+            endDate: '2024-01-30T00:00:00Z',
+            paymentSchedule: 'Upon milestone completion'
+          },
+          approvalWorkflow: {
+            clientApproved: true,
+            freelancerApproved: true,
+            clientApprovedAt: '2024-01-15T00:00:00Z',
+            freelancerApprovedAt: '2024-01-16T00:00:00Z',
+            approvalOrder: 'client_first'
+          },
+          pdfUrl: 'https://example.com/contract-2.pdf',
           milestones: [
             {
-              id: '4',
+              _id: '4',
               title: 'Wireframes and Mockups',
               description: 'Create wireframes and high-fidelity mockups',
               amount: 550,
-              status: 'completed',
+              status: 'approved',
               dueDate: '2024-01-22T00:00:00Z'
             },
             {
-              id: '5',
+              _id: '5',
               title: 'Interactive Prototype',
               description: 'Build interactive prototype with Figma',
               amount: 550,
-              status: 'completed',
+              status: 'approved',
               dueDate: '2024-01-30T00:00:00Z'
             }
           ],
-          totalPaid: 1100,
-          remainingAmount: 0
+          createdAt: '2024-01-15T00:00:00Z',
+          updatedAt: '2024-01-30T00:00:00Z'
         }
       ];
       setContracts(mockContracts);
@@ -197,9 +203,10 @@ export default function ClientContractsPage() {
 
   const getMilestoneStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-gray-100 text-gray-800';
+      case 'submitted': return 'bg-yellow-100 text-yellow-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -218,16 +225,16 @@ export default function ClientContractsPage() {
       await contractAPI.approveMilestone(contractId, milestoneId);
       // Update local state
       setContracts(prev => prev.map(contract => {
-        if (contract.id === contractId) {
+        if (contract._id === contractId) {
           return {
             ...contract,
             milestones: contract.milestones.map(milestone =>
-              milestone.id === milestoneId
-                ? { ...milestone, status: 'completed' }
+              milestone._id === milestoneId
+                ? { ...milestone, status: 'approved' as const }
                 : milestone
             ),
-            totalPaid: contract.totalPaid + (contract.milestones.find(m => m.id === milestoneId)?.amount || 0),
-            remainingAmount: contract.remainingAmount - (contract.milestones.find(m => m.id === milestoneId)?.amount || 0)
+            totalPaid: (contract as any).totalPaid || 0 + (contract.milestones.find(m => m._id === milestoneId)?.amount || 0),
+            remainingAmount: (contract as any).remainingAmount || contract.terms.budget - (contract.milestones.find(m => m._id === milestoneId)?.amount || 0)
           };
         }
         return contract;
@@ -243,11 +250,11 @@ export default function ClientContractsPage() {
       await contractAPI.rejectMilestone(contractId, milestoneId, 'Work does not meet requirements', 'Please revise according to specifications');
       // Update local state
       setContracts(prev => prev.map(contract => {
-        if (contract.id === contractId) {
+        if (contract._id === contractId) {
           return {
             ...contract,
             milestones: contract.milestones.map(milestone =>
-              milestone.id === milestoneId
+              milestone._id === milestoneId
                 ? { ...milestone, status: 'rejected' }
                 : milestone
             )
@@ -259,6 +266,12 @@ export default function ClientContractsPage() {
       console.error('Failed to reject milestone:', error);
       alert('Failed to reject milestone. Please try again.');
     }
+  };
+
+  const handleApprovalSuccess = (updatedContract: Contract) => {
+    setContracts(prev => prev.map(contract =>
+      contract._id === updatedContract._id ? updatedContract : contract
+    ));
   };
 
   if (!user || isLoading) {
@@ -328,7 +341,7 @@ export default function ClientContractsPage() {
           {filteredContracts.length > 0 ? (
             filteredContracts.map((contract) => (
               <motion.div
-                key={contract.id}
+                key={contract._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
@@ -344,21 +357,21 @@ export default function ClientContractsPage() {
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-1 font-poppins">
-                          {contract.project.title}
+                          {contract.projectId.title}
                         </h3>
-                        <p className="text-gray-600 mb-3">{contract.project.description}</p>
+                        <p className="text-gray-600 mb-3">{contract.projectId.description}</p>
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <div className="flex items-center">
                             <User className="h-4 w-4 mr-1" />
-                            <span>{contract.freelancer.firstName} {contract.freelancer.lastName}</span>
+                            <span>{contract.freelancerId.firstName} {contract.freelancerId.lastName}</span>
                           </div>
                           <div className="flex items-center">
                             <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                            <span>{contract.freelancer.rating}</span>
+                            <span>4.9</span>
                           </div>
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            <span>Started {formatDate(contract.startDate)}</span>
+                            <span>Started {formatDate(contract.terms.startDate)}</span>
                           </div>
                         </div>
                       </div>
@@ -368,10 +381,10 @@ export default function ClientContractsPage() {
                         {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                       </div>
                       <div className="text-2xl font-bold text-gray-900 font-poppins">
-                        ${contract.budget.amount}
+                        ${contract.terms.budget}
                       </div>
                       <div className="text-sm text-gray-500">
-                        ${contract.totalPaid} paid • ${contract.remainingAmount} remaining
+                        Total Budget
                       </div>
                     </div>
                   </div>
@@ -384,7 +397,7 @@ export default function ClientContractsPage() {
                   </h4>
                   <div className="space-y-4">
                     {contract.milestones.map((milestone) => (
-                      <div key={milestone.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                      <div key={milestone._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <h5 className="font-medium text-gray-900">{milestone.title}</h5>
@@ -408,7 +421,7 @@ export default function ClientContractsPage() {
                           {milestone.status === 'pending' && contract.status === 'active' && (
                             <>
                               <Button
-                                onClick={() => handleApproveMilestone(contract.id, milestone.id)}
+                                onClick={() => handleApproveMilestone(contract._id, milestone._id)}
                                 variant="premium"
                                 size="sm"
                                 className="font-inter"
@@ -417,7 +430,7 @@ export default function ClientContractsPage() {
                                 Approve
                               </Button>
                               <Button
-                                onClick={() => handleRejectMilestone(contract.id, milestone.id)}
+                                onClick={() => handleRejectMilestone(contract._id, milestone._id)}
                                 variant="outline"
                                 size="sm"
                                 className="font-inter"
@@ -427,14 +440,14 @@ export default function ClientContractsPage() {
                               </Button>
                             </>
                           )}
-                          {milestone.status === 'in_progress' && (
+                          {milestone.status === 'in-progress' && (
                             <div className="text-sm text-blue-600 font-medium">
                               In Progress
                             </div>
                           )}
-                          {milestone.status === 'completed' && (
+                          {milestone.status === 'approved' && (
                             <div className="text-sm text-green-600 font-medium">
-                              Completed
+                              Approved
                             </div>
                           )}
                         </div>
@@ -447,17 +460,47 @@ export default function ClientContractsPage() {
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-4">
-                      <Link href={`/client/messages?contract=${contract.id}`}>
+                      <Link href={`/client/messages?contract=${contract._id}`}>
                         <Button variant="outline" size="sm" className="font-inter">
                           <MessageSquare className="h-4 w-4 mr-1" />
                           Message Freelancer
                         </Button>
                       </Link>
-                      <Link href={`/client/contracts/${contract.id}`}>
+                      <Link href={`/client/contracts/${contract._id}`}>
                         <Button variant="outline" size="sm" className="font-inter">
                           View Details
                         </Button>
                       </Link>
+                      {!contract.approvalWorkflow.clientApproved && (
+                        <Button
+                          onClick={() => {
+                            setSelectedContract(contract);
+                            setShowApprovalModal(true);
+                          }}
+                          variant="premium"
+                          size="sm"
+                          className="font-inter"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Approve Contract
+                        </Button>
+                      )}
+                      {contract.approvalWorkflow.clientApproved && !contract.approvalWorkflow.freelancerApproved && (
+                        <div className="text-sm text-blue-600 font-medium">
+                          Waiting for freelancer approval
+                        </div>
+                      )}
+                      {contract.approvalWorkflow.clientApproved && contract.approvalWorkflow.freelancerApproved && contract.pdfUrl && (
+                        <Button
+                          onClick={() => window.open(contract.pdfUrl, '_blank')}
+                          variant="premium"
+                          size="sm"
+                          className="font-inter"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          View PDF
+                        </Button>
+                      )}
                     </div>
                     {contract.status === 'active' && (
                       <Button
@@ -499,6 +542,20 @@ export default function ClientContractsPage() {
           )}
         </div>
       </div>
+
+      {/* Contract Approval Modal */}
+      {selectedContract && (
+        <ContractApprovalModal
+          isOpen={showApprovalModal}
+          onClose={() => {
+            setShowApprovalModal(false);
+            setSelectedContract(null);
+          }}
+          contract={selectedContract}
+          userRole="client"
+          onApprovalSuccess={handleApprovalSuccess}
+        />
+      )}
     </div>
   );
 }

@@ -230,7 +230,12 @@ export const enhancedUploadAPI = {
       maxFiles: 10
     };
 
-    const config = { ...defaultOptions, ...options };
+    const config = {
+      ...defaultOptions,
+      ...(options?.maxSize !== undefined && { maxSize: options.maxSize }),
+      ...(options?.allowedTypes !== undefined && { allowedTypes: options.allowedTypes }),
+      ...(options?.maxFiles !== undefined && { maxFiles: options.maxFiles })
+    };
 
     // Check file size
     if (file.size > config.maxSize) {

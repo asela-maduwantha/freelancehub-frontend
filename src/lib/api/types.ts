@@ -109,6 +109,77 @@ export interface ClientProfileData {
   verified?: boolean;
 }
 
+// Contract-related interfaces
+export interface ContractMilestone {
+  _id: string;
+  title: string;
+  description: string;
+  amount: number;
+  dueDate: string;
+  status: 'pending' | 'in-progress' | 'submitted' | 'approved' | 'rejected';
+  submittedAt?: string;
+}
+
+export interface ContractTerms {
+  budget: number;
+  paymentType: 'fixed' | 'hourly';
+  startDate: string;
+  endDate: string;
+  paymentSchedule: string;
+}
+
+export interface ContractApprovalWorkflow {
+  clientApproved: boolean;
+  freelancerApproved: boolean;
+  clientApprovedAt?: string;
+  freelancerApprovedAt?: string;
+  approvalOrder: 'client_first' | 'freelancer_first';
+}
+
+export interface Contract {
+  _id: string;
+  projectId: {
+    _id: string;
+    title: string;
+    description: string;
+  };
+  clientId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  freelancerId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  proposalId: string;
+  terms: ContractTerms;
+  milestones: ContractMilestone[];
+  status: 'active' | 'completed' | 'cancelled' | 'disputed';
+  approvalWorkflow: ContractApprovalWorkflow;
+  pdfUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractResponse {
+  message: string;
+  contract: Contract;
+}
+
+export interface ContractsListResponse {
+  contracts: Contract[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
 // Error handling utilities
 export class APIError extends Error {
   constructor(

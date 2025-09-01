@@ -23,40 +23,8 @@ import {
 import Link from 'next/link';
 import { contractAPI, authAPI } from '@/lib/api';
 import Header from '@/components/ui/Header';
-
-interface Contract {
-  id: string;
-  project: {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-  };
-  client: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    avatar?: string;
-    rating: number;
-  };
-  status: 'active' | 'completed' | 'cancelled' | 'disputed';
-  budget: {
-    amount: number;
-    currency: string;
-  };
-  startDate: string;
-  endDate?: string;
-  milestones: Array<{
-    id: string;
-    title: string;
-    description: string;
-    amount: number;
-    status: 'pending' | 'in_progress' | 'completed' | 'rejected';
-    dueDate: string;
-    submittedAt?: string;
-  }>;
-  progress: number;
-}
+import ContractApprovalModal from '@/components/ui/ContractApprovalModal';
+import { Contract } from '@/lib/api/types';
 
 interface ContractStats {
   totalContracts: number;
@@ -104,12 +72,12 @@ export default function FreelancerContracts() {
       const completedContracts = contractsData.filter((c: Contract) => c.status === 'completed').length;
       const totalEarnings = contractsData
         .filter((c: Contract) => c.status === 'completed')
-        .reduce((sum: number, c: Contract) => sum + c.budget.amount, 0);
+        .reduce((sum: number, c: Contract) => sum + c.terms.budget, 0);
       const pendingPayments = contractsData
         .filter((c: Contract) => c.status === 'active')
         .reduce((sum: number, c: Contract) => {
-          const pendingMilestones = c.milestones.filter((m: any) => m.status === 'completed').length;
-          return sum + (c.budget.amount * pendingMilestones / c.milestones.length);
+          const pendingMilestones = c.milestones.filter((m: any) => m.status === 'approved').length;
+          return sum + (c.terms.budget * pendingMilestones / c.milestones.length);
         }, 0);
 
       setStats({
@@ -133,9 +101,9 @@ export default function FreelancerContracts() {
   }, [filter]);
 
   const filteredContracts = contracts.filter(contract =>
-    contract.project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.client.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.client.lastName.toLowerCase().includes(searchTerm.toLowerCase())
+    contract.projectId.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contract.clientId.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contract.clientId.lastName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
@@ -165,12 +133,19 @@ export default function FreelancerContracts() {
 
   const getMilestoneStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-600';
-      case 'in_progress': return 'text-blue-600';
+      case 'approved': return 'text-green-600';
+      case 'in-progress': return 'text-blue-600';
       case 'pending': return 'text-gray-600';
       case 'rejected': return 'text-red-600';
+      case 'submitted': return 'text-yellow-600';
       default: return 'text-gray-600';
     }
+  };
+
+  const calculateProgress = (contract: Contract) => {
+    if (contract.milestones.length === 0) return 0;
+    const completedMilestones = contract.milestones.filter(m => m.status === 'approved').length;
+    return Math.round((completedMilestones / contract.milestones.length) * 100);
   };
 
   if (isLoading) {
@@ -325,7 +300,7 @@ export default function FreelancerContracts() {
             ) : (
               filteredContracts.map((contract, index) => (
                 <motion.div
-                  key={contract.id}
+                  key={contract._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -335,30 +310,30 @@ export default function FreelancerContracts() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-semibold text-gray-900">
-                          {contract.project.title}
+                          {contract.projectId.title}
                         </h3>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
                           {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-3">{contract.project.description}</p>
+                      <p className="text-gray-600 mb-3">{contract.projectId.description}</p>
                       <div className="flex items-center gap-6 text-sm text-gray-500">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4" />
-                          <span>{contract.client.firstName} {contract.client.lastName}</span>
+                          <span>{contract.clientId.firstName} {contract.clientId.lastName}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4" />
-                          <span>{formatCurrency(contract.budget.amount, contract.budget.currency)}</span>
+                          <span>{formatCurrency(contract.terms.budget)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          <span>Started {formatDate(contract.startDate)}</span>
+                          <span>Started {formatDate(contract.terms.startDate)}</span>
                         </div>
                       </div>
                     </div>
                     <Link
-                      href={`/freelancer/contracts/${contract.id}`}
+                      href={`/freelancer/contracts/${contract._id}`}
                       className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                     >
                       <Eye className="h-4 w-4" />
@@ -371,7 +346,7 @@ export default function FreelancerContracts() {
                     <h4 className="text-lg font-medium text-gray-900 mb-3">Milestones</h4>
                     <div className="space-y-3">
                       {contract.milestones.map((milestone, milestoneIndex) => (
-                        <div key={milestone.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={milestone._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
                               <h5 className="font-medium text-gray-900">{milestone.title}</h5>
@@ -382,13 +357,13 @@ export default function FreelancerContracts() {
                             <p className="text-sm text-gray-600 mt-1">{milestone.description}</p>
                             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                               <span>Due: {formatDate(milestone.dueDate)}</span>
-                              <span>{formatCurrency(milestone.amount, contract.budget.currency)}</span>
+                              <span>{formatCurrency(milestone.amount)}</span>
                               {milestone.submittedAt && (
                                 <span>Submitted: {formatDate(milestone.submittedAt)}</span>
                               )}
                             </div>
                           </div>
-                          {contract.status === 'active' && milestone.status === 'in_progress' && (
+                          {contract.status === 'active' && milestone.status === 'in-progress' && (
                             <button className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm">
                               <Upload className="h-4 w-4" />
                               Submit Work
@@ -403,12 +378,12 @@ export default function FreelancerContracts() {
                   <div className="mt-4">
                     <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                       <span>Progress</span>
-                      <span>{contract.progress}%</span>
+                      <span>{calculateProgress(contract)}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${contract.progress}%` }}
+                        style={{ width: `${calculateProgress(contract)}%` }}
                       ></div>
                     </div>
                   </div>

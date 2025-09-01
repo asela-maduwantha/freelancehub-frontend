@@ -22,13 +22,13 @@ interface Freelancer {
   _id: string;
   firstName: string;
   lastName: string;
-  freelancerProfile: {
-    title: string;
-    bio: string;
-    skills: string[];
-    experience: string;
-    hourlyRate: number;
-    availability: string;
+  freelancerProfile?: {
+    title?: string;
+    bio?: string;
+    skills?: string[];
+    experience?: string;
+    hourlyRate?: number;
+    availability?: string;
     portfolio?: Array<{
       images?: string[];
     }>;
@@ -89,7 +89,11 @@ export default function Search() {
 
   // Get profile image URL
   const getProfileImage = (freelancer: Freelancer) => {
-    if (freelancer.freelancerProfile.portfolio?.[0]?.images?.[0]) {
+    if (!freelancer || !freelancer.firstName || !freelancer.lastName) {
+      return `https://ui-avatars.com/api/?name=User&background=10b981&color=fff&size=150`;
+    }
+
+    if (freelancer.freelancerProfile?.portfolio?.[0]?.images?.[0]) {
       return freelancer.freelancerProfile.portfolio[0].images[0];
     }
     return `https://ui-avatars.com/api/?name=${freelancer.firstName}+${freelancer.lastName}&background=10b981&color=fff&size=150`;
@@ -205,7 +209,7 @@ export default function Search() {
           
           {!loading && !error && freelancers.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {freelancers.map((freelancer, index) => (
+              {freelancers.filter(freelancer => freelancer && freelancer._id).map((freelancer, index) => (
                 <motion.div
                   key={freelancer._id}
                   initial={{ opacity: 0, y: 20 }}
@@ -217,23 +221,25 @@ export default function Search() {
                     <div className="flex items-center mb-4">
                       <img
                         src={getProfileImage(freelancer)}
-                        alt={`${freelancer.firstName} ${freelancer.lastName}`}
+                        alt={`${freelancer.firstName || 'User'} ${freelancer.lastName || ''}`}
                         className="w-16 h-16 rounded-full object-cover mr-4"
                       />
                       <div>
                         <h4 className="font-semibold text-lg text-gray-900">
-                          {freelancer.firstName} {freelancer.lastName}
+                          {freelancer.firstName || 'Unknown'} {freelancer.lastName || 'User'}
                         </h4>
-                        <p className="text-green-600 font-medium">{freelancer.freelancerProfile.title}</p>
+                        <p className="text-green-600 font-medium">
+                          {freelancer.freelancerProfile?.title || 'Freelancer'}
+                        </p>
                       </div>
                     </div>
                     
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {freelancer.freelancerProfile.bio}
+                      {freelancer.freelancerProfile?.bio || 'No bio available'}
                     </p>
                     
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {freelancer.freelancerProfile.skills.slice(0, 3).map((skill, skillIndex) => (
+                      {freelancer.freelancerProfile?.skills?.slice(0, 3).map((skill, skillIndex) => (
                         <span
                           key={skillIndex}
                           className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"
@@ -241,7 +247,7 @@ export default function Search() {
                           {skill}
                         </span>
                       ))}
-                      {freelancer.freelancerProfile.skills.length > 3 && (
+                      {freelancer.freelancerProfile?.skills && freelancer.freelancerProfile.skills.length > 3 && (
                         <span className="text-gray-500 text-xs">
                           +{freelancer.freelancerProfile.skills.length - 3} more
                         </span>
@@ -255,14 +261,14 @@ export default function Search() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>{freelancer.freelancerProfile.experience}</span>
+                        <span>{freelancer.freelancerProfile?.experience || 'Not specified'}</span>
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-2xl font-bold text-gray-900">
-                          ${freelancer.freelancerProfile.hourlyRate}
+                          ${freelancer.freelancerProfile?.hourlyRate || 'N/A'}
                         </p>
                         <p className="text-sm text-gray-600">per hour</p>
                       </div>

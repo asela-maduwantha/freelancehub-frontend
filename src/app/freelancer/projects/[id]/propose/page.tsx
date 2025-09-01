@@ -24,27 +24,40 @@ import EnhancedFileUpload from '@/components/ui/EnhancedFileUpload';
 import { enhancedUploadAPI, FileMetadata } from '@/lib/api/enhanced-upload';
 
 interface Project {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   category: string;
+  subcategory: string;
   requiredSkills: string[];
-  type: 'fixed' | 'hourly';
-  budget: {
-    amount: number;
-    maxAmount?: number;
-    currency: string;
-    type: string;
+  budgetType: 'fixed' | 'hourly';
+  budget: number;
+  duration: string;
+  experienceLevel: string;
+  workType: string[];
+  status: string;
+  visibility: string;
+  clientId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
   };
-  timeline: {
-    deadline: string;
-    duration: number;
+  createdAt: string;
+  updatedAt: string;
+  postedAt: string;
+  analytics: {
+    views: number;
+    applications: number;
+    saves: number;
   };
-  client: {
-    id: string;
-    name: string;
-    rating: number;
-  };
+  attachments: any[];
+  disputes: any[];
+  messages: any[];
+  milestones: any[];
+  payments: any[];
+  proposals: any[];
+  reviews: any[];
+  tags: any[];
 }
 
 interface ProposalData {
@@ -147,15 +160,15 @@ export default function SubmitProposalPage() {
         ...prev,
         pricing: {
           ...prev.pricing,
-          amount: response.budget.amount,
-          currency: response.budget.currency,
-          type: response.budget.type as 'fixed' | 'hourly'
+          amount: response.budget || 0,
+          currency: 'USD', // Default currency since it's not in response
+          type: response.budgetType as 'fixed' | 'hourly' || 'fixed'
         },
         timeline: {
           ...prev.timeline,
-          deliveryTime: response.timeline.duration
+          deliveryTime: 0 // Default since duration is a string "short-term"
         },
-        estimatedDuration: response.timeline.duration
+        estimatedDuration: 0 // Default since duration is a string "short-term"
       }));
     } catch (err: any) {
       console.error('Failed to fetch project:', err);
@@ -271,34 +284,83 @@ export default function SubmitProposalPage() {
   };
 
   const validateProposal = (): boolean => {
+    // Validate cover letter
     if (!proposalData.coverLetter.trim()) {
       setError('Cover letter is required');
       return false;
     }
-    
+
+    // Validate pricing
     if (proposalData.pricing.amount <= 0) {
       setError('Please enter a valid amount');
       return false;
     }
-    
+
+    if (!proposalData.pricing.currency.trim()) {
+      setError('Please select a currency');
+      return false;
+    }
+
+    if (!proposalData.pricing.type) {
+      setError('Please select pricing type (fixed or hourly)');
+      return false;
+    }
+
+    if (proposalData.pricing.type === 'hourly' && (!proposalData.pricing.estimatedHours || proposalData.pricing.estimatedHours <= 0)) {
+      setError('Please enter a valid estimated hours for hourly pricing');
+      return false;
+    }
+
+    // Validate timeline
     if (proposalData.timeline.deliveryTime <= 0) {
       setError('Please enter a valid delivery time');
       return false;
     }
-    
+
     if (!proposalData.timeline.startDate) {
       setError('Please select a start date');
       return false;
     }
-    
+
+    // Validate estimated duration
+    if (proposalData.estimatedDuration <= 0) {
+      setError('Please enter a valid estimated duration');
+      return false;
+    }
+
     // Validate milestones
+    if (milestones.length === 0) {
+      setError('Please add at least one milestone');
+      return false;
+    }
+
     for (const milestone of milestones) {
-      if (!milestone.title.trim() || !milestone.description.trim() || !milestone.deliveryDate || milestone.amount <= 0) {
-        setError('Please fill in all milestone details');
+      if (!milestone.title.trim()) {
+        setError('Milestone title is required');
+        return false;
+      }
+      if (!milestone.description.trim()) {
+        setError('Milestone description is required');
+        return false;
+      }
+      if (!milestone.deliveryDate) {
+        setError('Milestone delivery date is required');
+        return false;
+      }
+      if (milestone.amount <= 0) {
+        setError('Milestone amount must be greater than 0');
         return false;
       }
     }
-    
+
+    // Validate portfolio links (optional but should be valid URLs if provided)
+    for (const link of proposalData.portfolioLinks) {
+      if (link.trim() && !link.match(/^https?:\/\/.+/)) {
+        setError('Portfolio links must be valid URLs starting with http:// or https://');
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -315,11 +377,16 @@ export default function SubmitProposalPage() {
       
       // Update proposal data with milestones
       const finalProposalData = {
-        ...proposalData,
+        coverLetter: proposalData.coverLetter,
+        pricing: proposalData.pricing,
         timeline: {
           ...proposalData.timeline,
           milestones
-        }
+        },
+        estimatedDuration: proposalData.estimatedDuration,
+        portfolioLinks: proposalData.portfolioLinks.filter(link => link.trim() !== ''),
+        attachments: proposalData.attachments,
+        additionalInfo: proposalData.additionalInfo
       };
       
       await freelancerAPI.submitProposal(projectId, finalProposalData);
@@ -339,11 +406,11 @@ export default function SubmitProposalPage() {
     }
   };
 
-  const formatBudget = (budget: Project['budget']) => {
-    if (budget.type === 'fixed') {
-      return `$${budget.amount.toLocaleString()}`;
+  const formatBudget = (budget: number, budgetType: string) => {
+    if (budgetType === 'fixed') {
+      return `$${budget.toLocaleString()}`;
     } else {
-      return `$${budget.amount}/hr`;
+      return `$${budget}/hr`;
     }
   };
 
@@ -401,15 +468,15 @@ export default function SubmitProposalPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center text-gray-600">
               <DollarSign className="h-5 w-5 mr-2" />
-              <span>Budget: {formatBudget(project!.budget)}</span>
+              <span>Budget: {formatBudget(project!.budget, project!.budgetType)}</span>
             </div>
             <div className="flex items-center text-gray-600">
               <Clock className="h-5 w-5 mr-2" />
-              <span>Duration: {project!.timeline.duration} days</span>
+              <span>Duration: {project!.duration}</span>
             </div>
             <div className="flex items-center text-gray-600">
               <Calendar className="h-5 w-5 mr-2" />
-              <span>Deadline: {new Date(project!.timeline.deadline).toLocaleDateString()}</span>
+              <span>Posted: {new Date(project!.postedAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
@@ -450,10 +517,10 @@ export default function SubmitProposalPage() {
           {/* Pricing */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Amount ({proposalData.pricing.currency})
+                  Amount
                 </label>
                 <input
                   type="number"
@@ -466,12 +533,30 @@ export default function SubmitProposalPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
+                  Currency <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={proposalData.pricing.currency}
+                  onChange={(e) => handlePricingChange('currency', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="CAD">CAD</option>
+                  <option value="AUD">AUD</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={proposalData.pricing.type}
                   onChange={(e) => handlePricingChange('type', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
                 >
                   <option value="fixed">Fixed Price</option>
                   <option value="hourly">Hourly Rate</option>
@@ -482,7 +567,7 @@ export default function SubmitProposalPage() {
             {proposalData.pricing.type === 'hourly' && (
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated Hours
+                  Estimated Hours <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -490,19 +575,21 @@ export default function SubmitProposalPage() {
                   onChange={(e) => handlePricingChange('estimatedHours', Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0"
+                  required
                 />
               </div>
             )}
             
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cost Breakdown
+                Cost Breakdown <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={proposalData.pricing.breakdown}
                 onChange={(e) => handlePricingChange('breakdown', e.target.value)}
                 className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Provide a detailed breakdown of your costs..."
+                required
               />
             </div>
           </div>
@@ -510,7 +597,7 @@ export default function SubmitProposalPage() {
           {/* Timeline */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Timeline</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Delivery Time (days)
@@ -519,6 +606,19 @@ export default function SubmitProposalPage() {
                   type="number"
                   value={proposalData.timeline.deliveryTime}
                   onChange={(e) => handleTimelineChange('deliveryTime', Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Estimated Duration (days)
+                </label>
+                <input
+                  type="number"
+                  value={proposalData.estimatedDuration}
+                  onChange={(e) => handleInputChange('estimatedDuration', Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0"
                   required

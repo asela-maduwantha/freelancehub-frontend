@@ -116,7 +116,7 @@ export default function ContractDetailsPage() {
   const loadContract = async () => {
     try {
       const response = await contractAPI.getContract(contractId);
-      setContract(response.data);
+      setContract(response.contract || response.data);
     } catch (error) {
       console.error('Failed to load contract:', error);
       // Mock data for demonstration

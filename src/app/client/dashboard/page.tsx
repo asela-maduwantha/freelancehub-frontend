@@ -38,7 +38,7 @@ interface DashboardStats {
 }
 
 interface Project {
-  id: string;
+  _id: string;
   title: string;
   status: string;
   createdAt: string;
@@ -48,20 +48,18 @@ interface Project {
 }
 
 interface Proposal {
-  id: string;
+  _id: string;
   freelancer: {
-    name: string;
-    avatar: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
     rating: number;
   };
-  project: {
+  projectId: {
     title: string;
   };
-  pricing: {
-    amount: number;
-    currency: string;
-  };
-  submittedAt: string;
+  proposedBudget: number;
+  createdAt: string;
 }
 
 export default function ClientDashboard() {
@@ -111,21 +109,21 @@ export default function ClientDashboard() {
 
         setRecentProjects([
         {
-          id: '1',
+          _id: '1',
           title: 'Build E-commerce Website',
           status: 'active',
           createdAt: '2024-01-15',
           budget: { amount: 2500 }
         },
         {
-          id: '2',
+          _id: '2',
           title: 'Mobile App UI Design',
           status: 'open',
           createdAt: '2024-01-10',
           budget: { amount: 1200 }
         },
         {
-          id: '3',
+          _id: '3',
           title: 'Content Writing for Blog',
           status: 'completed',
           createdAt: '2024-01-05',
@@ -135,38 +133,34 @@ export default function ClientDashboard() {
 
       setRecentProposals([
         {
-          id: '1',
+          _id: '1',
           freelancer: {
-            name: 'John Developer',
+            firstName: 'John',
+            lastName: 'Developer',
             avatar: '/user.jpg',
             rating: 4.9
           },
-          project: {
+          projectId: {
             title: 'Build E-commerce Website'
           },
-          pricing: {
-            amount: 2200,
-            currency: 'USD'
-          },
-          submittedAt: '2024-01-16'
+          proposedBudget: 1500,
+          createdAt: new Date().toISOString()
         },
         {
-          id: '2',
+          _id: '2',
           freelancer: {
-            name: 'Sarah Designer',
+            firstName: 'Sarah',
+            lastName: 'Designer',
             avatar: '/user.jpg',
             rating: 4.8
           },
-          project: {
+          projectId: {
             title: 'Mobile App UI Design'
           },
-          pricing: {
-            amount: 1100,
-            currency: 'USD'
-          },
-          submittedAt: '2024-01-15'
+          proposedBudget: 1100,
+          createdAt: new Date(Date.now() - 86400000).toISOString()
         }
-        ]);
+      ]);
       }
 
     } catch (error) {
@@ -360,7 +354,7 @@ export default function ClientDashboard() {
                 {recentProjects.length > 0 ? (
                   <div className="space-y-4">
                     {recentProjects.map((project) => (
-                      <div key={project.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
+                      <div key={project._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
                         <div className="flex-1">
                           <h3 className="font-medium text-gray-900 font-inter">{project.title}</h3>
                           <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
@@ -377,8 +371,8 @@ export default function ClientDashboard() {
                             </span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" className="font-inter">
-                          View
+                        <Button variant="outline" size="sm" className="font-inter" onClick={() => router.push(`/client/projects/${project._id}/proposals`)}>
+                          View Proposals
                         </Button>
                       </div>
                     ))}
@@ -415,24 +409,24 @@ export default function ClientDashboard() {
                 {recentProposals.length > 0 ? (
                   <div className="space-y-4">
                     {recentProposals.map((proposal) => (
-                      <div key={proposal.id} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
+                      <div key={proposal._id} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
                         <img 
-                          src={proposal.freelancer.avatar} 
-                          alt={proposal.freelancer.name}
+                          src={proposal.freelancer.avatar || '/default-avatar.png'} 
+                          alt={`${proposal.freelancer.firstName} ${proposal.freelancer.lastName}`}
                           className="w-10 h-10 rounded-full"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              {proposal.freelancer.name}
+                              {proposal.freelancer.firstName} {proposal.freelancer.lastName}
                             </p>
                             <div className="flex items-center">
                               <Star className="h-3 w-3 text-yellow-400 fill-current" />
                               <span className="text-xs text-gray-500 ml-1">{proposal.freelancer.rating}</span>
                             </div>
                           </div>
-                          <p className="text-xs text-gray-500 truncate">{proposal.project.title}</p>
-                          <p className="text-sm font-medium text-green-600">${proposal.pricing.amount}</p>
+                          <p className="text-xs text-gray-500 truncate">{proposal.projectId.title}</p>
+                          <p className="text-sm font-medium text-green-600">${proposal.proposedBudget}</p>
                         </div>
                       </div>
                     ))}

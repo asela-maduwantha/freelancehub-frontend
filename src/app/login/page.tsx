@@ -73,8 +73,12 @@ export default function LoginPage() {
 
       const response = await authAPI.login(loginData);
       
-      // Store tokens and redirect based on user role
+      // Store tokens and user data
       localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('accessToken', response.access_token);
+      if (response.refresh_token) {
+        localStorage.setItem('refreshToken', response.refresh_token);
+      }
       
       if (response.user.activeRole === 'client') {
         router.push('/client/dashboard');

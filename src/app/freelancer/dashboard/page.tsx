@@ -175,13 +175,13 @@ export default function FreelancerDashboard() {
           sortOrder: 'desc'
         });
         
-        const opportunities = opportunitiesResponse.data.map((project: any) => ({
-          id: project.id,
+        const opportunities = opportunitiesResponse.projects.map((project: any) => ({
+          id: project._id,
           title: project.title,
           budget: project.budget,
-          proposalCount: project.proposalCount || 0,
-          postedAt: project.createdAt,
-          skills: project.requiredSkills || []
+          proposalCount: project.proposals?.length || 0,
+          postedAt: project.postedAt,
+          skills: project.requiredSkills?.map((skillObj: any) => skillObj.skill) || []
         }));
         setNewOpportunities(opportunities);
       } catch (error) {
@@ -356,6 +356,12 @@ export default function FreelancerDashboard() {
                 My Proposals
               </Button>
             </Link>
+            <Link href="/freelancer/contracts">
+              <Button variant="outline" className="font-inter">
+                <FileText className="h-4 w-4 mr-2" />
+                My Contracts
+              </Button>
+            </Link>
             <Link href="/freelancer/profile">
               <Button variant="outline" className="font-inter">
                 <Settings className="h-4 w-4 mr-2" />
@@ -448,9 +454,9 @@ export default function FreelancerDashboard() {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8">
           {/* Active Projects */}
-          <div className="lg:col-span-2">
+          <div>
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
@@ -489,7 +495,7 @@ export default function FreelancerDashboard() {
                     <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No active projects</h3>
                     <p className="text-gray-500 mb-4">Find new projects to work on</p>
-                    <Link href="/freelancer/browse">
+                    <Link href="/freelancer/projects">
                       <Button variant="premium" className="font-poppins">
                         Browse Projects
                       </Button>
@@ -500,14 +506,64 @@ export default function FreelancerDashboard() {
             </div>
           </div>
 
+          {/* Recent Contracts */}
+          <div>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">Recent Contracts</h2>
+                  <Link href="/freelancer/contracts" className="text-green-600 hover:text-green-700 text-sm font-medium">
+                    View All
+                  </Link>
+                </div>
+              </div>
+              <div className="p-6">
+                {activeProjects.length > 0 ? (
+                  <div className="space-y-4">
+                    {activeProjects.slice(0, 3).map((project) => (
+                      <div key={project.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 font-inter">{project.title}</h3>
+                          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+                            <span>Client: {project.client.name}</span>
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                              Contract Active
+                            </span>
+                            <span>{formatCurrency(project.budget.amount, project.budget.currency)}</span>
+                          </div>
+                        </div>
+                        <Link href={`/freelancer/contracts/${project.id}`}>
+                          <Button variant="outline" size="sm" className="font-inter">
+                            View Contract
+                          </Button>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No active contracts</h3>
+                    <p className="text-gray-500 mb-4">Contracts will appear here once proposals are accepted</p>
+                    <Link href="/freelancer/proposals">
+                      <Button variant="premium" className="font-poppins">
+                        View Proposals
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* New Opportunities & Quick Actions */}
-          <div className="space-y-8">
+          <div className="lg:col-span-2 space-y-8">
             {/* New Opportunities */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-900 font-poppins">New Opportunities</h2>
-                  <Link href="/freelancer/browse" className="text-green-600 hover:text-green-700 text-sm font-medium">
+                  <Link href="/freelancer/projects" className="text-green-600 hover:text-green-700 text-sm font-medium">
                     View All
                   </Link>
                 </div>

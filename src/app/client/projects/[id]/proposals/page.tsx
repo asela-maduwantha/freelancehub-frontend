@@ -21,31 +21,43 @@ import Link from 'next/link';
 import { clientAPI } from '@/lib/api';
 
 interface Proposal {
-  id: string;
-  freelancer: {
-    id: string;
+  _id: string;
+  freelancerId: {
+    _id: string;
     firstName: string;
     lastName: string;
-    avatar?: string;
-    title: string;
-    rating: number;
-    totalReviews: number;
-    completedProjects: number;
-    skills: string[];
-    location: {
-      country: string;
-      city: string;
+    email: string;
+    profilePicture?: string;
+    freelancerProfile?: {
+      hourlyRate: number;
+    };
+    stats?: {
+      avgRating: number;
     };
   };
-  pricing: {
-    amount: number;
-    currency: string;
-    type: 'fixed' | 'hourly';
+  proposedBudget: number;
+  proposedDuration: {
+    value: number;
+    unit: string;
   };
-  duration: number;
   coverLetter: string;
-  submittedAt: string;
+  createdAt: string;
   status: 'pending' | 'accepted' | 'rejected';
+  milestones: Array<{
+    title: string;
+    description: string;
+    amount: number;
+    deliveryDate: string;
+  }>;
+  attachments?: Array<{
+    name: string;
+    url: string;
+    type: string;
+  }>;
+  portfolioLinks?: string[];
+  additionalInfo?: string;
+  clientViewed: boolean;
+  clientViewedAt?: string;
 }
 
 interface Project {
@@ -91,7 +103,7 @@ export default function ProjectProposalsPage() {
 
       // Load proposals
       const proposalsData = await clientAPI.getProjectProposals(projectId);
-      setProposals(proposalsData.data || []);
+      setProposals(proposalsData || []);
     } catch (error) {
       console.error('Failed to load data:', error);
       // Mock data for demonstration
@@ -105,50 +117,81 @@ export default function ProjectProposalsPage() {
 
       const mockProposals: Proposal[] = [
         {
-          id: '1',
-          freelancer: {
-            id: '1',
+          _id: '1',
+          freelancerId: {
+            _id: '1',
             firstName: 'John',
             lastName: 'Developer',
-            title: 'Full Stack Developer',
-            rating: 4.9,
-            totalReviews: 127,
-            completedProjects: 89,
-            skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'MongoDB'],
-            location: { country: 'USA', city: 'San Francisco' }
+            email: 'john@example.com',
+            profilePicture: 'https://example.com/avatar1.jpg',
+            freelancerProfile: { hourlyRate: 50 },
+            stats: { avgRating: 4.9 }
           },
-          pricing: {
-            amount: 2200,
-            currency: 'USD',
-            type: 'fixed'
-          },
-          duration: 21,
+          proposedBudget: 2200,
+          proposedDuration: { value: 21, unit: 'days' },
           coverLetter: 'I have extensive experience building e-commerce websites using React and Node.js. I can deliver a high-quality solution within your timeline and budget.',
-          submittedAt: '2024-01-16T10:00:00Z',
-          status: 'pending'
+          createdAt: '2024-01-16T10:00:00Z',
+          status: 'pending',
+          milestones: [
+            {
+              title: 'Initial Setup & Planning',
+              description: 'Set up project structure and planning',
+              amount: 500,
+              deliveryDate: '2024-01-20T00:00:00Z'
+            },
+            {
+              title: 'Frontend Development',
+              description: 'Build the user interface',
+              amount: 1000,
+              deliveryDate: '2024-02-05T00:00:00Z'
+            },
+            {
+              title: 'Backend Development',
+              description: 'Implement server-side logic',
+              amount: 700,
+              deliveryDate: '2024-02-15T00:00:00Z'
+            }
+          ],
+          attachments: [
+            {
+              name: 'Portfolio.pdf',
+              url: 'https://example.com/portfolio.pdf',
+              type: 'application/pdf'
+            }
+          ],
+          portfolioLinks: ['https://github.com/johndoe/portfolio'],
+          additionalInfo: 'Available to start immediately',
+          clientViewed: false
         },
         {
-          id: '2',
-          freelancer: {
-            id: '2',
+          _id: '2',
+          freelancerId: {
+            _id: '2',
             firstName: 'Sarah',
             lastName: 'Tech',
-            title: 'Senior Web Developer',
-            rating: 4.8,
-            totalReviews: 95,
-            completedProjects: 67,
-            skills: ['JavaScript', 'React', 'Node.js', 'Express', 'PostgreSQL'],
-            location: { country: 'Canada', city: 'Toronto' }
+            email: 'sarah@example.com',
+            profilePicture: 'https://example.com/avatar2.jpg',
+            freelancerProfile: { hourlyRate: 45 },
+            stats: { avgRating: 4.8 }
           },
-          pricing: {
-            amount: 2400,
-            currency: 'USD',
-            type: 'fixed'
-          },
-          duration: 25,
+          proposedBudget: 2400,
+          proposedDuration: { value: 25, unit: 'days' },
           coverLetter: 'With 5+ years of experience in web development, I can create a robust e-commerce platform that meets all your requirements.',
-          submittedAt: '2024-01-15T14:30:00Z',
-          status: 'pending'
+          createdAt: '2024-01-15T14:30:00Z',
+          status: 'pending',
+          milestones: [
+            {
+              title: 'Complete Development',
+              description: 'Full project delivery',
+              amount: 2400,
+              deliveryDate: '2024-02-10T00:00:00Z'
+            }
+          ],
+          attachments: [],
+          portfolioLinks: ['https://github.com/sarahtech/web-apps'],
+          additionalInfo: 'Can start next week',
+          clientViewed: true,
+          clientViewedAt: '2024-01-16T09:00:00Z'
         }
       ];
       setProposals(mockProposals);
@@ -160,10 +203,10 @@ export default function ProjectProposalsPage() {
   const handleAcceptProposal = async (proposalId: string) => {
     setIsAccepting(true);
     try {
-      await clientAPI.acceptProposal(projectId, proposalId);
+      await clientAPI.acceptProposal(projectId, proposalId, 'Proposal accepted');
       // Update local state
       setProposals(prev => prev.map(p =>
-        p.id === proposalId ? { ...p, status: 'accepted' } : p
+        p._id === proposalId ? { ...p, status: 'accepted' } : p
       ));
       setSelectedProposal(null);
       // Redirect to contract creation or dashboard
@@ -182,7 +225,7 @@ export default function ProjectProposalsPage() {
       await clientAPI.rejectProposal(projectId, proposalId, 'Not selected for this project');
       // Update local state
       setProposals(prev => prev.map(p =>
-        p.id === proposalId ? { ...p, status: 'rejected' } : p
+        p._id === proposalId ? { ...p, status: 'rejected' } : p
       ));
       setSelectedProposal(null);
     } catch (error: any) {
@@ -279,7 +322,7 @@ export default function ProjectProposalsPage() {
           {proposals.length > 0 ? (
             proposals.map((proposal) => (
               <motion.div
-                key={proposal.id}
+                key={proposal._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
@@ -288,9 +331,17 @@ export default function ProjectProposalsPage() {
                   <div className="flex items-start space-x-4">
                     {/* Freelancer Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                        <User className="h-8 w-8 text-gray-500" />
-                      </div>
+                      {proposal.freelancerId.profilePicture ? (
+                        <img
+                          src={proposal.freelancerId.profilePicture}
+                          alt={`${proposal.freelancerId.firstName} ${proposal.freelancerId.lastName}`}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                          <User className="h-8 w-8 text-gray-500" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Proposal Content */}
@@ -299,53 +350,48 @@ export default function ProjectProposalsPage() {
                         <div>
                           <div className="flex items-center space-x-3 mb-2">
                             <h3 className="text-lg font-semibold text-gray-900 font-poppins">
-                              {proposal.freelancer.firstName} {proposal.freelancer.lastName}
+                              {proposal.freelancerId.firstName} {proposal.freelancerId.lastName}
                             </h3>
                             <div className="flex items-center">
                               <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
                               <span className="text-sm font-medium text-gray-900">
-                                {proposal.freelancer.rating}
+                                {proposal.freelancerId.stats?.avgRating || 0}
                               </span>
                               <span className="text-sm text-gray-500 ml-1">
-                                ({proposal.freelancer.totalReviews} reviews)
+                                rating
                               </span>
                             </div>
                           </div>
 
                           <p className="text-green-600 font-medium mb-2">
-                            {proposal.freelancer.title}
+                            Freelancer
                           </p>
 
                           <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
                             <div className="flex items-center">
                               <DollarSign className="h-4 w-4 mr-1" />
                               <span className="font-medium text-gray-900">
-                                ${proposal.pricing.amount} {proposal.pricing.type === 'hourly' ? '/hr' : ''}
+                                ${proposal.proposedBudget}
                               </span>
                             </div>
                             <div className="flex items-center">
                               <Clock className="h-4 w-4 mr-1" />
-                              <span>{proposal.duration} days</span>
+                              <span>{proposal.proposedDuration.value} {proposal.proposedDuration.unit}</span>
                             </div>
                             <div className="flex items-center">
                               <Award className="h-4 w-4 mr-1" />
-                              <span>{proposal.freelancer.completedProjects} projects</span>
+                              <span>Freelancer</span>
                             </div>
                             <div className="flex items-center">
                               <MessageSquare className="h-4 w-4 mr-1" />
-                              <span>{formatDate(proposal.submittedAt)}</span>
+                              <span>{formatDate(proposal.createdAt)}</span>
                             </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {proposal.freelancer.skills.slice(0, 6).map((skill) => (
-                              <span
-                                key={skill}
-                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-                              >
-                                {skill}
-                              </span>
-                            ))}
+                            {proposal.clientViewed && (
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                <span className="text-xs">Viewed</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -354,6 +400,60 @@ export default function ProjectProposalsPage() {
                               {proposal.coverLetter}
                             </p>
                           </div>
+
+                          {/* Additional Info */}
+                          {proposal.additionalInfo && (
+                            <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                              <h4 className="font-medium text-gray-900 mb-2">Additional Information</h4>
+                              <p className="text-gray-700 text-sm leading-relaxed">
+                                {proposal.additionalInfo}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Attachments */}
+                          {proposal.attachments && proposal.attachments.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="font-medium text-gray-900 mb-2">Attachments</h4>
+                              <div className="space-y-2">
+                                {proposal.attachments.map((attachment, index) => (
+                                  <a
+                                    key={index}
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm"
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                    <span>{attachment.name}</span>
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Milestones */}
+                          {proposal.milestones && proposal.milestones.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="font-medium text-gray-900 mb-2">Milestones</h4>
+                              <div className="space-y-3">
+                                {proposal.milestones.map((milestone, index) => (
+                                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <h5 className="font-medium text-gray-900">{milestone.title}</h5>
+                                        <p className="text-sm text-gray-600 mt-1">{milestone.description}</p>
+                                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                          <span className="font-medium text-gray-900">${milestone.amount}</span>
+                                          <span>Due: {new Date(milestone.deliveryDate).toLocaleDateString()}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -363,7 +463,7 @@ export default function ProjectProposalsPage() {
                       {proposal.status === 'pending' ? (
                         <>
                           <Button
-                            onClick={() => handleAcceptProposal(proposal.id)}
+                            onClick={() => handleAcceptProposal(proposal._id)}
                             disabled={isAccepting}
                             variant="premium"
                             size="sm"
@@ -372,7 +472,7 @@ export default function ProjectProposalsPage() {
                             {isAccepting ? 'Accepting...' : 'Accept Proposal'}
                           </Button>
                           <Button
-                            onClick={() => handleRejectProposal(proposal.id)}
+                            onClick={() => handleRejectProposal(proposal._id)}
                             disabled={isRejecting}
                             variant="outline"
                             size="sm"

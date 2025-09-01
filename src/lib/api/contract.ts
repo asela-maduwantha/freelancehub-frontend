@@ -6,8 +6,11 @@ import { apiClient } from './client';
 export const contractAPI = {
   // Get contracts
   async getContracts(filters?: any): Promise<any> {
+    console.log('Contract API getContracts called with filters:', filters);
     const queryParams = filters ? new URLSearchParams(filters).toString() : '';
-    return apiClient.get(`/contracts${queryParams ? `?${queryParams}` : ''}`);
+    const url = `/contracts${queryParams ? `?${queryParams}` : ''}`;
+    console.log('Contract API calling URL:', url);
+    return apiClient.get(url);
   },
 
   // Get contract by ID
@@ -15,9 +18,34 @@ export const contractAPI = {
     return apiClient.get(`/contracts/${id}`);
   },
 
+  // Get contract for freelancer view (only after client approval)
+  async getContractFreelancerView(id: string): Promise<any> {
+    return apiClient.get(`/contracts/${id}/freelancer-view`);
+  },
+
   // Create contract
   async createContract(data: any): Promise<{ message: string; contract: any }> {
     return apiClient.post('/contracts', data);
+  },
+
+  // Create contract from proposal (manual fallback)
+  async createContractFromProposal(proposalId: string): Promise<{ message: string; contract: any }> {
+    return apiClient.post(`/contracts/from-proposal/${proposalId}`);
+  },
+
+  // Client approve contract
+  async approveContractAsClient(contractId: string): Promise<{ message: string; contract: any }> {
+    return apiClient.post(`/contracts/${contractId}/approve/client`);
+  },
+
+  // Freelancer approve contract
+  async approveContractAsFreelancer(contractId: string): Promise<{ message: string; contract: any }> {
+    return apiClient.post(`/contracts/${contractId}/approve/freelancer`);
+  },
+
+  // Download contract PDF
+  async downloadContractPDF(contractId: string): Promise<{ pdfUrl: string }> {
+    return apiClient.get(`/contracts/${contractId}/download-pdf`);
   },
 
   // Update contract

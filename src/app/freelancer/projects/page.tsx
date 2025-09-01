@@ -15,41 +15,44 @@ import {
   Tag,
   ArrowRight,
   Bookmark,
-  BookmarkPlus
+  BookmarkPlus,
+  FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { projectAPI } from '@/lib/api';
+import { contractAPI } from '@/lib/api';
 
 interface Project {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   category: string;
-  requiredSkills: string[];
-  type: 'fixed' | 'hourly';
-  budget: {
-    amount: number;
-    maxAmount?: number;
-    currency: string;
-    type: string;
+  subcategory?: string;
+  requiredSkills: Array<{
+    skill: string;
+    level: string;
+    _id: string;
+  }>;
+  budgetType: 'fixed' | 'hourly';
+  budget: number;
+  duration: string;
+  workType?: string[];
+  experienceLevel?: string;
+  clientId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
   };
-  timeline: {
-    deadline: string;
-    duration: number;
-  };
-  client: {
-    id: string;
-    name: string;
-    avatar?: string;
-    rating: number;
-  };
-  proposalCount: number;
-  viewCount: number;
   status: string;
+  analytics: {
+    views: number;
+    applications: number;
+    saves: number;
+  };
+  proposals: any[];
+  postedAt: string;
   createdAt: string;
-  isFeatured: boolean;
-  isUrgent: boolean;
-  tags: string[];
+  updatedAt: string;
 }
 
 interface ProjectFilters {
@@ -97,10 +100,21 @@ export default function ProjectsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [savedProjects, setSavedProjects] = useState<string[]>([]);
+  const [projectContracts, setProjectContracts] = useState<{[key: string]: any}>({});
+  const [loadingContracts, setLoadingContracts] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchProjects();
   }, [filters]);
+
+  useEffect(() => {
+    // Fetch contracts for projects that have proposals submitted
+    projects.forEach(project => {
+      if (project.proposals && project.proposals.length > 0) {
+        fetchProjectContracts(project._id);
+      }
+    });
+  }, [projects]);
 
   const fetchProjects = async () => {
     try {
@@ -108,9 +122,9 @@ export default function ProjectsPage() {
       setError(null);
       
       const response = await projectAPI.getProjects(filters);
-      setProjects(response.data || []);
-      setTotalProjects(response.total || 0);
-      setTotalPages(response.totalPages || 0);
+      setProjects(response.projects || []);
+      setTotalProjects(response.pagination?.total || 0);
+      setTotalPages(Math.ceil((response.pagination?.total || 0) / (filters.limit || 12)));
     } catch (err: any) {
       console.error('Failed to fetch projects:', err);
       setError(err.message || 'Failed to fetch projects');
@@ -161,11 +175,28 @@ export default function ProjectsPage() {
     });
   };
 
-  const formatBudget = (budget: Project['budget']) => {
-    if (budget.type === 'fixed') {
-      return `$${budget.amount.toLocaleString()}`;
+  const fetchProjectContracts = async (projectId: string) => {
+    if (projectContracts[projectId] || loadingContracts[projectId]) return;
+    
+    try {
+      setLoadingContracts(prev => ({ ...prev, [projectId]: true }));
+      // Get contracts for this project
+      const response = await contractAPI.getContracts({ projectId });
+      if (response.contracts && response.contracts.length > 0) {
+        setProjectContracts(prev => ({ ...prev, [projectId]: response.contracts[0] }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch project contracts:', error);
+    } finally {
+      setLoadingContracts(prev => ({ ...prev, [projectId]: false }));
+    }
+  };
+
+  const formatBudget = (budget: number, budgetType: string) => {
+    if (budgetType === 'fixed') {
+      return `$${budget.toLocaleString()}`;
     } else {
-      return `$${budget.amount}/hr`;
+      return `$${budget}/hr`;
     }
   };
 
@@ -397,7 +428,7 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
               <motion.div
-                key={project.id}
+                key={project._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
@@ -417,10 +448,10 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleSaveProject(project.id)}
+                      onClick={() => handleSaveProject(project._id)}
                       className="text-gray-400 hover:text-blue-600 transition-colors"
                     >
-                      {savedProjects.includes(project.id) ? (
+                      {savedProjects.includes(project._id) ? (
                         <Bookmark className="h-5 w-5 fill-current" />
                       ) : (
                         <BookmarkPlus className="h-5 w-5" />
@@ -435,12 +466,12 @@ export default function ProjectsPage() {
 
                   {/* Skills */}
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {project.requiredSkills.slice(0, 3).map((skill) => (
+                    {project.requiredSkills.slice(0, 3).map((skillObj) => (
                       <span
-                        key={skill}
+                        key={skillObj._id}
                         className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
                       >
-                        {skill}
+                        {skillObj.skill}
                       </span>
                     ))}
                     {project.requiredSkills.length > 3 && (
@@ -454,18 +485,21 @@ export default function ProjectsPage() {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-sm text-gray-600">
                       <DollarSign className="h-4 w-4 mr-2" />
-                      <span className="font-medium">{formatBudget(project.budget)}</span>
-                      {project.budget.maxAmount && project.budget.maxAmount > project.budget.amount && (
-                        <span className="ml-1">- ${project.budget.maxAmount.toLocaleString()}</span>
+                      <span className="font-medium">{formatBudget(project.budget, project.budgetType)}</span>
+                      {project.budgetType === 'fixed' && (
+                        <span className="ml-1">Fixed Price</span>
+                      )}
+                      {project.budgetType === 'hourly' && (
+                        <span className="ml-1">per hour</span>
                       )}
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="h-4 w-4 mr-2" />
-                      <span>{project.timeline.duration} days</span>
+                      <span>{project.duration}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Users className="h-4 w-4 mr-2" />
-                      <span>{project.proposalCount} proposals</span>
+                      <span>{project.proposals.length} proposals</span>
                     </div>
                   </div>
 
@@ -474,32 +508,72 @@ export default function ProjectsPage() {
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-gray-600">
-                          {project.client.name.charAt(0).toUpperCase()}
+                          {project.clientId.firstName.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{project.client.name}</p>
+                        <p className="text-sm font-medium text-gray-900">{project.clientId.firstName} {project.clientId.lastName}</p>
                         <div className="flex items-center">
                           <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-600 ml-1">{project.client.rating}</span>
+                          <span className="text-xs text-gray-600 ml-1">4.5</span>
                         </div>
                       </div>
                     </div>
                     <div className="text-xs text-gray-500">
-                      {formatDate(project.createdAt)}
+                      {formatDate(project.postedAt)}
                     </div>
                   </div>
+
+                  {/* Contract Status */}
+                  {project.proposals && project.proposals.length > 0 && (
+                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-900">Contract Status</span>
+                        </div>
+                        {projectContracts[project._id] ? (
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              projectContracts[project._id].status === 'active' 
+                                ? 'bg-green-100 text-green-800' 
+                                : projectContracts[project._id].status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {projectContracts[project._id].status === 'active' ? 'Active Contract' : 
+                               projectContracts[project._id].status === 'pending' ? 'Pending Approval' : 
+                               'Contract Created'}
+                            </span>
+                            <Link
+                              href={`/freelancer/contracts/${projectContracts[project._id]._id}`}
+                              className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                            >
+                              View Contract
+                            </Link>
+                          </div>
+                        ) : loadingContracts[project._id] ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+                            <span className="text-xs text-gray-600">Checking contracts...</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-600">Proposal submitted</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="flex gap-2">
                     <Link
-                      href={`/freelancer/projects/${project.id}`}
+                      href={`/freelancer/projects/${project._id}`}
                       className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
                     >
                       View Details
                     </Link>
                     <Link
-                      href={`/freelancer/projects/${project.id}/propose`}
+                      href={`/freelancer/projects/${project._id}/propose`}
                       className="flex-1 bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
                     >
                       Submit Proposal
@@ -508,14 +582,14 @@ export default function ProjectsPage() {
 
                   {/* Badges */}
                   <div className="flex gap-2 mt-3">
-                    {project.isFeatured && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                        Featured
+                    {project.status === 'open' && (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Open
                       </span>
                     )}
-                    {project.isUrgent && (
-                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                        Urgent
+                    {project.experienceLevel && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {project.experienceLevel}
                       </span>
                     )}
                   </div>
