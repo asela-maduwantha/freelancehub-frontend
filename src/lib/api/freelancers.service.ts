@@ -126,8 +126,8 @@ export interface IFreelancerCompletedProject {
 // Proposal Types
 export interface IFreelancerProposal {
   id: string;
-  projectId: string;
-  project: {
+  projectId: string | { id: string }; // Can be string or object with id
+  project?: {
     id: string;
     title: string;
     budget: number;
@@ -150,17 +150,26 @@ export interface IFreelancerProposal {
 }
 
 export interface ICreateProposalRequest {
-  proposedBudget: number;
-  proposedDuration: {
-    value: number;
-    unit: 'days' | 'weeks' | 'months';
-  };
   coverLetter: string;
-  milestones?: {
-    title: string;
-    description: string;
+  pricing: {
     amount: number;
-  }[];
+    currency: string;
+    type: 'fixed' | 'hourly';
+    estimatedHours?: number;
+    breakdown: string;
+  };
+  timeline: {
+    deliveryTime: number;
+    startDate: string;
+    milestones: {
+      title: string;
+      description: string;
+      deliveryDate: string;
+      amount: number;
+    }[];
+  };
+  portfolioLinks: string[];
+  additionalInfo: string;
 }
 
 // Dashboard Types
@@ -351,20 +360,47 @@ export class FreelancersService {
    * Get current user's proposals (freelancer view)
    */
   async getMyProposals(params?: { page?: number; limit?: number; status?: string }): Promise<IFreelancerProposal[]> {
-    return apiClient.get('/proposals/my', { params });
+    const response = await apiClient.get('/proposals/my', { params });
+    
+    // Handle different response structures
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+      return response.data;
+    } else if (response && typeof response === 'object' && 'proposals' in response && Array.isArray(response.proposals)) {
+      return response.proposals;
+    }
+    
+    // If response is not an array, return empty array
+    console.warn('Unexpected response structure for getMyProposals:', response);
+    return [];
   }
 
   /**
    * Get current user's proposals (alternative endpoint)
    */
   async getMyProjectProposals(params?: { page?: number; limit?: number; status?: string }): Promise<IFreelancerProposal[]> {
-    return apiClient.get('/projects/my-proposals', { params });
+    const response = await apiClient.get('/projects/my-proposals', { params });
+    
+    // Handle different response structures
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+      return response.data;
+    } else if (response && typeof response === 'object' && 'proposals' in response && Array.isArray(response.proposals)) {
+      return response.proposals;
+    }
+    
+    // If response is not an array, return empty array
+    console.warn('Unexpected response structure for getMyProjectProposals:', response);
+    return [];
   }
 
   /**
    * Submit proposal for a project
    */
   async submitProposal(projectId: string, data: ICreateProposalRequest): Promise<IApiResponse> {
+    console.log(data)
     return apiClient.post(`/projects/${projectId}/proposals`, data);
   }
 

@@ -19,7 +19,7 @@ import {
   Trash2
 } from 'lucide-react';
 import Link from 'next/link';
-import { projectsService, freelancerAPI, uploadAPI, authService } from '@/lib/api';
+import { projectsService, freelancerAPI, uploadAPI, authService, freelancersService } from '@/lib/api';
 import EnhancedFileUpload from '@/components/ui/FileUpload';
 import { storageService } from '@/lib/api/storage.service';
 import { FileData, IProject } from '@/lib/types';
@@ -376,23 +376,32 @@ export default function SubmitProposalPage() {
       setSubmitting(true);
       setError(null);
       
-      // TODO: Implement proposal submission API
-      // const finalProposalData: ICreateProposalRequest = {
-      //   proposedBudget: proposalData.pricing.amount,
-      //   proposedDuration: {
-      //     value: proposalData.estimatedDuration,
-      //     unit: 'days' as const
-      //   },
-      //   coverLetter: proposalData.coverLetter,
-      //   milestones: milestones.map(m => ({
-      //     title: m.title,
-      //     description: m.description,
-      //     amount: m.amount
-      //   }))
-      // };
-      
-      // await freelancerAPI.createProposal(projectId, finalProposalData);
-      
+      // Prepare final proposal data for API submission
+      const finalProposalData = {
+        coverLetter: proposalData.coverLetter,
+        pricing: {
+          amount: proposalData.pricing.amount,
+          currency: proposalData.pricing.currency,
+          type: proposalData.pricing.type,
+          estimatedHours: proposalData.pricing.type === 'hourly' ? proposalData.pricing.estimatedHours : undefined,
+          breakdown: proposalData.pricing.breakdown
+        },
+        timeline: {
+          deliveryTime: proposalData.timeline.deliveryTime,
+          startDate: proposalData.timeline.startDate,
+          milestones: milestones.map(m => ({
+            title: m.title,
+            description: m.description,
+            deliveryDate: m.deliveryDate,
+            amount: m.amount
+          }))
+        },
+        portfolioLinks: proposalData.portfolioLinks.filter(link => link.trim()),
+        additionalInfo: proposalData.additionalInfo
+      };
+
+       await freelancersService.submitProposal(projectId, finalProposalData);
+
       // For now, just show success
       setSuccess('Proposal submitted successfully! (This is a placeholder)');
       

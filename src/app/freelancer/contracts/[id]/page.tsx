@@ -29,37 +29,37 @@ import { contractsService, authService } from '@/lib/api';
 import Header from '@/components/ui/Header';
 
 interface Contract {
-  id: string;
+  _id: string;
   project: {
-    id: string;
+    _id: string;
     title: string;
     description: string;
     category: string;
     requirements?: string;
   };
   client: {
-    id: string;
+    _id: string;
     firstName: string;
     lastName: string;
     avatar?: string;
-    rating: number;
+    rating?: number;
     email?: string;
   };
   status: 'active' | 'completed' | 'cancelled' | 'disputed';
-  budget: {
-    amount: number;
-    currency: string;
-  };
   terms: {
-    scope: string;
-    deadline: string;
-    deliverables: string[];
-    paymentTerms: string;
+    budget: number;
+    startDate: string;
+    endDate: string;
+    paymentSchedule: string;
+    scope?: string;
+    deadline?: string;
+    deliverables?: string[];
+    paymentTerms?: string;
   };
-  startDate: string;
+  startDate?: string; // Keep for backward compatibility if needed
   endDate?: string;
   milestones: Array<{
-    id: string;
+    _id: string;
     title: string;
     description: string;
     amount: number;
@@ -110,7 +110,12 @@ export default function ContractDetail() {
       setError(null);
 
       const response = await contractsService.getContractById(contractId);
-      setContract(response as unknown as Contract);
+      const contractData = response as unknown as Contract;
+      // Calculate progress based on milestones
+      const completedMilestones = contractData.milestones.filter(m => m.status === 'completed').length;
+      const totalMilestones = contractData.milestones.length;
+      contractData.progress = totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
+      setContract(contractData);
     } catch (error) {
       console.error('Failed to load contract:', error);
       setError('Failed to load contract details. Please try again.');
@@ -223,7 +228,7 @@ export default function ContractDetail() {
                   {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                 </span>
                 <span className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(contract.budget.amount, contract.budget.currency)}
+                  {formatCurrency(contract.terms.budget, 'USD')}
                 </span>
               </div>
             </div>
@@ -234,7 +239,7 @@ export default function ContractDetail() {
               </div>
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                <span className="text-sm text-gray-600">{contract.client.rating.toFixed(1)}</span>
+                <span className="text-sm text-gray-600">{contract.client.rating?.toFixed(1) || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -253,7 +258,7 @@ export default function ContractDetail() {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Scope of Work</h3>
-                  <p className="text-gray-600">{contract.terms.scope}</p>
+                  <p className="text-gray-600">{contract.terms.scope || 'No scope specified'}</p>
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Requirements</h3>
@@ -262,19 +267,19 @@ export default function ContractDetail() {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Deliverables</h3>
                   <ul className="list-disc list-inside text-gray-600 space-y-1">
-                    {contract.terms.deliverables.map((deliverable, index) => (
+                    {contract.terms.deliverables?.map((deliverable, index) => (
                       <li key={index}>{deliverable}</li>
-                    ))}
+                    )) || <li>No deliverables specified</li>}
                   </ul>
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                   <div>
                     <h3 className="font-medium text-gray-900 mb-1">Start Date</h3>
-                    <p className="text-gray-600">{formatDate(contract.startDate)}</p>
+                    <p className="text-gray-600">{formatDate(contract.terms.startDate)}</p>
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900 mb-1">Deadline</h3>
-                    <p className="text-gray-600">{formatDate(contract.terms.deadline)}</p>
+                    <p className="text-gray-600">{formatDate(contract.terms.endDate)}</p>
                   </div>
                 </div>
               </div>
@@ -290,7 +295,7 @@ export default function ContractDetail() {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Milestones</h2>
               <div className="space-y-4">
                 {contract.milestones.map((milestone, index) => (
-                  <div key={milestone.id} className="border border-gray-200 rounded-lg p-4">
+                  <div key={milestone._id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -302,12 +307,12 @@ export default function ContractDetail() {
                         <p className="text-gray-600 mb-2">{milestone.description}</p>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <span>Due: {formatDate(milestone.dueDate)}</span>
-                          <span>{formatCurrency(milestone.amount, contract.budget.currency)}</span>
+                          <span>{formatCurrency(milestone.amount, 'USD')}</span>
                         </div>
                       </div>
                       {contract.status === 'active' && milestone.status === 'in_progress' && (
                         <button
-                          onClick={() => setSelectedMilestone(selectedMilestone === milestone.id ? null : milestone.id)}
+                          onClick={() => setSelectedMilestone(selectedMilestone === milestone._id ? null : milestone._id)}
                           className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
                         >
                           <Upload className="h-4 w-4" />
@@ -317,7 +322,7 @@ export default function ContractDetail() {
                     </div>
 
                     {/* Submission Form */}
-                    {selectedMilestone === milestone.id && (
+                    {selectedMilestone === milestone._id && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -354,7 +359,7 @@ export default function ContractDetail() {
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleSubmitMilestone(milestone.id)}
+                              onClick={() => handleSubmitMilestone(milestone._id)}
                               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                             >
                               <Send className="h-4 w-4" />
@@ -474,7 +479,7 @@ export default function ContractDetail() {
                   </h3>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="text-sm text-gray-600">{contract.client.rating.toFixed(1)}</span>
+                    <span className="text-sm text-gray-600">{contract.client.rating?.toFixed(1) || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -498,12 +503,12 @@ export default function ContractDetail() {
               className="bg-white rounded-lg shadow-sm p-6"
             >
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Terms</h2>
-              <p className="text-gray-600 text-sm">{contract.terms.paymentTerms}</p>
+              <p className="text-gray-600 text-sm">{contract.terms.paymentSchedule}</p>
               <div className="mt-4 pt-4 border-t">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-900">Total Amount</span>
                   <span className="font-semibold text-gray-900">
-                    {formatCurrency(contract.budget.amount, contract.budget.currency)}
+                    {formatCurrency(contract.terms.budget, 'USD')}
                   </span>
                 </div>
               </div>

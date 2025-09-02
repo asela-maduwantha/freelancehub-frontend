@@ -1,7 +1,7 @@
 'use client';
 
 interface StatusBadgeProps {
-  status: 'pending' | 'approved' | 'active' | 'completed' | 'rejected' | 'open' | 'in_progress' | 'cancelled' | 'disputed';
+  status: 'pending' | 'approved' | 'accepted' | 'active' | 'completed' | 'rejected' | 'open' | 'in_progress' | 'cancelled' | 'disputed';
   variant?: 'default' | 'compact';
   className?: string;
 }
@@ -13,6 +13,10 @@ const statusConfig = {
   },
   approved: {
     label: 'Approved',
+    className: 'bg-green-100 text-green-800 border-green-200'
+  },
+  accepted: {
+    label: 'Accepted',
     className: 'bg-green-100 text-green-800 border-green-200'
   },
   active: {

@@ -21,7 +21,7 @@ export class AuthService {
   /**
    * Register a new user
    */
-  async register(data: RegisterRequest): Promise<IApiResponse<{ user: IUser }>> {
+  async register(data: RegisterRequest): Promise<{ user: IUser }> {
     return apiClient.post('/auth/register', data);
   }
 

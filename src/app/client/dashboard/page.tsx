@@ -83,20 +83,20 @@ export default function ClientDashboard() {
   const loadDashboardData = async () => {
     try {
       // Try to load real data from API
-      try {
-        const dashboardData = await clientsService.getDashboard();
+      const dashboardData = await clientsService.getDashboard();
+      if (dashboardData && dashboardData.totalProjects !== undefined) {
         setStats({
-          totalProjects: dashboardData.totalProjects,
-          activeProjects: dashboardData.activeProjects,
-          completedProjects: dashboardData.completedProjects,
-          totalSpent: dashboardData.totalSpent,
-          activeContracts: dashboardData.activeContracts,
-          pendingProposals: dashboardData.pendingProposals
+          totalProjects: dashboardData.totalProjects || 0,
+          activeProjects: dashboardData.activeProjects || 0,
+          completedProjects: dashboardData.completedProjects || 0,
+          totalSpent: dashboardData.totalSpent || 0,
+          activeContracts: dashboardData.activeContracts || 0,
+          pendingProposals: dashboardData.pendingProposals || 0
         });
         setRecentProjects(dashboardData.recentProjects || []);
-        setRecentProposals([]); 
-      } catch (apiError) {
-        console.log('API not available, using mock data');
+        setRecentProposals([]);
+      } else {
+        console.log('API returned empty or invalid data, using mock data');
         setStats({
           totalProjects: 12,
           activeProjects: 3,
@@ -107,59 +107,59 @@ export default function ClientDashboard() {
         });
 
         setRecentProjects([
-        {
-          _id: '1',
-          title: 'Build E-commerce Website',
-          status: 'active',
-          createdAt: '2024-01-15',
-          budget: { amount: 2500 }
-        },
-        {
-          _id: '2',
-          title: 'Mobile App UI Design',
-          status: 'open',
-          createdAt: '2024-01-10',
-          budget: { amount: 1200 }
-        },
-        {
-          _id: '3',
-          title: 'Content Writing for Blog',
-          status: 'completed',
-          createdAt: '2024-01-05',
-          budget: { amount: 800 }
-        }
-      ]);
+          {
+            _id: '1',
+            title: 'Build E-commerce Website',
+            status: 'active',
+            createdAt: '2024-01-15',
+            budget: { amount: 2500 }
+          },
+          {
+            _id: '2',
+            title: 'Mobile App UI Design',
+            status: 'open',
+            createdAt: '2024-01-10',
+            budget: { amount: 1200 }
+          },
+          {
+            _id: '3',
+            title: 'Content Writing for Blog',
+            status: 'completed',
+            createdAt: '2024-01-05',
+            budget: { amount: 800 }
+          }
+        ]);
 
-      setRecentProposals([
-        {
-          _id: '1',
-          freelancer: {
-            firstName: 'John',
-            lastName: 'Developer',
-            avatar: '/user.jpg',
-            rating: 4.9
+        setRecentProposals([
+          {
+            _id: '1',
+            freelancer: {
+              firstName: 'John',
+              lastName: 'Developer',
+              avatar: '/user.jpg',
+              rating: 4.9
+            },
+            projectId: {
+              title: 'Build E-commerce Website'
+            },
+            proposedBudget: 1500,
+            createdAt: new Date().toISOString()
           },
-          projectId: {
-            title: 'Build E-commerce Website'
-          },
-          proposedBudget: 1500,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '2',
-          freelancer: {
-            firstName: 'Sarah',
-            lastName: 'Designer',
-            avatar: '/user.jpg',
-            rating: 4.8
-          },
-          projectId: {
-            title: 'Mobile App UI Design'
-          },
-          proposedBudget: 1100,
-          createdAt: new Date(Date.now() - 86400000).toISOString()
-        }
-      ]);
+          {
+            _id: '2',
+            freelancer: {
+              firstName: 'Sarah',
+              lastName: 'Designer',
+              avatar: '/user.jpg',
+              rating: 4.8
+            },
+            projectId: {
+              title: 'Mobile App UI Design'
+            },
+            proposedBudget: 1100,
+            createdAt: new Date(Date.now() - 86400000).toISOString()
+          }
+        ]);
       }
 
     } catch (error) {
@@ -199,7 +199,7 @@ export default function ClientDashboard() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 font-poppins">
-            Welcome back, {user.firstName}!
+            Welcome back, {user?.firstName || 'User'}!
           </h1>
           <p className="text-gray-600 font-inter">
             Here's what's happening with your projects today.
@@ -209,46 +209,46 @@ export default function ClientDashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-4">
-            <Link key="post-project" href="/client/projects/new">
+            <Link href="/client/projects/new">
               <Button variant="premium" className="font-poppins">
                 <Plus className="h-4 w-4 mr-2" />
                 Post a Project
               </Button>
             </Link>
-            <Link key="find-freelancers" href="/client/freelancers">
+            <Link href="/client/freelancers">
               <Button variant="outline" className="font-inter">
                 <Search className="h-4 w-4 mr-2" />
                 Find Freelancers
               </Button>
             </Link>
-            <Link key="view-contracts" href="/client/contracts">
+            <Link href="/client/contracts">
               <Button variant="outline" className="font-inter">
                 <FileText className="h-4 w-4 mr-2" />
                 View Contracts
               </Button>
             </Link>
-            <Link key="view-payments" href="/client/payments">
+            <Link href="/client/payments">
               <Button variant="outline" className="font-inter">
                 <DollarSign className="h-4 w-4 mr-2" />
                 View Payments
               </Button>
             </Link>
-            <Link key="leave-reviews" href="/client/reviews">
+            <Link href="/client/reviews">
               <Button variant="outline" className="font-inter">
                 <Star className="h-4 w-4 mr-2" />
                 Leave Reviews
               </Button>
             </Link>
-            <Link key="manage-disputes" href="/client/disputes">
+            <Link href="/client/projects">
               <Button variant="outline" className="font-inter">
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                Manage Disputes
+                View Projects
               </Button>
             </Link>
-            <Link key="messages" href="/client/messages">
+            <Link href="/client/profile">
               <Button variant="outline" className="font-inter">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Messages
+                <Settings className="h-4 w-4 mr-2" />
+                Profile Settings
               </Button>
             </Link>
           </div>
@@ -262,7 +262,7 @@ export default function ClientDashboard() {
             transition={{ duration: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8"
           >
-            <div key="total-projects" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Projects</p>
@@ -274,7 +274,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div key="active-projects" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active Projects</p>
@@ -286,7 +286,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div key="total-spent" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Spent</p>
@@ -298,7 +298,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div key="active-contracts" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active Contracts</p>
@@ -310,7 +310,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div key="completed-projects" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Completed Projects</p>
@@ -322,7 +322,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div key="pending-proposals" className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pending Proposals</p>
@@ -443,7 +443,7 @@ export default function ClientDashboard() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Quick Actions</h3>
               <div className="space-y-3">
-                <Link key="quick-post-project" href="/client/projects/new" className="block">
+                <Link href="/client/projects/new" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-green-100 rounded-lg">
                       <Plus className="h-4 w-4 text-green-600" />
@@ -455,7 +455,7 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
                 
-                <Link key="quick-browse-freelancers" href="/client/freelancers" className="block">
+                <Link href="/client/freelancers" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <Search className="h-4 w-4 text-blue-600" />
@@ -467,7 +467,7 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
 
-                <Link key="quick-update-profile" href="/client/profile" className="block">
+                <Link href="/client/profile" className="block">
                   <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Settings className="h-4 w-4 text-purple-600" />

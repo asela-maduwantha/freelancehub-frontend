@@ -146,28 +146,65 @@ export default function ProjectsPage() {
 
       const response = await projectsService.getProjects(queryParams);
       
-      if (response.data) {
-        const projectsWithMockData = response.data.map((project: any) => ({
-          ...project,
-          client: {
-            id: project.clientId || 'mock-client',
-            name: project.client?.name || 'Client',
-            rating: project.client?.rating || 4.5 + Math.random() * 0.5,
-            totalSpent: project.client?.totalSpent || Math.floor(Math.random() * 50000) + 10000,
-            location: {
-              country: project.client?.location?.country || 'United States'
-            },
-            paymentVerified: project.client?.paymentVerified || Math.random() > 0.3
-          },
-          proposalCount: project.proposalCount || Math.floor(Math.random() * 20) + 1,
-          bookmarked: bookmarkedProjects.includes(project.id)
-        }));
+      // Handle both possible response structures
+      const projects = (response as any).projects || response.data || [];
+      const paginationInfo = response.pagination;
+      
+      console.log('Projects loaded:', { projects, paginationInfo, response });
+      
+      if (projects.length >= 0) {
+        try {
+          const projectsWithMockData = projects
+            .filter((project: any) => project && project._id) // Filter out null/undefined projects
+            .map((project: any) => {
+              try {
+                return {
+                  ...project,
+                  id: project._id, // Map _id to id for consistency
+                  client: {
+                    id: project.clientId?._id || 'mock-client',
+                    name: `${project.clientId?.firstName || 'Client'} ${project.clientId?.lastName || ''}`.trim() || 'Anonymous Client',
+                    rating: Number(project.clientId?.rating) || 4.5 + Math.random() * 0.5,
+                    totalSpent: Number(project.clientId?.totalSpent) || Math.floor(Math.random() * 50000) + 10000,
+                    location: {
+                      country: project.clientId?.location?.country || 'United States'
+                    },
+                    paymentVerified: Boolean(project.clientId?.paymentVerified) || Math.random() > 0.3
+                  },
+                  budget: {
+                    amount: Number(project.budget) || 0,
+                    currency: 'USD',
+                    type: project.budgetType === 'hourly' ? 'hourly' : 'fixed'
+                  },
+                  skills: project.requiredSkills?.map((skill: any) => {
+                    if (typeof skill === 'string') return skill;
+                    if (typeof skill === 'object' && skill.name) return skill.name;
+                    return ''; // fallback for invalid skills
+                  }).filter(Boolean) || [],
+                  proposalCount: Number(project.proposals?.length) || Math.floor(Math.random() * 20) + 1,
+                  bookmarked: bookmarkedProjects.includes(project._id),
+                  postedDate: project.createdAt || project.postedAt || new Date().toISOString(),
+                  experience: project.experienceLevel || 'intermediate',
+                  category: project.category || 'Other',
+                  duration: project.duration || 'Not specified',
+                  status: project.status || 'open'
+                };
+              } catch (projectError) {
+                console.error('Error mapping project:', projectError, project);
+                return null;
+              }
+            })
+            .filter(Boolean); // Remove any null results from failed mappings
 
-        setProjects(projectsWithMockData);
+          setProjects(projectsWithMockData);
+        } catch (mappingError) {
+          console.error('Error processing projects:', mappingError);
+          setError('Error processing project data');
+        }
         setPagination(prev => ({
           ...prev,
-          total: response.pagination?.total || response.data.length,
-          hasNext: response.pagination ? response.pagination.page < response.pagination.pages : false
+          total: paginationInfo?.total || projects.length,
+          hasNext: paginationInfo ? paginationInfo.page < paginationInfo.pages : false
         }));
       }
     } catch (error) {
@@ -224,7 +261,11 @@ export default function ProjectsPage() {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Recently posted';
+    
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Recently posted';
+    
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));

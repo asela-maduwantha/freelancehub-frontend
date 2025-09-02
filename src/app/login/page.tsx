@@ -72,6 +72,7 @@ export default function LoginPage() {
       };
 
       const response = await authService.login(loginData);
+      console.log(response)
       
       // Store tokens and user data
       localStorage.setItem('user', JSON.stringify(response.user));

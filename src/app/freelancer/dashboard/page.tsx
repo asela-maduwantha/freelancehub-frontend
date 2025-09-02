@@ -152,19 +152,45 @@ export default function FreelancerDashboard() {
       // Load active projects (contracts)
       try {
         const contractsResponse = await contractsService.getContracts();
-        const activeContracts = contractsResponse.filter((contract: any) => contract.status === 'active').slice(0, 5);
         
-        const projects = activeContracts.map((contract: any) => ({
-          id: contract.projectId,
-          title: contract.terms.scope,
-          status: contract.status,
-          client: { name: 'Client', id: contract.clientId },
-          budget: {
-            amount: contract.terms.budget,
-            currency: 'USD'
-          },
-          deadline: contract.terms.deadline
-        }));
+        // Ensure contractsResponse is an array
+        const contractsData: any[] = Array.isArray(contractsResponse) ? contractsResponse : 
+                            (contractsResponse && typeof contractsResponse === 'object' && Array.isArray((contractsResponse as any).data)) ? 
+                            (contractsResponse as any).data : [];
+        
+        const activeContracts = contractsData.filter((contract: any) => contract.status === 'active').slice(0, 5);
+        
+        const projects = activeContracts.map((contract: any) => {
+          let contractId = 'unknown';
+          
+          // Handle the case where projectId is an object with _id property
+          if (contract.projectId?._id) {
+            contractId = String(contract.projectId._id);
+          } else if (contract.projectId && typeof contract.projectId === 'string') {
+            contractId = String(contract.projectId);
+          } else if (contract._id) {
+            contractId = String(contract._id);
+          } else if (contract.id) {
+            contractId = String(contract.id);
+          } else {
+            contractId = `generated-${Math.random().toString(36).substr(2, 9)}`;
+          }
+          
+          return {
+            id: contractId,
+            title: contract.projectId?.title || contract.terms?.scope || 'Untitled Project',
+            status: contract.status,
+            client: { 
+              name: contract.clientId?.firstName ? `${contract.clientId.firstName} ${contract.clientId.lastName || ''}`.trim() : 'Client', 
+              id: contract.clientId?._id || contract.clientId 
+            },
+            budget: {
+              amount: contract.terms?.budget || 0,
+              currency: 'USD'
+            },
+            deadline: contract.terms?.endDate || contract.terms?.deadline || new Date().toISOString()
+          };
+        });
         
         setActiveProjects(projects);
       } catch (error) {
@@ -179,14 +205,34 @@ export default function FreelancerDashboard() {
           status: ['open']
         });
         
-        const opportunities = projectsResponse.data.map((project: any) => ({
-          id: project.id,
-          title: project.title,
-          budget: project.budget,
-          skills: project.skills || [],
-          proposalCount: Math.floor(Math.random() * 20) + 1,
-          postedDate: project.createdAt
-        }));
+        // Handle different response structures
+        let projectsData: any[] = [];
+        if (projectsResponse?.data && Array.isArray(projectsResponse.data)) {
+          projectsData = projectsResponse.data;
+        } else if (Array.isArray(projectsResponse)) {
+          // In case the response is directly an array
+          projectsData = projectsResponse;
+        }
+        
+        const opportunities = projectsData.map((project: any) => {
+          let projectId = 'unknown';
+          if (project.id && project.id !== null && project.id !== undefined) {
+            projectId = String(project.id);
+          } else if (project._id && project._id !== null && project._id !== undefined) {
+            projectId = String(project._id);
+          } else {
+            projectId = `generated-${Math.random().toString(36).substr(2, 9)}`;
+          }
+          
+          return {
+            id: projectId,
+            title: project.title,
+            budget: project.budget,
+            skills: project.skills || [],
+            proposalCount: Math.floor(Math.random() * 20) + 1,
+            postedDate: project.createdAt
+          };
+        });
         
         setNewOpportunities(opportunities);
       } catch (error) {
@@ -268,11 +314,12 @@ export default function FreelancerDashboard() {
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </Button>
-            <Link href="/freelancer/projects">
-              <Button variant="premium" className="font-poppins">
-                <Search className="h-4 w-4 mr-2" />
-                Find New Work
-              </Button>
+            <Link 
+              href="/freelancer/projects"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-poppins"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Find New Work
             </Link>
           </div>
         </div>
@@ -359,10 +406,11 @@ export default function FreelancerDashboard() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-400">Due: {formatDate(project.deadline)}</span>
-                          <Link href={`/freelancer/contracts/${project.id}`}>
-                            <Button variant="outline" size="sm" className="font-inter">
-                              View Contract
-                            </Button>
+                          <Link 
+                            href={`/freelancer/contracts/${project.id && typeof project.id === 'string' ? project.id : 'unknown'}`}
+                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                          >
+                            View Contract
                           </Link>
                         </div>
                       </div>
@@ -401,10 +449,11 @@ export default function FreelancerDashboard() {
               <p className="text-sm text-green-700 mb-4">
                 Complete your profile to get more project invitations
               </p>
-              <Link href="/freelancer/profile">
-                <Button variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-100 font-inter">
-                  Complete Profile
-                </Button>
+              <Link 
+                href="/freelancer/profile"
+                className="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-md hover:bg-green-100 transition-colors font-inter"
+              >
+                Complete Profile
               </Link>
             </div>
 
@@ -439,10 +488,11 @@ export default function FreelancerDashboard() {
                             </span>
                           ))}
                         </div>
-                        <Link href={`/freelancer/projects/${opportunity.id}`}>
-                          <Button variant="outline" size="sm" className="w-full font-inter">
-                            View Details
-                          </Button>
+                        <Link 
+                          href={`/freelancer/projects/${opportunity.id && typeof opportunity.id === 'string' ? opportunity.id : 'unknown'}`}
+                          className="w-full inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                        >
+                          View Details
                         </Link>
                       </div>
                     ))}
@@ -462,23 +512,26 @@ export default function FreelancerDashboard() {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <Link href="/freelancer/proposals">
-                  <Button variant="outline" className="w-full justify-start font-inter">
-                    <FileText className="h-4 w-4 mr-3" />
-                    View My Proposals
-                  </Button>
+                <Link 
+                  href="/freelancer/proposals"
+                  className="w-full inline-flex items-center justify-start px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                >
+                  <FileText className="h-4 w-4 mr-3" />
+                  View My Proposals
                 </Link>
-                <Link href="/freelancer/payments">
-                  <Button variant="outline" className="w-full justify-start font-inter">
-                    <DollarSign className="h-4 w-4 mr-3" />
-                    Check Payments
-                  </Button>
+                <Link 
+                  href="/freelancer/payments"
+                  className="w-full inline-flex items-center justify-start px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                >
+                  <DollarSign className="h-4 w-4 mr-3" />
+                  Check Payments
                 </Link>
-                <Link href="/freelancer/profile">
-                  <Button variant="outline" className="w-full justify-start font-inter">
-                    <Target className="h-4 w-4 mr-3" />
-                    Update Profile
-                  </Button>
+                <Link 
+                  href="/freelancer/profile"
+                  className="w-full inline-flex items-center justify-start px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                >
+                  <Target className="h-4 w-4 mr-3" />
+                  Update Profile
                 </Link>
               </div>
             </div>

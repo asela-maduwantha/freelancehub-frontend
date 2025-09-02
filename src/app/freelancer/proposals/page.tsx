@@ -23,31 +23,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import DataTable from '@/components/ui/DataTable';
 import AppLayout from '@/components/layout/AppLayout';
-import { projectsService } from '@/lib/api';
-
-interface Proposal {
-  id: string;
-  projectId: string;
-  projectTitle: string;
-  client: {
-    name: string;
-    id: string;
-  };
-  proposedBudget: number;
-  proposedDuration: {
-    value: number;
-    unit: string;
-  };
-  status: 'pending' | 'approved' | 'rejected' | 'withdrawn';
-  submittedDate: string;
-  coverLetter: string;
-  milestones: Array<{
-    title: string;
-    amount: number;
-    dueDate: string;
-  }>;
-  attachments: string[];
-}
+import { freelancersService, IFreelancerProposal } from '@/lib/api/freelancers.service';
 
 interface Filters {
   status: string;
@@ -58,7 +34,7 @@ interface Filters {
 const statusFilters = [
   { value: '', label: 'All Proposals' },
   { value: 'pending', label: 'Pending' },
-  { value: 'approved', label: 'Approved' },
+  { value: 'accepted', label: 'Accepted' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'withdrawn', label: 'Withdrawn' }
 ];
@@ -73,7 +49,7 @@ const dateFilters = [
 
 export default function ProposalsPage() {
   const router = useRouter();
-  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [proposals, setProposals] = useState<IFreelancerProposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -106,68 +82,41 @@ export default function ProposalsPage() {
       setIsLoading(true);
       setError(null);
 
-      // Mock data for now - replace with actual API call
-      const mockProposals: Proposal[] = [
-        {
-          id: '1',
-          projectId: 'proj1',
-          projectTitle: 'E-commerce Website Development',
-          client: { name: 'John Doe', id: 'client1' },
-          proposedBudget: 250000, // $2500 in cents
-          proposedDuration: { value: 30, unit: 'days' },
-          status: 'pending',
-          submittedDate: new Date().toISOString(),
-          coverLetter: 'I am excited to work on this project...',
-          milestones: [
-            { title: 'Design Phase', amount: 100000, dueDate: '2024-01-15' },
-            { title: 'Development Phase', amount: 150000, dueDate: '2024-02-15' }
-          ],
-          attachments: ['portfolio.pdf']
-        },
-        {
-          id: '2',
-          projectId: 'proj2',
-          projectTitle: 'Mobile App UI/UX Design',
-          client: { name: 'Jane Smith', id: 'client2' },
-          proposedBudget: 180000,
-          proposedDuration: { value: 20, unit: 'days' },
-          status: 'approved',
-          submittedDate: new Date(Date.now() - 86400000).toISOString(),
-          coverLetter: 'With over 5 years of experience...',
-          milestones: [
-            { title: 'Research & Wireframes', amount: 80000, dueDate: '2024-01-10' },
-            { title: 'Design & Prototype', amount: 100000, dueDate: '2024-01-25' }
-          ],
-          attachments: ['ui_samples.zip']
-        }
-      ];
+      // Fetch proposals from backend with pagination
+      const proposalsData = await freelancersService.getMyProposals({
+        page: pagination.page,
+        limit: pagination.limit,
+        status: filters.status || undefined
+      });
 
-      // Apply filters
-      let filteredProposals = mockProposals;
-      if (filters.status) {
-        filteredProposals = filteredProposals.filter(p => p.status === filters.status);
-      }
+      // Apply client-side search filter if needed
+      let filteredProposals = proposalsData;
       if (filters.search) {
-        filteredProposals = filteredProposals.filter(p => 
-          p.projectTitle.toLowerCase().includes(filters.search.toLowerCase()) ||
-          p.client.name.toLowerCase().includes(filters.search.toLowerCase())
+        filteredProposals = proposalsData.filter(p => 
+          (p.project?.title || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+          `${p.project?.client?.firstName || ''} ${p.project?.client?.lastName || ''}`.toLowerCase().includes(filters.search.toLowerCase()) ||
+          (p.project?.client?.companyName || '').toLowerCase().includes(filters.search.toLowerCase())
         );
       }
 
       setProposals(filteredProposals);
+
+      // For stats, we need to get all proposals (this could be optimized with a separate endpoint)
+      const allProposals = await freelancersService.getMyProposals();
+      
+      setStats({
+        total: allProposals.length,
+        pending: allProposals.filter(p => p.status === 'pending').length,
+        approved: allProposals.filter(p => p.status === 'accepted').length,
+        rejected: allProposals.filter(p => p.status === 'rejected').length
+      });
+
+      // Update pagination info (assuming we get total from response or calculate)
       setPagination(prev => ({
         ...prev,
-        total: filteredProposals.length,
-        hasNext: false
+        total: proposalsData.length, // This should come from backend pagination
+        hasNext: proposalsData.length === pagination.limit
       }));
-
-      // Calculate stats
-      setStats({
-        total: mockProposals.length,
-        pending: mockProposals.filter(p => p.status === 'pending').length,
-        approved: mockProposals.filter(p => p.status === 'approved').length,
-        rejected: mockProposals.filter(p => p.status === 'rejected').length
-      });
 
     } catch (error) {
       console.error('Failed to load proposals:', error);
@@ -196,30 +145,53 @@ export default function ProposalsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  const getProjectId = (proposal: IFreelancerProposal): string => {
+    if (typeof proposal.projectId === 'string') {
+      return proposal.projectId;
+    } else if (proposal.projectId && typeof proposal.projectId === 'object' && 'id' in proposal.projectId) {
+      return proposal.projectId.id;
+    } else if (proposal.project?.id) {
+      return proposal.project.id;
+    }
+    return 'unknown';
   };
 
   const columns = [
     {
-      key: 'projectTitle' as keyof Proposal,
+      key: 'project' as keyof IFreelancerProposal,
       title: 'Project',
-      render: (value: string, proposal: Proposal) => (
+      render: (value: any, proposal: IFreelancerProposal) => (
         <div>
-          <Link href={`/freelancer/projects/${proposal.projectId}`}>
+          <Link href={`/freelancer/projects/${getProjectId(proposal)}`}>
             <h3 className="font-medium text-gray-900 hover:text-green-600 transition-colors">
-              {value}
+              {value?.title || 'Untitled Project'}
             </h3>
           </Link>
-          <p className="text-sm text-gray-500">Client: {proposal.client.name}</p>
+          <p className="text-sm text-gray-500">
+            Client: {value?.client?.firstName || 'Unknown'} {value?.client?.lastName || ''}
+            {value?.client?.companyName && ` (${value?.client?.companyName})`}
+          </p>
         </div>
       )
     },
     {
-      key: 'proposedBudget' as keyof Proposal,
+      key: 'proposedBudget' as keyof IFreelancerProposal,
       title: 'Budget',
       render: (value: number) => (
         <span className="font-semibold text-green-600">
@@ -228,23 +200,23 @@ export default function ProposalsPage() {
       )
     },
     {
-      key: 'proposedDuration' as keyof Proposal,
+      key: 'proposedDuration' as keyof IFreelancerProposal,
       title: 'Duration',
       render: (value: any) => (
         <span className="text-gray-700">
-          {value.value} {value.unit}
+          {value?.value || 0} {value?.unit || 'days'}
         </span>
       )
     },
     {
-      key: 'status' as keyof Proposal,
+      key: 'status' as keyof IFreelancerProposal,
       title: 'Status',
       render: (value: string) => (
         <StatusBadge status={value as any} />
       )
     },
     {
-      key: 'submittedDate' as keyof Proposal,
+      key: 'submittedAt' as keyof IFreelancerProposal,
       title: 'Submitted',
       render: (value: string) => (
         <span className="text-gray-600 text-sm">
@@ -257,22 +229,28 @@ export default function ProposalsPage() {
   const actions = [
     {
       label: 'View Details',
-      onClick: (proposal: Proposal) => {
+      onClick: (proposal: IFreelancerProposal) => {
         router.push(`/freelancer/proposals/${proposal.id}`);
       },
       icon: Eye
     },
     {
       label: 'View Project',
-      onClick: (proposal: Proposal) => {
-        router.push(`/freelancer/projects/${proposal.projectId}`);
+      onClick: (proposal: IFreelancerProposal) => {
+        const projectId = getProjectId(proposal);
+        if (projectId && projectId !== 'unknown') {
+          router.push(`/freelancer/projects/${projectId}`);
+        }
       },
       icon: FileText
     },
     {
       label: 'Message Client',
-      onClick: (proposal: Proposal) => {
-        router.push(`/freelancer/messages?client=${proposal.client.id}`);
+      onClick: (proposal: IFreelancerProposal) => {
+        const clientId = proposal.project?.client?.id;
+        if (clientId) {
+          router.push(`/freelancer/messages?client=${clientId}`);
+        }
       },
       icon: MessageSquare
     }
@@ -324,7 +302,7 @@ export default function ProposalsPage() {
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Approved</p>
+                <p className="text-sm font-medium text-gray-600">Accepted</p>
                 <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
@@ -413,7 +391,7 @@ export default function ProposalsPage() {
           actions={actions}
           onRowClick={(proposal) => router.push(`/freelancer/proposals/${proposal.id}`)}
           rowClassName={(proposal) => 
-            proposal.status === 'approved' ? 'bg-green-50 border-green-200' :
+            proposal.status === 'accepted' ? 'bg-green-50 border-green-200' :
             proposal.status === 'rejected' ? 'bg-red-50 border-red-200' : ''
           }
         />
