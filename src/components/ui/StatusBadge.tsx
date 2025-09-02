@@ -1,0 +1,75 @@
+'use client';
+
+interface StatusBadgeProps {
+  status: 'pending' | 'approved' | 'active' | 'completed' | 'rejected' | 'open' | 'in_progress' | 'cancelled' | 'disputed';
+  variant?: 'default' | 'compact';
+  className?: string;
+}
+
+const statusConfig = {
+  pending: {
+    label: 'Pending',
+    className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+  },
+  approved: {
+    label: 'Approved',
+    className: 'bg-green-100 text-green-800 border-green-200'
+  },
+  active: {
+    label: 'Active',
+    className: 'bg-blue-100 text-blue-800 border-blue-200'
+  },
+  completed: {
+    label: 'Completed',
+    className: 'bg-green-100 text-green-800 border-green-200'
+  },
+  rejected: {
+    label: 'Rejected',
+    className: 'bg-red-100 text-red-800 border-red-200'
+  },
+  open: {
+    label: 'Open',
+    className: 'bg-green-100 text-green-800 border-green-200'
+  },
+  in_progress: {
+    label: 'In Progress',
+    className: 'bg-blue-100 text-blue-800 border-blue-200'
+  },
+  cancelled: {
+    label: 'Cancelled',
+    className: 'bg-gray-100 text-gray-800 border-gray-200'
+  },
+  disputed: {
+    label: 'Disputed',
+    className: 'bg-red-100 text-red-800 border-red-200'
+  }
+};
+
+export default function StatusBadge({ 
+  status, 
+  variant = 'default',
+  className = '' 
+}: StatusBadgeProps) {
+  const config = statusConfig[status];
+  
+  if (!config) {
+    return null;
+  }
+
+  const sizeClasses = variant === 'compact' 
+    ? 'px-2 py-1 text-xs' 
+    : 'px-3 py-1 text-sm';
+
+  return (
+    <span 
+      className={`
+        inline-flex items-center font-medium rounded-full border
+        ${sizeClasses}
+        ${config.className}
+        ${className}
+      `}
+    >
+      {config.label}
+    </span>
+  );
+}

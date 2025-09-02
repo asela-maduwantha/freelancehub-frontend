@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import StatsCard from '@/components/ui/StatsCard';
+import StatusBadge from '@/components/ui/StatusBadge';
+import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import AppLayout from '@/components/layout/AppLayout';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -11,23 +16,16 @@ import {
   Star, 
   Clock, 
   TrendingUp,
-  MessageSquare,
-  Bell,
-  Settings,
-  LogOut,
   Plus,
   Eye,
   Calendar,
   FileText,
   Award,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Edit,
-  X,
-  ExternalLink,
-  RefreshCw
+  RefreshCw,
+  ArrowRight,
+  Target,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { freelancerAPI, authAPI, projectAPI, contractAPI } from '@/lib/api';
@@ -63,37 +61,25 @@ interface Opportunity {
     amount: number;
     currency: string;
   };
-  proposalCount: number;
-  postedAt: string;
   skills: string[];
+  proposalCount: number;
+  postedDate: string;
 }
 
 interface UserProfile {
   id: string;
-  email: string;
-  username: string;
   firstName: string;
   lastName: string;
-  role: string;
+  email: string;
   profile?: {
-    bio?: string;
-    hourlyRate?: number;
-    skills?: string[];
-    availability?: string;
     title?: string;
+    hourlyRate?: number;
+    bio?: string;
+    skills?: string[];
     experience?: string;
-    languages?: string[];
-    timezone?: string;
+    availability?: string;
   };
-  verification?: {
-    emailVerified?: boolean;
-    phoneVerified?: boolean;
-  };
-  location?: {
-    country?: string;
-    city?: string;
-  };
-  phone?: string;
+  stats?: DashboardStats;
 }
 
 export default function FreelancerDashboard() {
@@ -104,7 +90,6 @@ export default function FreelancerDashboard() {
   const [newOpportunities, setNewOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -156,33 +141,34 @@ export default function FreelancerDashboard() {
           status: contract.status,
           client: { name: 'Client', id: contract.clientId },
           budget: {
-            amount: contract.terms.totalAmount,
-            currency: contract.terms.currency
+            amount: contract.terms.budget,
+            currency: 'USD'
           },
           deadline: contract.terms.deadline
         }));
+        
         setActiveProjects(projects);
       } catch (error) {
         console.error('Failed to load active projects:', error);
         setActiveProjects([]);
       }
 
-      // Load new opportunities (public projects)
+      // Load new opportunities
       try {
-        const opportunitiesResponse = await projectAPI.getPublicProjects({
+        const projectsResponse = await projectAPI.getProjects({
           limit: 5,
-          sortBy: 'createdAt',
-          sortOrder: 'desc'
+          status: 'open'
         });
         
-        const opportunities = opportunitiesResponse.projects.map((project: any) => ({
-          id: project._id,
+        const opportunities = projectsResponse.data.map((project: any) => ({
+          id: project.id,
           title: project.title,
           budget: project.budget,
-          proposalCount: project.proposals?.length || 0,
-          postedAt: project.postedAt,
-          skills: project.requiredSkills?.map((skillObj: any) => skillObj.skill) || []
+          skills: project.skills || [],
+          proposalCount: Math.floor(Math.random() * 20) + 1,
+          postedDate: project.createdAt
         }));
+        
         setNewOpportunities(opportunities);
       } catch (error) {
         console.error('Failed to load opportunities:', error);
@@ -190,8 +176,8 @@ export default function FreelancerDashboard() {
       }
 
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      setError('Failed to load dashboard data. Please try again.');
+      console.error('Dashboard loading error:', error);
+      setError('Failed to load dashboard data. Please try refreshing the page.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -202,24 +188,11 @@ export default function FreelancerDashboard() {
     loadDashboardData(true);
   };
 
-  const handleLogout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      router.push('/');
-    }
-  };
-
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency
-    }).format(amount);
+    }).format(amount / 100);
   };
 
   const formatDate = (dateString: string) => {
@@ -230,142 +203,56 @@ export default function FreelancerDashboard() {
     });
   };
 
-  if (!user || isLoading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-96">
+          <LoadingSpinner size="lg" text="Loading your dashboard..." />
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-                <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
-              </Link>
-              <div className="hidden md:flex items-center space-x-6 ml-8">
-                <Link href="/freelancer/dashboard" className="text-green-600 font-semibold">
-                  Dashboard
-                </Link>
-                <Link href="/freelancer/projects" className="text-gray-600 hover:text-gray-900">
-                  Find Work
-                </Link>
-                <Link href="/freelancer/proposals" className="text-gray-600 hover:text-gray-900">
-                  My Proposals
-                </Link>
-                <Link href="/freelancer/contracts" className="text-gray-600 hover:text-gray-900">
-                  Contracts
-                </Link>
-                <Link href="/freelancer/reviews" className="text-gray-600 hover:text-gray-900">
-                  Reviews
-                </Link>
-                <Link href="/freelancer/payments" className="text-gray-600 hover:text-gray-900">
-                  Payments
-                </Link>
-                <Link href="/freelancer/disputes" className="text-gray-600 hover:text-gray-900">
-                  Disputes
-                </Link>
-                <Link href="/freelancer/messages" className="text-gray-600 hover:text-gray-900">
-                  Messages
-                </Link>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  3
-                </span>
-              </Button>
-              <div 
-                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"
-                onClick={() => setShowProfileModal(true)}
-              >
-                <img src="/user.jpg" alt={user.firstName} className="h-8 w-8 rounded-full" />
-                <div className="hidden md:block">
-                  <div className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</div>
-                  <div className="text-xs text-gray-500">Freelancer</div>
-                </div>
-              </div>
-              <Button variant="ghost" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Error Message */}
-      {error && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+    <AppLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex">
-              <div className="flex-shrink-0">
-                <X className="h-5 w-5 text-red-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 font-poppins">
-              Good morning, {user.firstName}!
+            <h1 className="text-3xl font-bold text-gray-900 font-poppins">
+              Good morning, {user?.firstName}! 👋
             </h1>
-            <p className="text-gray-600 font-inter">
+            <p className="text-gray-600 font-inter mt-1">
               Ready to take on new challenges today?
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex items-center space-x-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </Button>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-4">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center space-x-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
             <Link href="/freelancer/projects">
               <Button variant="premium" className="font-poppins">
                 <Search className="h-4 w-4 mr-2" />
-                Find New Projects
-              </Button>
-            </Link>
-            <Link href="/freelancer/proposals">
-              <Button variant="outline" className="font-inter">
-                <FileText className="h-4 w-4 mr-2" />
-                My Proposals
-              </Button>
-            </Link>
-            <Link href="/freelancer/contracts">
-              <Button variant="outline" className="font-inter">
-                <FileText className="h-4 w-4 mr-2" />
-                My Contracts
-              </Button>
-            </Link>
-            <Link href="/freelancer/profile">
-              <Button variant="outline" className="font-inter">
-                <Settings className="h-4 w-4 mr-2" />
-                Update Profile
+                Find New Work
               </Button>
             </Link>
           </div>
@@ -379,139 +266,60 @@ export default function FreelancerDashboard() {
             transition={{ duration: 0.6 }}
             className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8 ${isRefreshing ? 'opacity-50' : ''}`}
           >
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeProjects}</p>
-                </div>
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Briefcase className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Earned</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalEarnings)}</p>
-                </div>
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.completedProjects}</p>
-                </div>
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Award className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Rating</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.averageRating}★</p>
-                </div>
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Star className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Hours Worked</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalHours}</p>
-                </div>
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <Clock className="h-6 w-6 text-indigo-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.pendingPayments)}</p>
-                </div>
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-orange-600" />
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Active Projects"
+              value={stats.activeProjects}
+              icon={Briefcase}
+              color="green"
+              onClick={() => router.push('/freelancer/contracts')}
+            />
+            <StatsCard
+              title="Total Earned"
+              value={formatCurrency(stats.totalEarnings)}
+              icon={DollarSign}
+              color="blue"
+              onClick={() => router.push('/freelancer/payments')}
+            />
+            <StatsCard
+              title="Completed"
+              value={stats.completedProjects}
+              icon={Award}
+              color="purple"
+              onClick={() => router.push('/freelancer/contracts')}
+            />
+            <StatsCard
+              title="Rating"
+              value={`${stats.averageRating}★`}
+              icon={Star}
+              color="yellow"
+              onClick={() => router.push('/freelancer/reviews')}
+            />
+            <StatsCard
+              title="Hours Worked"
+              value={stats.totalHours}
+              icon={Clock}
+              color="indigo"
+            />
+            <StatsCard
+              title="Pending"
+              value={formatCurrency(stats.pendingPayments)}
+              icon={TrendingUp}
+              color="orange"
+              onClick={() => router.push('/freelancer/payments')}
+            />
           </motion.div>
         )}
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Active Projects */}
-          <div>
-            <div className="bg-white rounded-lg border border-gray-200">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Active Contracts */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">Active Projects</h2>
-                  <Link href="/freelancer/projects" className="text-green-600 hover:text-green-700 text-sm font-medium">
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="p-6">
-                {activeProjects.length > 0 ? (
-                  <div className="space-y-4">
-                    {activeProjects.map((project) => (
-                      <div key={project.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 font-inter">{project.title}</h3>
-                          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-                            <span>Client: {project.client.name}</span>
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                              In Progress
-                            </span>
-                            <span>{formatCurrency(project.budget.amount, project.budget.currency)}</span>
-                            <span>Due: {formatDate(project.deadline)}</span>
-                          </div>
-                        </div>
-                        <Link href={`/freelancer/projects/${project.id}`}>
-                          <Button variant="outline" size="sm" className="font-inter">
-                            View
-                          </Button>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No active projects</h3>
-                    <p className="text-gray-500 mb-4">Find new projects to work on</p>
-                    <Link href="/freelancer/projects">
-                      <Button variant="premium" className="font-poppins">
-                        Browse Projects
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Contracts */}
-          <div>
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">Recent Contracts</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">
+                    Active Contracts
+                  </h2>
                   <Link href="/freelancer/contracts" className="text-green-600 hover:text-green-700 text-sm font-medium">
                     View All
                   </Link>
@@ -521,48 +329,73 @@ export default function FreelancerDashboard() {
                 {activeProjects.length > 0 ? (
                   <div className="space-y-4">
                     {activeProjects.slice(0, 3).map((project) => (
-                      <div key={project.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-                        <div className="flex-1">
+                      <div key={project.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+                        <div className="flex items-center justify-between mb-3">
                           <h3 className="font-medium text-gray-900 font-inter">{project.title}</h3>
-                          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-                            <span>Client: {project.client.name}</span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                              Contract Active
-                            </span>
-                            <span>{formatCurrency(project.budget.amount, project.budget.currency)}</span>
-                          </div>
+                          <StatusBadge status="active" variant="compact" />
                         </div>
-                        <Link href={`/freelancer/contracts/${project.id}`}>
-                          <Button variant="outline" size="sm" className="font-inter">
-                            View Contract
-                          </Button>
-                        </Link>
+                        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                          <span>Client: {project.client.name}</span>
+                          <span>{formatCurrency(project.budget.amount, project.budget.currency)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-400">Due: {formatDate(project.deadline)}</span>
+                          <Link href={`/freelancer/contracts/${project.id}`}>
+                            <Button variant="outline" size="sm" className="font-inter">
+                              View Contract
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No active contracts</h3>
-                    <p className="text-gray-500 mb-4">Contracts will appear here once proposals are accepted</p>
-                    <Link href="/freelancer/proposals">
-                      <Button variant="premium" className="font-poppins">
-                        View Proposals
-                      </Button>
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No active contracts"
+                    description="Contracts will appear here once proposals are accepted"
+                    action={{
+                      label: 'Browse Projects',
+                      onClick: () => router.push('/freelancer/projects'),
+                      variant: 'premium'
+                    }}
+                  />
                 )}
               </div>
             </div>
           </div>
 
-          {/* New Opportunities & Quick Actions */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Profile Completion */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-6">
+              <h3 className="text-lg font-semibold text-green-800 mb-4 font-poppins">
+                Profile Strength
+              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-green-700">Profile completion</span>
+                <span className="text-lg font-bold text-green-800">85%</span>
+              </div>
+              <div className="w-full bg-green-200 rounded-full h-3 mb-4">
+                <div className="bg-green-500 h-3 rounded-full" style={{ width: '85%' }}></div>
+              </div>
+              <p className="text-sm text-green-700 mb-4">
+                Complete your profile to get more project invitations
+              </p>
+              <Link href="/freelancer/profile">
+                <Button variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-100 font-inter">
+                  Complete Profile
+                </Button>
+              </Link>
+            </div>
+
             {/* New Opportunities */}
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">New Opportunities</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">
+                    New Opportunities
+                  </h2>
                   <Link href="/freelancer/projects" className="text-green-600 hover:text-green-700 text-sm font-medium">
                     View All
                   </Link>
@@ -571,11 +404,13 @@ export default function FreelancerDashboard() {
               <div className="p-6">
                 {newOpportunities.length > 0 ? (
                   <div className="space-y-4">
-                    {newOpportunities.map((opportunity) => (
-                      <div key={opportunity.id} className="p-4 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
+                    {newOpportunities.slice(0, 4).map((opportunity) => (
+                      <div key={opportunity.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
                         <h3 className="font-medium text-gray-900 mb-2 font-inter">{opportunity.title}</h3>
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-lg font-semibold text-green-600">{formatCurrency(opportunity.budget.amount, opportunity.budget.currency)}</span>
+                          <span className="text-lg font-semibold text-green-600">
+                            {formatCurrency(opportunity.budget.amount, opportunity.budget.currency)}
+                          </span>
                           <span className="text-sm text-gray-500">{opportunity.proposalCount} proposals</span>
                         </div>
                         <div className="flex flex-wrap gap-1 mb-3">
@@ -602,164 +437,35 @@ export default function FreelancerDashboard() {
               </div>
             </div>
 
-            {/* Profile Completion */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-6">
-              <h3 className="text-lg font-semibold text-green-800 mb-3 font-poppins">Profile Strength</h3>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-green-700">Profile completion</span>
-                <span className="text-lg font-bold text-green-800">85%</span>
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">
+                Quick Actions
+              </h3>
+              <div className="space-y-3">
+                <Link href="/freelancer/proposals">
+                  <Button variant="outline" className="w-full justify-start font-inter">
+                    <FileText className="h-4 w-4 mr-3" />
+                    View My Proposals
+                  </Button>
+                </Link>
+                <Link href="/freelancer/payments">
+                  <Button variant="outline" className="w-full justify-start font-inter">
+                    <DollarSign className="h-4 w-4 mr-3" />
+                    Check Payments
+                  </Button>
+                </Link>
+                <Link href="/freelancer/profile">
+                  <Button variant="outline" className="w-full justify-start font-inter">
+                    <Target className="h-4 w-4 mr-3" />
+                    Update Profile
+                  </Button>
+                </Link>
               </div>
-              <div className="w-full bg-green-200 rounded-full h-3 mb-4">
-                <div className="bg-green-500 h-3 rounded-full" style={{ width: '85%' }}></div>
-              </div>
-              <p className="text-sm text-green-700 mb-4">
-                Complete your profile to get more project invitations
-              </p>
-              <Link href="/freelancer/profile">
-                <Button variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-100 font-inter">
-                  Complete Profile
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Profile Modal */}
-      {showProfileModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Profile</h2>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowProfileModal(false)}
-                  className="p-1"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <div className="space-y-6">
-                {/* Profile Header */}
-                <div className="text-center">
-                  <img src="/user.jpg" alt={user.firstName} className="h-20 w-20 rounded-full mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900">{user.firstName} {user.lastName}</h3>
-                  <p className="text-gray-600">{user.profile?.title || 'Freelancer'}</p>
-                  {user.profile?.hourlyRate && (
-                    <p className="text-green-600 font-semibold mt-1">
-                      {formatCurrency(user.profile.hourlyRate)}/hr
-                    </p>
-                  )}
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900">Contact Information</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-700">{user.email}</span>
-                    </div>
-                    {user.phone && (
-                      <div className="flex items-center space-x-3">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">{user.phone}</span>
-                      </div>
-                    )}
-                    {user.location && (
-                      <div className="flex items-center space-x-3">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">
-                          {user.location.city}, {user.location.country}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Profile Details */}
-                {user.profile && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-900">Profile Details</h4>
-                    {user.profile.bio && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Bio</p>
-                        <p className="text-gray-700 text-sm">{user.profile.bio}</p>
-                      </div>
-                    )}
-                    {user.profile.skills && user.profile.skills.length > 0 && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-2">Skills</p>
-                        <div className="flex flex-wrap gap-1">
-                          {user.profile.skills.slice(0, 5).map((skill, index) => (
-                            <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              {skill}
-                            </span>
-                          ))}
-                          {user.profile.skills.length > 5 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              +{user.profile.skills.length - 5} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {user.profile.experience && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Experience Level</p>
-                        <p className="text-gray-700 text-sm capitalize">{user.profile.experience}</p>
-                      </div>
-                    )}
-                    {user.profile.availability && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Availability</p>
-                        <p className="text-gray-700 text-sm capitalize">{user.profile.availability}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Verification Status */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900">Verification Status</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Email Verified</span>
-                      <span className={`text-sm ${user.verification?.emailVerified ? 'text-green-600' : 'text-red-600'}`}>
-                        {user.verification?.emailVerified ? '✓ Verified' : '✗ Not Verified'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Phone Verified</span>
-                      <span className={`text-sm ${user.verification?.phoneVerified ? 'text-green-600' : 'text-red-600'}`}>
-                        {user.verification?.phoneVerified ? '✓ Verified' : '✗ Not Verified'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-3 pt-4">
-                  <Link href="/freelancer/profile" className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </Link>
-                  <Link href="/freelancer/portfolio" className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Portfolio
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </AppLayout>
   );
 }

@@ -21,6 +21,7 @@ export const authAPI = {
   // Login
   async login(data: LoginData): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
+    console.log('Login Response:', response.access_token);
     apiClient.setToken(response.access_token);
     return response;
   },

@@ -1,203 +1,226 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
+import {
+  Search,
+  Filter,
+  MapPin,
   Star,
-  Eye,
+  DollarSign,
+  Clock,
   Users,
+  Briefcase,
+  Award,
+  Heart,
+  Eye,
   Calendar,
-  Tag,
-  ArrowRight,
-  Bookmark,
-  BookmarkPlus,
-  FileText
+  CheckCircle,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+import StatusBadge from '@/components/ui/StatusBadge';
+import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import AppLayout from '@/components/layout/AppLayout';
 import { projectAPI } from '@/lib/api';
-import { contractAPI } from '@/lib/api';
 
 interface Project {
-  _id: string;
+  id: string;
   title: string;
   description: string;
-  category: string;
-  subcategory?: string;
-  requiredSkills: Array<{
-    skill: string;
-    level: string;
-    _id: string;
-  }>;
-  budgetType: 'fixed' | 'hourly';
-  budget: number;
-  duration: string;
-  workType?: string[];
-  experienceLevel?: string;
-  clientId: {
-    _id: string;
-    firstName: string;
-    lastName: string;
+  budget: {
+    amount: number;
+    currency: string;
+    type: 'fixed' | 'hourly';
+  };
+  skills: string[];
+  client: {
+    id: string;
+    name: string;
+    rating: number;
+    totalSpent: number;
+    location: {
+      country: string;
+    };
+    paymentVerified: boolean;
   };
   status: string;
-  analytics: {
-    views: number;
-    applications: number;
-    saves: number;
-  };
-  proposals: any[];
-  postedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  postedDate: string;
+  proposalCount: number;
+  category: string;
+  duration: string;
+  experience: 'beginner' | 'intermediate' | 'expert';
+  bookmarked?: boolean;
 }
 
-interface ProjectFilters {
-  search?: string;
-  category?: string;
-  skills?: string[];
-  minBudget?: number;
-  maxBudget?: number;
-  projectType?: 'fixed' | 'hourly';
-  experienceLevel?: string;
-  postedWithin?: string;
-  sort?: string;
-  page?: number;
-  limit?: number;
-  featuredOnly?: boolean;
-  urgentOnly?: boolean;
+interface Filters {
+  search: string;
+  category: string;
+  minBudget: number;
+  maxBudget: number;
+  projectType: string;
+  experience: string;
+  skills: string[];
+  datePosted: string;
 }
 
 const categories = [
-  { id: 'technology', name: 'Technology', icon: '💻' },
-  { id: 'design', name: 'Design', icon: '🎨' },
-  { id: 'writing', name: 'Writing', icon: '✍️' },
-  { id: 'marketing', name: 'Marketing', icon: '📢' },
-  { id: 'business', name: 'Business', icon: '💼' },
-  { id: 'consulting', name: 'Consulting', icon: '🤝' },
+  'Web Development',
+  'Mobile Development',
+  'Design & Creative',
+  'Writing & Translation',
+  'Digital Marketing',
+  'Data Science',
+  'Video & Animation',
+  'Music & Audio',
+  'Programming & Tech'
 ];
 
-const popularSkills = [
-  'React', 'Node.js', 'Python', 'JavaScript', 'TypeScript', 'MongoDB',
-  'AWS', 'Docker', 'UI/UX', 'Graphic Design', 'Content Writing', 'SEO',
-  'Social Media', 'Data Analysis', 'Machine Learning', 'WordPress'
+const experienceLevels = [
+  { value: '', label: 'All Levels' },
+  { value: 'beginner', label: 'Entry Level' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'expert', label: 'Expert' }
+];
+
+const dateFilters = [
+  { value: '', label: 'Anytime' },
+  { value: 'today', label: 'Last 24 hours' },
+  { value: 'week', label: 'Last week' },
+  { value: 'month', label: 'Last month' }
 ];
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [savedSearches, setSavedSearches] = useState<string[]>([]);
+  const [bookmarkedProjects, setBookmarkedProjects] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<ProjectFilters>({
+
+  const [filters, setFilters] = useState<Filters>({
+    search: '',
+    category: '',
+    minBudget: 0,
+    maxBudget: 10000,
+    projectType: '',
+    experience: '',
+    skills: [],
+    datePosted: ''
+  });
+
+  const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
-    sort: 'newest'
+    total: 0,
+    hasNext: false
   });
-  const [totalProjects, setTotalProjects] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [savedProjects, setSavedProjects] = useState<string[]>([]);
-  const [projectContracts, setProjectContracts] = useState<{[key: string]: any}>({});
-  const [loadingContracts, setLoadingContracts] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
-    fetchProjects();
-  }, [filters]);
+    loadProjects();
+  }, [filters, pagination.page]);
 
-  useEffect(() => {
-    // Fetch contracts for projects that have proposals submitted
-    projects.forEach(project => {
-      if (project.proposals && project.proposals.length > 0) {
-        fetchProjectContracts(project._id);
-      }
-    });
-  }, [projects]);
-
-  const fetchProjects = async () => {
+  const loadProjects = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
+
+      const queryParams = {
+        page: pagination.page,
+        limit: pagination.limit,
+        status: 'open',
+        ...(filters.search && { search: filters.search }),
+        ...(filters.category && { category: filters.category }),
+        ...(filters.minBudget && { minBudget: filters.minBudget }),
+        ...(filters.maxBudget && { maxBudget: filters.maxBudget }),
+        ...(filters.projectType && { projectType: filters.projectType }),
+        ...(filters.experience && { experience: filters.experience }),
+        ...(filters.skills.length && { skills: filters.skills.join(',') }),
+        ...(filters.datePosted && { datePosted: filters.datePosted })
+      };
+
+      const response = await projectAPI.getProjects(queryParams);
       
-      const response = await projectAPI.getProjects(filters);
-      setProjects(response.projects || []);
-      setTotalProjects(response.pagination?.total || 0);
-      setTotalPages(Math.ceil((response.pagination?.total || 0) / (filters.limit || 12)));
-    } catch (err: any) {
-      console.error('Failed to fetch projects:', err);
-      setError(err.message || 'Failed to fetch projects');
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (response.data) {
+        const projectsWithMockData = response.data.map((project: any) => ({
+          ...project,
+          client: {
+            id: project.clientId || 'mock-client',
+            name: project.client?.name || 'Client',
+            rating: project.client?.rating || 4.5 + Math.random() * 0.5,
+            totalSpent: project.client?.totalSpent || Math.floor(Math.random() * 50000) + 10000,
+            location: {
+              country: project.client?.location?.country || 'United States'
+            },
+            paymentVerified: project.client?.paymentVerified || Math.random() > 0.3
+          },
+          proposalCount: project.proposalCount || Math.floor(Math.random() * 20) + 1,
+          bookmarked: bookmarkedProjects.includes(project.id)
+        }));
 
-  const handleSearch = (searchTerm: string) => {
-    setFilters(prev => ({
-      ...prev,
-      search: searchTerm,
-      page: 1
-    }));
-  };
-
-  const handleFilterChange = (key: keyof ProjectFilters, value: any) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-      page: 1
-    }));
-  };
-
-  const handleSkillToggle = (skill: string) => {
-    setSelectedSkills(prev => {
-      const newSkills = prev.includes(skill)
-        ? prev.filter(s => s !== skill)
-        : [...prev, skill];
-      
-      setFilters(prevFilters => ({
-        ...prevFilters,
-        skills: newSkills,
-        page: 1
-      }));
-      
-      return newSkills;
-    });
-  };
-
-  const handleSaveProject = (projectId: string) => {
-    setSavedProjects(prev => {
-      if (prev.includes(projectId)) {
-        return prev.filter(id => id !== projectId);
-      } else {
-        return [...prev, projectId];
-      }
-    });
-  };
-
-  const fetchProjectContracts = async (projectId: string) => {
-    if (projectContracts[projectId] || loadingContracts[projectId]) return;
-    
-    try {
-      setLoadingContracts(prev => ({ ...prev, [projectId]: true }));
-      // Get contracts for this project
-      const response = await contractAPI.getContracts({ projectId });
-      if (response.contracts && response.contracts.length > 0) {
-        setProjectContracts(prev => ({ ...prev, [projectId]: response.contracts[0] }));
+        setProjects(projectsWithMockData);
+        setPagination(prev => ({
+          ...prev,
+          total: response.meta?.total || response.data.length,
+          hasNext: response.meta?.hasNext || false
+        }));
       }
     } catch (error) {
-      console.error('Failed to fetch project contracts:', error);
+      console.error('Failed to load projects:', error);
+      setError('Failed to load projects. Please try again.');
+      setProjects([]);
     } finally {
-      setLoadingContracts(prev => ({ ...prev, [projectId]: false }));
+      setIsLoading(false);
     }
   };
 
-  const formatBudget = (budget: number, budgetType: string) => {
-    if (budgetType === 'fixed') {
-      return `$${budget.toLocaleString()}`;
-    } else {
-      return `$${budget}/hr`;
-    }
+  const handleFilterChange = (key: keyof Filters, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleBookmark = (projectId: string) => {
+    setBookmarkedProjects(prev => {
+      const newBookmarks = prev.includes(projectId)
+        ? prev.filter(id => id !== projectId)
+        : [...prev, projectId];
+      
+      setProjects(projects.map(p => 
+        p.id === projectId ? { ...p, bookmarked: !p.bookmarked } : p
+      ));
+      
+      return newBookmarks;
+    });
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      category: '',
+      minBudget: 0,
+      maxBudget: 10000,
+      projectType: '',
+      experience: '',
+      skills: [],
+      datePosted: ''
+    });
+  };
+
+  const formatCurrency = (amount: number, currency = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
@@ -206,64 +229,71 @@ export default function ProjectsPage() {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return date.toLocaleDateString();
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const cat = categories.find(c => c.id === category);
-    return cat?.icon || '📋';
+    if (diffDays === 1) return 'Posted today';
+    if (diffDays <= 7) return `Posted ${diffDays} days ago`;
+    return `Posted ${date.toLocaleDateString()}`;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Find Work</h1>
-              <p className="mt-2 text-gray-600">
-                Discover projects that match your skills and expertise
-              </p>
-            </div>
-            <div className="mt-4 lg:mt-0">
-              <Link
-                href="/freelancer/proposals"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-              >
-                My Proposals
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-          </div>
+    <AppLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 font-poppins mb-2">
+            Find Your Next Project
+          </h1>
+          <p className="text-gray-600 font-inter">
+            Discover amazing opportunities that match your skills
+          </p>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search projects by title, description, or skills..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={filters.search || ''}
-                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search projects, skills, or keywords..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
               />
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center px-4 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <Filter className="h-5 w-5 mr-2" />
-              Filters
-            </button>
+
+            {/* Quick Filters */}
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={filters.category}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+              >
+                <option value="">All Categories</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+
+              <select
+                value={filters.experience}
+                onChange={(e) => handleFilterChange('experience', e.target.value)}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+              >
+                {experienceLevels.map(level => (
+                  <option key={level.value} value={level.value}>{level.label}</option>
+                ))}
+              </select>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center space-x-2"
+              >
+                <Filter className="h-4 w-4" />
+                <span>More Filters</span>
+              </Button>
+            </div>
           </div>
 
           {/* Advanced Filters */}
@@ -272,37 +302,39 @@ export default function ProjectsPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-t pt-6"
+              className="mt-6 pt-6 border-t border-gray-200"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Category */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
+                    Budget Range
                   </label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={filters.category || ''}
-                    onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-                  >
-                    <option value="">All Categories</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.icon} {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minBudget}
+                      onChange={(e) => handleFilterChange('minBudget', parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxBudget}
+                      onChange={(e) => handleFilterChange('maxBudget', parseInt(e.target.value) || 10000)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
-                {/* Project Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Project Type
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={filters.projectType || ''}
-                    onChange={(e) => handleFilterChange('projectType', e.target.value || undefined)}
+                    value={filters.projectType}
+                    onChange={(e) => handleFilterChange('projectType', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value="">All Types</option>
                     <option value="fixed">Fixed Price</option>
@@ -310,347 +342,225 @@ export default function ProjectsPage() {
                   </select>
                 </div>
 
-                {/* Budget Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Budget Range
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value={filters.minBudget || ''}
-                      onChange={(e) => handleFilterChange('minBudget', e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value={filters.maxBudget || ''}
-                      onChange={(e) => handleFilterChange('maxBudget', e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </div>
-                </div>
-
-                {/* Sort By */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sort By
+                    Posted
                   </label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={filters.sort || 'newest'}
-                    onChange={(e) => handleFilterChange('sort', e.target.value)}
+                    value={filters.datePosted}
+                    onChange={(e) => handleFilterChange('datePosted', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="newest">Newest First</option>
-                    <option value="budget_high">Highest Budget</option>
-                    <option value="budget_low">Lowest Budget</option>
-                    <option value="relevance">Most Relevant</option>
+                    {dateFilters.map(filter => (
+                      <option key={filter.value} value={filter.value}>{filter.label}</option>
+                    ))}
                   </select>
                 </div>
-              </div>
 
-              {/* Skills Filter */}
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Required Skills
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {popularSkills.map(skill => (
-                    <button
-                      key={skill}
-                      onClick={() => handleSkillToggle(skill)}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                        selectedSkills.includes(skill)
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                          : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-                      }`}
-                    >
-                      {skill}
-                    </button>
-                  ))}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="w-full"
+                  >
+                    Clear Filters
+                  </Button>
                 </div>
-              </div>
-
-              {/* Additional Filters */}
-              <div className="mt-6 flex flex-wrap gap-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    checked={filters.featuredOnly || false}
-                    onChange={(e) => handleFilterChange('featuredOnly', e.target.checked)}
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Featured Only</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    checked={filters.urgentOnly || false}
-                    onChange={(e) => handleFilterChange('urgentOnly', e.target.checked)}
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Urgent Only</span>
-                </label>
               </div>
             </motion.div>
           )}
         </div>
 
-        {/* Results Summary */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-gray-600">
-            {loading ? 'Loading...' : `${totalProjects} projects found`}
-          </p>
-          {error && (
-            <p className="text-red-600 text-sm">{error}</p>
-          )}
+        {/* Results Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <p className="text-gray-600 font-inter">
+              {pagination.total} projects found
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Sort by:</span>
+            <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+              <option>Newest</option>
+              <option>Budget: High to Low</option>
+              <option>Budget: Low to High</option>
+              <option>Proposals: Fewest First</option>
+            </select>
+          </div>
         </div>
 
-        {/* Projects Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm border p-6 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="flex gap-2 mb-4">
-                  <div className="h-6 bg-gray-200 rounded w-16"></div>
-                  <div className="h-6 bg-gray-200 rounded w-20"></div>
-                </div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
               </div>
-            ))}
+            </div>
           </div>
-        ) : projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+        )}
+
+        {/* Projects Grid */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading projects..." />
+          </div>
+        ) : projects.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title="No projects found"
+            description="Try adjusting your search criteria or filters to find more projects"
+            action={{
+              label: 'Clear Filters',
+              onClick: clearFilters,
+              variant: 'outline'
+            }}
+          />
+        ) : (
+          <div className="space-y-6">
+            {projects.map((project, index) => (
               <motion.div
-                key={project._id}
+                key={project.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-6"
               >
-                <div className="p-6">
-                  {/* Project Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">{getCategoryIcon(project.category)}</span>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 line-clamp-2">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <Link href={`/freelancer/projects/${project.id}`}>
+                        <h3 className="text-xl font-semibold text-gray-900 hover:text-green-600 transition-colors font-poppins">
                           {project.title}
                         </h3>
-                        <p className="text-sm text-gray-500 capitalize">
-                          {project.category.replace('-', ' ')}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleSaveProject(project._id)}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      {savedProjects.includes(project._id) ? (
-                        <Bookmark className="h-5 w-5 fill-current" />
-                      ) : (
-                        <BookmarkPlus className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Project Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {project.description}
-                  </p>
-
-                  {/* Skills */}
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {project.requiredSkills.slice(0, 3).map((skillObj) => (
-                      <span
-                        key={skillObj._id}
-                        className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleBookmark(project.id)}
+                        className={project.bookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}
                       >
-                        {skillObj.skill}
-                      </span>
-                    ))}
-                    {project.requiredSkills.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-full">
-                        +{project.requiredSkills.length - 3} more
-                      </span>
-                    )}
-                  </div>
+                        <Heart className={`h-5 w-5 ${project.bookmarked ? 'fill-current' : ''}`} />
+                      </Button>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4 line-clamp-3 font-inter">
+                      {project.description}
+                    </p>
 
-                  {/* Project Details */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      <span className="font-medium">{formatBudget(project.budget, project.budgetType)}</span>
-                      {project.budgetType === 'fixed' && (
-                        <span className="ml-1">Fixed Price</span>
+                    {/* Skills */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.skills.slice(0, 5).map((skill, skillIndex) => (
+                        <span
+                          key={skillIndex}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {project.skills.length > 5 && (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                          +{project.skills.length - 5} more
+                        </span>
                       )}
-                      {project.budgetType === 'hourly' && (
-                        <span className="ml-1">per hour</span>
-                      )}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>{project.duration}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>{project.proposals.length} proposals</span>
-                    </div>
-                  </div>
 
-                  {/* Client Info */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600">
-                          {project.clientId.firstName.charAt(0).toUpperCase()}
+                    {/* Project Info */}
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-4">
+                      <div className="flex items-center">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        <span className="font-semibold text-gray-900">
+                          {project.budget.type === 'fixed' 
+                            ? formatCurrency(project.budget.amount) 
+                            : `${formatCurrency(project.budget.amount)}/hr`
+                          }
+                        </span>
+                        <span className="ml-1">
+                          {project.budget.type === 'fixed' ? 'Fixed Price' : 'Hourly'}
                         </span>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{project.clientId.firstName} {project.clientId.lastName}</p>
-                        <div className="flex items-center">
-                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-600 ml-1">4.5</span>
-                        </div>
+                      
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-1" />
+                        <span>{project.proposalCount} proposals</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <Award className="h-4 w-4 mr-1" />
+                        <span className="capitalize">{project.experience} level</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{formatDate(project.postedDate)}</span>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {formatDate(project.postedAt)}
-                    </div>
-                  </div>
 
-                  {/* Contract Status */}
-                  {project.proposals && project.proposals.length > 0 && (
-                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-gray-600" />
-                          <span className="text-sm font-medium text-gray-900">Contract Status</span>
+                    {/* Client Info */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 text-gray-400 mr-1" />
+                          <span className="text-sm text-gray-600">{project.client.location.country}</span>
                         </div>
-                        {projectContracts[project._id] ? (
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              projectContracts[project._id].status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : projectContracts[project._id].status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {projectContracts[project._id].status === 'active' ? 'Active Contract' : 
-                               projectContracts[project._id].status === 'pending' ? 'Pending Approval' : 
-                               'Contract Created'}
-                            </span>
-                            <Link
-                              href={`/freelancer/contracts/${projectContracts[project._id]._id}`}
-                              className="text-blue-600 hover:text-blue-800 text-xs font-medium"
-                            >
-                              View Contract
-                            </Link>
+                        
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                          <span className="text-sm text-gray-600">{project.client.rating.toFixed(1)}</span>
+                        </div>
+
+                        <div className="text-sm text-gray-600">
+                          {formatCurrency(project.client.totalSpent)} spent
+                        </div>
+
+                        {project.client.paymentVerified && (
+                          <div className="flex items-center">
+                            <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+                            <span className="text-sm text-green-600">Payment verified</span>
                           </div>
-                        ) : loadingContracts[project._id] ? (
-                          <div className="flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
-                            <span className="text-xs text-gray-600">Checking contracts...</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-600">Proposal submitted</span>
                         )}
                       </div>
+
+                      <Link href={`/freelancer/projects/${project.id}`}>
+                        <Button variant="premium" className="font-poppins">
+                          View Project
+                        </Button>
+                      </Link>
                     </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/freelancer/projects/${project._id}`}
-                      className="flex-1 bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
-                    >
-                      View Details
-                    </Link>
-                    <Link
-                      href={`/freelancer/projects/${project._id}/propose`}
-                      className="flex-1 bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
-                    >
-                      Submit Proposal
-                    </Link>
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex gap-2 mt-3">
-                    {project.status === 'open' && (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        Open
-                      </span>
-                    )}
-                    {project.experienceLevel && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {project.experienceLevel}
-                      </span>
-                    )}
                   </div>
                 </div>
               </motion.div>
             ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <Search className="h-16 w-16 mx-auto" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-            <p className="text-gray-600">
-              Try adjusting your search criteria or filters to find more projects.
-            </p>
-          </div>
-        )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
-            <nav className="flex items-center space-x-2">
-              <button
-                onClick={() => handleFilterChange('page', Math.max(1, (filters.page || 1) - 1))}
-                disabled={filters.page === 1}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              
-              {[...Array(totalPages)].map((_, i) => {
-                const page = i + 1;
-                const isCurrent = page === filters.page;
+            {/* Pagination */}
+            {pagination.total > pagination.limit && (
+              <div className="flex justify-center items-center space-x-4 py-8">
+                <Button
+                  variant="outline"
+                  disabled={pagination.page === 1}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                >
+                  Previous
+                </Button>
                 
-                return (
-                  <button
-                    key={page}
-                    onClick={() => handleFilterChange('page', page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
-                      isCurrent
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-              
-              <button
-                onClick={() => handleFilterChange('page', Math.min(totalPages, (filters.page || 1) + 1))}
-                disabled={filters.page === totalPages}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </nav>
+                <span className="text-sm text-gray-600">
+                  Page {pagination.page} of {Math.ceil(pagination.total / pagination.limit)}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  disabled={!pagination.hasNext}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }

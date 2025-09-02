@@ -28,6 +28,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
+import { useToast } from '@/components/ui/Toast';
 import AppLayout from '@/components/layout/AppLayout';
 
 interface Dispute {
@@ -115,6 +116,7 @@ export default function DisputesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showNewDisputeModal, setShowNewDisputeModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState<((toast: any) => void) | null>(null);
   
   const [filters, setFilters] = useState<Filters>({
     status: '',
@@ -136,6 +138,17 @@ export default function DisputesPage() {
     resolved: 0,
     averageResolutionTime: '0 days'
   });
+
+  useEffect(() => {
+    // Safely get the toast function after mounting
+    try {
+      const { showToast: toastFn } = useToast();
+      setShowToast(() => toastFn);
+    } catch (error) {
+      // Toast context not available during SSR
+      console.warn('Toast context not available');
+    }
+  }, []);
 
   useEffect(() => {
     loadDisputes();
@@ -315,14 +328,22 @@ export default function DisputesPage() {
         throw new Error('Failed to create dispute');
       }
 
-      alert('Dispute created successfully!');
+      showToast?.({ 
+        title: 'Success', 
+        message: 'Dispute created successfully!', 
+        type: 'success' 
+      });
       setShowNewDisputeModal(false);
       setNewDispute({ title: '', description: '', contractId: '', evidence: [] });
       loadDisputes();
 
     } catch (error) {
       console.error('Failed to create dispute:', error);
-      alert('Failed to create dispute');
+      showToast?.({ 
+        title: 'Error', 
+        message: 'Failed to create dispute', 
+        type: 'error' 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -659,3 +680,5 @@ export default function DisputesPage() {
     </AppLayout>
   );
 }
+
+export const dynamic = 'force-dynamic';
