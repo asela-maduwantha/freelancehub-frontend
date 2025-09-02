@@ -79,7 +79,7 @@ function VerifyOTPContent() {
     setError('');
 
     try {
-      const response = await authService.verifyEmailOTP({
+      const response = await authService.verifyOtp({
         email,
         otp: otpString
       });

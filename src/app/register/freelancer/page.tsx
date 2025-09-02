@@ -129,6 +129,8 @@ export default function FreelancerRegisterPage() {
       const registrationData: RegisterData = {
         email: formData.email,
         password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         role: 'freelancer'
       };
 

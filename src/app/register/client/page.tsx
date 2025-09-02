@@ -129,6 +129,8 @@ export default function ClientRegisterPage() {
       const registrationData: RegisterData = {
         email: formData.email,
         password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         role: 'client'
       };
 

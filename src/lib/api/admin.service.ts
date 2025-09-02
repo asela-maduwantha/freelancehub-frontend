@@ -32,7 +32,7 @@ export interface UserStats {
 
 export interface AdminUser extends IUser {
   status: string;
-  lastLogin?: Date;
+  lastLogin?: string;
   stats?: {
     totalProjects: number;
     completedProjects: number;

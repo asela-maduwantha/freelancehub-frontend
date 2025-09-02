@@ -169,7 +169,7 @@ export default function OnboardingStep3() {
     try {
       const fileArray = Array.from(files);
       console.log('File array:', fileArray.map(f => ({ name: f.name, size: f.size, type: f.type })));
-      const response = await uploadAPI.uploadFiles(fileArray, 'portfolio');
+      const response = await uploadAPI.uploadMultipleFiles(fileArray, 'portfolio');
       console.log('Upload response:', response);
 
       if (response.success && response.data) {
