@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import AppLayout from '@/components/layout/AppLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/components/ui/Toast';
 import { usersService } from '@/lib/api';
@@ -403,28 +402,24 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex justify-center items-center h-64">
-          <LoadingSpinner size="lg" />
-        </div>
-      </AppLayout>
+      <div className="flex justify-center items-center h-64">
+        <LoadingSpinner size="lg" />
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <AppLayout>
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile not found</h2>
-          <p className="text-gray-600 mb-6">We couldn't load your profile information.</p>
-          <Button onClick={loadProfile}>Try Again</Button>
-        </div>
-      </AppLayout>
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile not found</h2>
+        <p className="text-gray-600 mb-6">We couldn't load your profile information.</p>
+        <Button onClick={loadProfile}>Try Again</Button>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
@@ -839,7 +834,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }
 }

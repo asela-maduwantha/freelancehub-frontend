@@ -25,7 +25,6 @@ import { Button } from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import AppLayout from '@/components/layout/AppLayout';
 import { projectsService } from '@/lib/api';
 
 interface Project {
@@ -276,17 +275,16 @@ export default function ProjectsPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 font-poppins mb-2">
-            Find Your Next Project
-          </h1>
-          <p className="text-gray-600 font-inter">
-            Discover amazing opportunities that match your skills
-          </p>
-        </div>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="space-y-3">
+        <h1 className="text-4xl font-bold text-gray-900 font-poppins">
+          Find Your Next Project
+        </h1>
+        <p className="text-lg text-gray-600 font-inter">
+          Discover amazing opportunities that match your skills
+        </p>
+      </div>
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
@@ -602,6 +600,5 @@ export default function ProjectsPage() {
           </div>
         )}
       </div>
-    </AppLayout>
   );
 }

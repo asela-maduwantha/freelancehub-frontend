@@ -129,9 +129,6 @@ export default function Sidebar({
           {!isCollapsed && (
             <Link href="/" className="flex items-center space-x-2">
               <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-gray-900 font-poppins">
-                FreelanceHub
-              </span>
             </Link>
           )}
           {isCollapsed && (

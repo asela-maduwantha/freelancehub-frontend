@@ -7,7 +7,6 @@ import StatsCard from '@/components/ui/StatsCard';
 import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import AppLayout from '@/components/layout/AppLayout';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -270,234 +269,231 @@ export default function FreelancerDashboard() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-96">
-          <LoadingSpinner size="lg" text="Loading your dashboard..." />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-96">
+        <LoadingSpinner size="lg" text="Loading your dashboard..." />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="max-w-7xl mx-auto">
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex">
-              <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
-              </div>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Welcome Section */}
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-poppins">
-              Good morning, {user?.firstName}! 👋
-            </h1>
-            <p className="text-gray-600 font-inter mt-1">
-              Ready to take on new challenges today?
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center space-x-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </Button>
-            <Link 
-              href="/freelancer/projects"
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-poppins"
-            >
-              <Search className="h-4 w-4 mr-2" />
-              Find New Work
-            </Link>
+      {/* Welcome Section */}
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-gray-900 font-poppins">
+            Good morning, {user?.firstName}! 👋
+          </h1>
+          <p className="text-lg text-gray-600 font-inter">
+            Ready to take on new challenges today?
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center space-x-2 hover:bg-gray-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </Button>
+          <Link 
+            href="/freelancer/projects"
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-poppins shadow-lg shadow-green-500/25"
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Find New Work
+          </Link>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      {stats && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 ${isRefreshing ? 'opacity-50' : ''}`}
+        >
+          <StatsCard
+            title="Active Projects"
+            value={stats.activeProjects}
+            icon={Briefcase}
+            color="green"
+            onClick={() => router.push('/freelancer/contracts')}
+          />
+          <StatsCard
+            title="Total Earned"
+            value={formatCurrency(stats.totalEarned)}
+            icon={DollarSign}
+            color="blue"
+            onClick={() => router.push('/freelancer/payments')}
+          />
+          <StatsCard
+            title="Completed"
+            value={stats.completedProjects}
+            icon={Award}
+            color="purple"
+            onClick={() => router.push('/freelancer/contracts')}
+          />
+          <StatsCard
+            title="Rating"
+            value={`${stats.averageRating}★`}
+            icon={Star}
+            color="yellow"
+            onClick={() => router.push('/freelancer/reviews')}
+          />
+          <StatsCard
+            title="Hours Worked"
+            value={stats.totalHours ?? 0}
+            icon={Clock}
+            color="indigo"
+          />
+          <StatsCard
+            title="Pending"
+            value={formatCurrency(stats.pendingPayments ?? 0)}
+            icon={TrendingUp}
+            color="orange"
+            onClick={() => router.push('/freelancer/payments')}
+          />
+        </motion.div>
+      )}
+
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Active Contracts */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900 font-poppins">
+                  Active Contracts
+                </h2>
+                <Link href="/freelancer/contracts" className="text-green-600 hover:text-green-700 text-sm font-medium hover:underline transition-colors">
+                  View All
+                </Link>
+              </div>
+            </div>
+            <div className="p-6">
+              {activeProjects.length > 0 ? (
+                <div className="space-y-4">
+                  {activeProjects.slice(0, 3).map((project) => (
+                    <div key={project.id} className="border border-gray-200 rounded-xl p-5 hover:border-green-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900 font-inter">{project.title}</h3>
+                        <StatusBadge status="active" variant="compact" />
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                        <span>Client: {project.client.name}</span>
+                        <span className="font-semibold text-green-600">{formatCurrency(project.budget.amount, project.budget.currency)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-400">Due: {formatDate(project.deadline)}</span>
+                        <Link 
+                          href={`/freelancer/contracts/${project.id && typeof project.id === 'string' ? project.id : 'unknown'}`}
+                          className="inline-flex items-center px-4 py-2 border border-green-200 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors font-inter"
+                        >
+                          View Contract
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Briefcase}
+                  title="No active contracts"
+                  description="Contracts will appear here once proposals are accepted"
+                  action={{
+                    label: 'Browse Projects',
+                    onClick: () => router.push('/freelancer/projects'),
+                    variant: 'premium'
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        {stats && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8 ${isRefreshing ? 'opacity-50' : ''}`}
-          >
-            <StatsCard
-              title="Active Projects"
-              value={stats.activeProjects}
-              icon={Briefcase}
-              color="green"
-              onClick={() => router.push('/freelancer/contracts')}
-            />
-            <StatsCard
-              title="Total Earned"
-              value={formatCurrency(stats.totalEarned)}
-              icon={DollarSign}
-              color="blue"
-              onClick={() => router.push('/freelancer/payments')}
-            />
-            <StatsCard
-              title="Completed"
-              value={stats.completedProjects}
-              icon={Award}
-              color="purple"
-              onClick={() => router.push('/freelancer/contracts')}
-            />
-            <StatsCard
-              title="Rating"
-              value={`${stats.averageRating}★`}
-              icon={Star}
-              color="yellow"
-              onClick={() => router.push('/freelancer/reviews')}
-            />
-            <StatsCard
-              title="Hours Worked"
-              value={stats.totalHours ?? 0}
-              icon={Clock}
-              color="indigo"
-            />
-            <StatsCard
-              title="Pending"
-              value={formatCurrency(stats.pendingPayments ?? 0)}
-              icon={TrendingUp}
-              color="orange"
-              onClick={() => router.push('/freelancer/payments')}
-            />
-          </motion.div>
-        )}
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Active Contracts */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">
-                    Active Contracts
-                  </h2>
-                  <Link href="/freelancer/contracts" className="text-green-600 hover:text-green-700 text-sm font-medium">
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="p-6">
-                {activeProjects.length > 0 ? (
-                  <div className="space-y-4">
-                    {activeProjects.slice(0, 3).map((project) => (
-                      <div key={project.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-medium text-gray-900 font-inter">{project.title}</h3>
-                          <StatusBadge status="active" variant="compact" />
-                        </div>
-                        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                          <span>Client: {project.client.name}</span>
-                          <span>{formatCurrency(project.budget.amount, project.budget.currency)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-400">Due: {formatDate(project.deadline)}</span>
-                          <Link 
-                            href={`/freelancer/contracts/${project.id && typeof project.id === 'string' ? project.id : 'unknown'}`}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
-                          >
-                            View Contract
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={Briefcase}
-                    title="No active contracts"
-                    description="Contracts will appear here once proposals are accepted"
-                    action={{
-                      label: 'Browse Projects',
-                      onClick: () => router.push('/freelancer/projects'),
-                      variant: 'premium'
-                    }}
-                  />
-                )}
-              </div>
+        {/* Sidebar */}
+        <div className="space-y-8">
+          {/* Profile Completion */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6 shadow-sm">
+            <h3 className="text-xl font-semibold text-green-800 mb-4 font-poppins">
+              Profile Strength
+            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-green-700 font-medium">Profile completion</span>
+              <span className="text-2xl font-bold text-green-800">85%</span>
             </div>
+            <div className="w-full bg-green-200 rounded-full h-3 mb-4">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full shadow-sm" style={{ width: '85%' }}></div>
+            </div>
+            <p className="text-sm text-green-700 mb-4">
+              Complete your profile to get more project invitations
+            </p>
+            <Link 
+              href="/freelancer/profile"
+              className="w-full inline-flex items-center justify-center px-4 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors font-inter shadow-sm"
+            >
+              Complete Profile
+            </Link>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Profile Completion */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-6">
-              <h3 className="text-lg font-semibold text-green-800 mb-4 font-poppins">
-                Profile Strength
-              </h3>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-green-700">Profile completion</span>
-                <span className="text-lg font-bold text-green-800">85%</span>
+          {/* New Opportunities */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900 font-poppins">
+                  New Opportunities
+                </h2>
+                <Link href="/freelancer/projects" className="text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline transition-colors">
+                  View All
+                </Link>
               </div>
-              <div className="w-full bg-green-200 rounded-full h-3 mb-4">
-                <div className="bg-green-500 h-3 rounded-full" style={{ width: '85%' }}></div>
-              </div>
-              <p className="text-sm text-green-700 mb-4">
-                Complete your profile to get more project invitations
-              </p>
-              <Link 
-                href="/freelancer/profile"
-                className="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-md hover:bg-green-100 transition-colors font-inter"
-              >
-                Complete Profile
-              </Link>
             </div>
-
-            {/* New Opportunities */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-900 font-poppins">
-                    New Opportunities
-                  </h2>
-                  <Link href="/freelancer/projects" className="text-green-600 hover:text-green-700 text-sm font-medium">
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="p-6">
-                {newOpportunities.length > 0 ? (
-                  <div className="space-y-4">
-                    {newOpportunities.slice(0, 4).map((opportunity) => (
-                      <div key={opportunity.id} className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
-                        <h3 className="font-medium text-gray-900 mb-2 font-inter">{opportunity.title}</h3>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-lg font-semibold text-green-600">
-                            {formatCurrency(opportunity.budget.amount, opportunity.budget.currency)}
-                          </span>
-                          <span className="text-sm text-gray-500">{opportunity.proposalCount} proposals</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {opportunity.skills.slice(0, 3).map((skill, index) => (
-                            <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                        <Link 
-                          href={`/freelancer/projects/${opportunity.id && typeof opportunity.id === 'string' ? opportunity.id : 'unknown'}`}
-                          className="w-full inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
-                        >
-                          View Details
-                        </Link>
+            <div className="p-6">
+              {newOpportunities.length > 0 ? (
+                <div className="space-y-4">
+                  {newOpportunities.slice(0, 4).map((opportunity) => (
+                    <div key={opportunity.id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                      <h3 className="font-semibold text-gray-900 mb-3 font-inter">{opportunity.title}</h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-lg font-bold text-blue-600">
+                          {formatCurrency(opportunity.budget.amount, opportunity.budget.currency)}
+                        </span>
+                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{opportunity.proposalCount} proposals</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {opportunity.skills.slice(0, 3).map((skill, index) => (
+                          <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                      <Link 
+                        href={`/freelancer/projects/${opportunity.id && typeof opportunity.id === 'string' ? opportunity.id : 'unknown'}`}
+                        className="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-200 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors font-inter"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                   <div className="text-center py-6">
                     <Search className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500 text-sm">No new opportunities</p>
@@ -507,30 +503,30 @@ export default function FreelancerDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6 font-poppins">
                 Quick Actions
               </h3>
               <div className="space-y-3">
                 <Link 
                   href="/freelancer/proposals"
-                  className="w-full inline-flex items-center justify-start px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                  className="w-full inline-flex items-center justify-start px-4 py-3 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-purple-200 hover:text-purple-600 transition-all duration-200 font-inter group"
                 >
-                  <FileText className="h-4 w-4 mr-3" />
+                  <FileText className="h-5 w-5 mr-3 text-purple-500 group-hover:text-purple-600" />
                   View My Proposals
                 </Link>
                 <Link 
                   href="/freelancer/payments"
-                  className="w-full inline-flex items-center justify-start px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                  className="w-full inline-flex items-center justify-start px-4 py-3 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-green-200 hover:text-green-600 transition-all duration-200 font-inter group"
                 >
-                  <DollarSign className="h-4 w-4 mr-3" />
+                  <DollarSign className="h-5 w-5 mr-3 text-green-500 group-hover:text-green-600" />
                   Check Payments
                 </Link>
                 <Link 
                   href="/freelancer/profile"
-                  className="w-full inline-flex items-center justify-start px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors font-inter"
+                  className="w-full inline-flex items-center justify-start px-4 py-3 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-blue-200 hover:text-blue-600 transition-all duration-200 font-inter group"
                 >
-                  <Target className="h-4 w-4 mr-3" />
+                  <Target className="h-5 w-5 mr-3 text-blue-500 group-hover:text-blue-600" />
                   Update Profile
                 </Link>
               </div>
@@ -538,6 +534,5 @@ export default function FreelancerDashboard() {
           </div>
         </div>
       </div>
-    </AppLayout>
   );
 }

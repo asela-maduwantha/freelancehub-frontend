@@ -40,13 +40,12 @@ export default function Header({
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-2">
               <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
             </Link>
             {showNavigation && (
               <div className="hidden md:flex items-center space-x-6 ml-8">
