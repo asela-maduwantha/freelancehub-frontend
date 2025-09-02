@@ -14,39 +14,11 @@ import {
   Search
 } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, freelancerAPI } from '@/lib/api';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  profile?: {
-    bio?: string;
-    hourlyRate?: number;
-    skills?: string[];
-    availability?: string;
-    title?: string;
-    experience?: string;
-    languages?: string[];
-    timezone?: string;
-  };
-  verification?: {
-    emailVerified?: boolean;
-    phoneVerified?: boolean;
-  };
-  location?: {
-    country?: string;
-    city?: string;
-  };
-  phone?: string;
-}
+import { authService, freelancerAPI, IUser } from '@/lib/api';
 
 export default function SkillsManagement() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,9 +36,9 @@ export default function SkillsManagement() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userData = await authAPI.getCurrentUser();
+        const userData = await authService.getProfile();
         setUser(userData);
-        setSkills(userData.profile?.skills || []);
+        setSkills(userData.freelancerProfile?.skills || []);
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
         setError('Failed to load profile data');
@@ -96,11 +68,8 @@ export default function SkillsManagement() {
     setSuccess(null);
 
     try {
-      const updateData = {
-        profile: {
-          ...user?.profile,
-          skills: skills
-        }
+      const updateData: { skills: string[] } = {
+        skills: skills
       };
 
       await freelancerAPI.updateProfile(updateData);
@@ -109,9 +78,9 @@ export default function SkillsManagement() {
       if (user) {
         setUser({
           ...user,
-          profile: {
-            ...user.profile,
-            ...updateData.profile
+          freelancerProfile: {
+            ...user.freelancerProfile,
+            ...updateData
           }
         });
       }

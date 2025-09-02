@@ -22,8 +22,8 @@ import {
   Globe
 } from 'lucide-react';
 import Link from 'next/link';
-import { freelancerAPI } from '@/lib/api';
-import { reviewAPI, Review } from '@/lib/api/review';
+import { freelancersService, reviewsService } from '@/lib/api';
+import { Review } from '@/lib/types';
 
 interface FreelancerProfile {
   id: string;
@@ -106,7 +106,7 @@ export default function FreelancerProfilePage() {
 
   const loadFreelancerReviews = async () => {
     try {
-      const response = await reviewAPI.getUserReviews(freelancerId, { reviewType: 'freelancer' });
+      const response = await reviewsService.getUserReviews(freelancerId, { reviewType: 'freelancer' });
       setReviews((response as any).data || []);
     } catch (error) {
       console.error('Failed to load freelancer reviews:', error);

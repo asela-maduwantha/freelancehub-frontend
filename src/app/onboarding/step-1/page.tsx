@@ -13,7 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { userAPI } from "@/lib/api";
+import { usersService } from "@/lib/api";
 
 interface ProfessionalData {
   title: string;

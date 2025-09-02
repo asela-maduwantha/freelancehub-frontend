@@ -18,7 +18,7 @@ import {
   Award
 } from 'lucide-react';
 import Link from 'next/link';
-import { clientAPI } from '@/lib/api';
+import { clientsService } from '@/lib/api';
 
 interface Proposal {
   _id: string;
@@ -61,15 +61,16 @@ interface Proposal {
 }
 
 interface Project {
-  id: string;
+  _id: string;
   title: string;
   description: string;
-  budget: {
-    amount: number;
-    currency: string;
-    type: 'fixed' | 'hourly';
-  };
+  budget: number;
   status: string;
+  deadline: string;
+  category?: string;
+  skills?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function ProjectProposalsPage() {
@@ -98,21 +99,24 @@ export default function ProjectProposalsPage() {
   const loadProjectAndProposals = async () => {
     try {
       // Load project details
-      const projectData = await clientAPI.getProject(projectId);
+      const projectData = await clientsService.getProjectById(projectId);
       setProject(projectData);
 
       // Load proposals
-      const proposalsData = await clientAPI.getProjectProposals(projectId);
+      const proposalsData = await clientsService.getProjectProposals(projectId);
       setProposals(proposalsData || []);
     } catch (error) {
       console.error('Failed to load data:', error);
       // Mock data for demonstration
       setProject({
-        id: projectId,
+        _id: projectId,
         title: 'Build E-commerce Website',
         description: 'Need a full-stack developer for an online store with payment integration',
-        budget: { amount: 2500, currency: 'USD', type: 'fixed' },
-        status: 'open'
+        budget: 2500,
+        status: 'open',
+        deadline: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
 
       const mockProposals: Proposal[] = [
@@ -203,7 +207,7 @@ export default function ProjectProposalsPage() {
   const handleAcceptProposal = async (proposalId: string) => {
     setIsAccepting(true);
     try {
-      await clientAPI.acceptProposal(projectId, proposalId, 'Proposal accepted');
+      await clientsService.acceptProposal(projectId, proposalId, 'Proposal accepted');
       // Update local state
       setProposals(prev => prev.map(p =>
         p._id === proposalId ? { ...p, status: 'accepted' } : p
@@ -222,7 +226,7 @@ export default function ProjectProposalsPage() {
   const handleRejectProposal = async (proposalId: string) => {
     setIsRejecting(true);
     try {
-      await clientAPI.rejectProposal(projectId, proposalId, 'Not selected for this project');
+      await clientsService.rejectProposal(projectId, proposalId, 'Not selected for this project');
       // Update local state
       setProposals(prev => prev.map(p =>
         p._id === proposalId ? { ...p, status: 'rejected' } : p
@@ -302,7 +306,7 @@ export default function ProjectProposalsPage() {
                 <div className="flex items-center">
                   <DollarSign className="h-4 w-4 mr-1" />
                   <span className="font-medium text-gray-900">
-                    ${project.budget.amount} {project.budget.type === 'hourly' ? '/hr' : ''}
+                    ${project.budget}
                   </span>
                 </div>
                 <div className="flex items-center">

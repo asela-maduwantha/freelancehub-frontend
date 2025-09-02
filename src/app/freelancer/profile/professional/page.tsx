@@ -17,77 +17,35 @@ import {
   Globe
 } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, freelancerAPI } from '@/lib/api';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  profile?: {
-    bio?: string;
-    hourlyRate?: number;
-    skills?: string[];
-    availability?: string;
-    title?: string;
-    experience?: string;
-    languages?: string[];
-    timezone?: string;
-  };
-  verification?: {
-    emailVerified?: boolean;
-    phoneVerified?: boolean;
-  };
-  location?: {
-    country?: string;
-    city?: string;
-  };
-  phone?: string;
-}
-
-interface FormData {
-  title: string;
-  bio: string;
-  hourlyRate: number;
-  experience: string;
-  availability: string;
-  minimumBudget: number;
-  currency: string;
-}
+import { authService, EditFreelancerProfileType, freelancerAPI, IUser } from '@/lib/api';
 
 export default function ProfessionalProfile() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<Partial<EditFreelancerProfileType>>({
     title: '',
     bio: '',
     hourlyRate: 0,
-    experience: '',
-    availability: '',
-    minimumBudget: 0,
-    currency: 'USD'
+    experience: undefined,
+    availability: undefined
   });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userData = await authAPI.getCurrentUser();
+        const userData = await authService.getProfile();
         setUser(userData);
         setFormData({
-          title: userData.profile?.title || '',
-          bio: userData.profile?.bio || '',
-          hourlyRate: userData.profile?.hourlyRate || 0,
-          experience: userData.profile?.experience || '',
-          availability: userData.profile?.availability || '',
-          minimumBudget: 0, // This would come from a separate pricing object
-          currency: 'USD'
+          title: userData.freelancerProfile?.title || '',
+          bio: userData.freelancerProfile?.bio || '',
+          hourlyRate: userData.freelancerProfile?.hourlyRate || 0,
+          experience: userData.freelancerProfile?.experience as 'beginner' | 'intermediate' | 'expert' | undefined,
+          availability: userData.freelancerProfile?.availability as 'full-time' | 'part-time' | 'not-available' | 'available' | undefined
         });
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
@@ -114,15 +72,12 @@ export default function ProfessionalProfile() {
     setSuccess(null);
 
     try {
-      const updateData = {
-        profile: {
-          ...user?.profile,
-          title: formData.title,
-          bio: formData.bio,
-          hourlyRate: formData.hourlyRate,
-          experience: formData.experience,
-          availability: formData.availability
-        }
+      const updateData: Partial<EditFreelancerProfileType> = {
+        title: formData.title,
+        bio: formData.bio,
+        hourlyRate: formData.hourlyRate,
+        experience: formData.experience,
+        availability: formData.availability
       };
 
       await freelancerAPI.updateProfile(updateData);
@@ -132,9 +87,9 @@ export default function ProfessionalProfile() {
       if (user) {
         setUser({
           ...user,
-          profile: {
-            ...user.profile,
-            ...updateData.profile
+          freelancerProfile: {
+            ...user.freelancerProfile,
+            ...updateData
           }
         });
       }
@@ -158,15 +113,6 @@ export default function ProfessionalProfile() {
     { value: 'PART_TIME', label: 'Part-time', description: 'Limited availability for new projects' },
     { value: 'BUSY', label: 'Busy', description: 'Currently working on multiple projects' },
     { value: 'UNAVAILABLE', label: 'Unavailable', description: 'Not taking on new projects' }
-  ];
-
-  const currencies = [
-    { value: 'USD', label: 'USD ($)', symbol: '$' },
-    { value: 'EUR', label: 'EUR (€)', symbol: '€' },
-    { value: 'GBP', label: 'GBP (£)', symbol: '£' },
-    { value: 'CAD', label: 'CAD (C$)', symbol: 'C$' },
-    { value: 'AUD', label: 'AUD (A$)', symbol: 'A$' },
-    { value: 'INR', label: 'INR (₹)', symbol: '₹' }
   ];
 
   if (loading) {
@@ -276,7 +222,7 @@ export default function ProfessionalProfile() {
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {formData.bio.length}/1000 characters
+                    {(formData.bio || '').length}/1000 characters
                   </p>
                 </div>
 
@@ -362,28 +308,20 @@ export default function ProfessionalProfile() {
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Pricing Information</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Hourly Rate
                       </label>
                       <div className="relative">
-                        <select
-                          value={formData.currency}
-                          onChange={(e) => handleInputChange('currency', e.target.value)}
-                          className="absolute left-0 top-0 h-full px-3 py-2 border-r border-gray-300 bg-gray-50 text-sm text-gray-700 rounded-l-lg"
-                        >
-                          {currencies.map((currency) => (
-                            <option key={currency.value} value={currency.value}>
-                              {currency.symbol}
-                            </option>
-                          ))}
-                        </select>
+                        <span className="absolute left-0 top-0 h-full px-3 py-2 border-r border-gray-300 bg-gray-50 text-sm text-gray-700 rounded-l-lg">
+                          $
+                        </span>
                         <input
                           type="number"
                           value={formData.hourlyRate}
                           onChange={(e) => handleInputChange('hourlyRate', parseFloat(e.target.value) || 0)}
-                          className="w-full pl-16 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                           placeholder="0"
                           min="0"
                           step="0.01"
@@ -392,37 +330,6 @@ export default function ProfessionalProfile() {
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         Your hourly rate for projects
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minimum Budget
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={formData.currency}
-                          onChange={(e) => handleInputChange('currency', e.target.value)}
-                          className="absolute left-0 top-0 h-full px-3 py-2 border-r border-gray-300 bg-gray-50 text-sm text-gray-700 rounded-l-lg"
-                        >
-                          {currencies.map((currency) => (
-                            <option key={currency.value} value={currency.value}>
-                              {currency.symbol}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          value={formData.minimumBudget}
-                          onChange={(e) => handleInputChange('minimumBudget', parseFloat(e.target.value) || 0)}
-                          className="w-full pl-16 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Minimum project budget you accept
                       </p>
                     </div>
                   </div>

@@ -25,7 +25,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { clientAPI } from '@/lib/api';
+import { clientsService } from '@/lib/api';
 import Header from '@/components/ui/Header';
 
 interface DashboardStats {
@@ -84,7 +84,7 @@ export default function ClientDashboard() {
     try {
       // Try to load real data from API
       try {
-        const dashboardData = await clientAPI.getDashboard();
+        const dashboardData = await clientsService.getDashboard();
         setStats({
           totalProjects: dashboardData.totalProjects,
           activeProjects: dashboardData.activeProjects,
@@ -94,10 +94,9 @@ export default function ClientDashboard() {
           pendingProposals: dashboardData.pendingProposals
         });
         setRecentProjects(dashboardData.recentProjects || []);
-        setRecentProposals([]); // Clear proposals since they're not in the new response
+        setRecentProposals([]); 
       } catch (apiError) {
         console.log('API not available, using mock data');
-        // Fallback to mock data for demonstration
         setStats({
           totalProjects: 12,
           activeProjects: 3,

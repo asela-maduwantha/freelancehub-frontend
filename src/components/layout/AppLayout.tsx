@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import { ToastProvider } from '@/components/ui/Toast';
-import { authAPI } from '@/lib/api';
+import { authService } from '@/lib/api';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -91,7 +91,7 @@ export default function AppLayout({
 
   const handleLogout = async () => {
     try {
-      await authAPI.logout();
+      await authService.logout();
       localStorage.removeItem('user');
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');

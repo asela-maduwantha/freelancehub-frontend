@@ -26,7 +26,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import AppLayout from '@/components/layout/AppLayout';
-import { projectAPI } from '@/lib/api';
+import { projectsService } from '@/lib/api';
 
 interface Project {
   id: string;
@@ -133,18 +133,18 @@ export default function ProjectsPage() {
       const queryParams = {
         page: pagination.page,
         limit: pagination.limit,
-        status: 'open',
+        status: ['open' as const],
         ...(filters.search && { search: filters.search }),
         ...(filters.category && { category: filters.category }),
         ...(filters.minBudget && { minBudget: filters.minBudget }),
         ...(filters.maxBudget && { maxBudget: filters.maxBudget }),
         ...(filters.projectType && { projectType: filters.projectType }),
         ...(filters.experience && { experience: filters.experience }),
-        ...(filters.skills.length && { skills: filters.skills.join(',') }),
+        ...(filters.skills.length && { skills: filters.skills }),
         ...(filters.datePosted && { datePosted: filters.datePosted })
       };
 
-      const response = await projectAPI.getProjects(queryParams);
+      const response = await projectsService.getProjects(queryParams);
       
       if (response.data) {
         const projectsWithMockData = response.data.map((project: any) => ({
@@ -166,8 +166,8 @@ export default function ProjectsPage() {
         setProjects(projectsWithMockData);
         setPagination(prev => ({
           ...prev,
-          total: response.meta?.total || response.data.length,
-          hasNext: response.meta?.hasNext || false
+          total: response.pagination?.total || response.data.length,
+          hasNext: response.pagination ? response.pagination.page < response.pagination.pages : false
         }));
       }
     } catch (error) {

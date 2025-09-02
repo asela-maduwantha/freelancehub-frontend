@@ -16,7 +16,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { reviewAPI, Review, ReviewStats, CreateReviewData } from '@/lib/api/review';
+import { reviewsService, ReviewStats } from '@/lib/api/reviews.service';
+import { IReview, CreateReviewRequest } from '@/lib/types';
 
 interface CompletedContract {
   id: string;
@@ -141,7 +142,7 @@ function ClientReviewsPageContent() {
 
     setIsSubmitting(true);
     try {
-      const reviewData: CreateReviewData = {
+      const reviewData: CreateReviewRequest = {
         revieweeId: selectedContract.freelancer.id,
         projectId: selectedContract.project.id,
         rating: rating,
@@ -149,7 +150,7 @@ function ClientReviewsPageContent() {
         reviewType: 'freelancer'
       };
 
-      await reviewAPI.createReview(reviewData);
+      await reviewsService.createReview(reviewData);
 
       // Update local state
       setCompletedContracts(prev =>

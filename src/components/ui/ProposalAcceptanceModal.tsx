@@ -4,15 +4,15 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, FileText, AlertCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { clientAPI } from '@/lib/api';
-import { Contract } from '@/lib/api/types';
+import { clientsService } from '@/lib/api';
+import { IContract } from '@/lib/types';
 
 interface ProposalAcceptanceModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
   proposalId: string;
-  onSuccess: (contract: Contract) => void;
+  onSuccess: (contract: IContract) => void;
 }
 
 export default function ProposalAcceptanceModal({
@@ -36,7 +36,7 @@ export default function ProposalAcceptanceModal({
     setError(null);
 
     try {
-      const response = await clientAPI.acceptProposal(projectId, proposalId, message.trim());
+      const response = await clientsService.acceptProposal(projectId, proposalId, message.trim());
       onSuccess(response.contract);
       onClose();
     } catch (err: any) {

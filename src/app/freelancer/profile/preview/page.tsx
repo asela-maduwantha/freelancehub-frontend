@@ -20,46 +20,18 @@ import {
   Calendar
 } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI } from '@/lib/api';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  profile?: {
-    bio?: string;
-    hourlyRate?: number;
-    skills?: string[];
-    availability?: string;
-    title?: string;
-    experience?: string;
-    languages?: string[];
-    timezone?: string;
-  };
-  verification?: {
-    emailVerified?: boolean;
-    phoneVerified?: boolean;
-  };
-  location?: {
-    country?: string;
-    city?: string;
-  };
-  phone?: string;
-}
+import { authService, IUser } from '@/lib/api';
 
 export default function ProfilePreview() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userData = await authAPI.getCurrentUser();
+        const userData = await authService.getProfile();
         setUser(userData);
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
@@ -154,10 +126,10 @@ export default function ProfilePreview() {
                 <h1 className="text-3xl font-bold mb-2">
                   {user.firstName} {user.lastName}
                 </h1>
-                {user.profile?.title && (
-                  <p className="text-xl text-blue-100 mb-2">{user.profile.title}</p>
+                {user.freelancerProfile?.title && (
+                  <p className="text-xl text-blue-100 mb-2">{user.freelancerProfile.title}</p>
                 )}
-                <p className="text-blue-100">@{user.username}</p>
+                <p className="text-blue-100">@{user._id}</p>
               </div>
             </div>
           </div>
@@ -167,19 +139,19 @@ export default function ProfilePreview() {
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
                 {/* About */}
-                {user.profile?.bio && (
+                {user.freelancerProfile?.bio && (
                   <div>
                     <h2 className="text-2xl font-semibold text-gray-900 mb-4">About</h2>
-                    <p className="text-gray-600 leading-relaxed">{user.profile.bio}</p>
+                    <p className="text-gray-600 leading-relaxed">{user.freelancerProfile.bio}</p>
                   </div>
                 )}
 
                 {/* Skills */}
-                {user.profile?.skills && user.profile.skills.length > 0 && (
+                {user.freelancerProfile?.skills && user.freelancerProfile.skills.length > 0 && (
                   <div>
                     <h2 className="text-2xl font-semibold text-gray-900 mb-4">Skills & Expertise</h2>
                     <div className="flex flex-wrap gap-2">
-                      {user.profile.skills.map((skill) => (
+                      {user.freelancerProfile.skills.map((skill: string) => (
                         <span
                           key={skill}
                           className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
@@ -192,13 +164,13 @@ export default function ProfilePreview() {
                 )}
 
                 {/* Experience Level */}
-                {user.profile?.experience && (
+                {user.freelancerProfile?.experience && (
                   <div>
                     <h2 className="text-2xl font-semibold text-gray-900 mb-4">Experience Level</h2>
                     <div className="flex items-center space-x-3">
                       <Award className="w-6 h-6 text-yellow-600" />
                       <span className="text-lg font-medium text-gray-700 capitalize">
-                        {user.profile.experience} Level
+                        {user.freelancerProfile.experience} Level
                       </span>
                     </div>
                   </div>
@@ -247,24 +219,24 @@ export default function ProfilePreview() {
                         </span>
                       </div>
                     )}
-                    {user.profile?.timezone && (
+                    {user.location?.timezone && (
                       <div className="flex items-center space-x-3">
                         <Globe className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{user.profile.timezone}</span>
+                        <span className="text-sm text-gray-600">{user.location.timezone}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Pricing */}
-                {user.profile?.hourlyRate && (
+                {user.freelancerProfile?.hourlyRate && (
                   <div className="bg-green-50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-green-900 mb-4">Pricing</h3>
                     <div className="flex items-center space-x-3">
                       <DollarSign className="w-6 h-6 text-green-600" />
                       <div>
                         <p className="text-2xl font-bold text-green-900">
-                          ${user.profile.hourlyRate}
+                          ${user.freelancerProfile.hourlyRate}
                         </p>
                         <p className="text-sm text-green-700">per hour</p>
                       </div>
@@ -273,20 +245,20 @@ export default function ProfilePreview() {
                 )}
 
                 {/* Availability */}
-                {user.profile?.availability && (
+                {user.freelancerProfile?.availability && (
                   <div className="bg-blue-50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-blue-900 mb-4">Availability</h3>
                     <div className="flex items-center space-x-3">
                       <Clock className="w-6 h-6 text-blue-600" />
                       <div>
                         <p className="text-lg font-medium text-blue-900 capitalize">
-                          {user.profile.availability}
+                          {user.freelancerProfile.availability}
                         </p>
                         <p className="text-sm text-blue-700">
-                          {user.profile.availability === 'AVAILABLE' && 'Ready for new projects'}
-                          {user.profile.availability === 'PART_TIME' && 'Limited availability'}
-                          {user.profile.availability === 'BUSY' && 'Currently working on projects'}
-                          {user.profile.availability === 'UNAVAILABLE' && 'Not taking new projects'}
+                          {user.freelancerProfile.availability === 'AVAILABLE' && 'Ready for new projects'}
+                          {user.freelancerProfile.availability === 'PART_TIME' && 'Limited availability'}
+                          {user.freelancerProfile.availability === 'BUSY' && 'Currently working on projects'}
+                          {user.freelancerProfile.availability === 'UNAVAILABLE' && 'Not taking new projects'}
                         </p>
                       </div>
                     </div>
@@ -294,14 +266,14 @@ export default function ProfilePreview() {
                 )}
 
                 {/* Languages */}
-                {user.profile?.languages && user.profile.languages.length > 0 && (
+                {user.languages && user.languages.length > 0 && (
                   <div className="bg-purple-50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-purple-900 mb-4">Languages</h3>
                     <div className="space-y-2">
-                      {user.profile.languages.map((language) => (
-                        <div key={language} className="flex items-center space-x-2">
+                      {user.languages.map((lang: { language: string; proficiency: string }) => (
+                        <div key={lang.language} className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                          <span className="text-sm text-purple-800">{language}</span>
+                          <span className="text-sm text-purple-800">{lang.language}</span>
                         </div>
                       ))}
                     </div>
@@ -317,12 +289,12 @@ export default function ProfilePreview() {
                       <span className="font-medium text-yellow-900">
                         {(() => {
                           const fields = [
-                            user.profile?.title,
-                            user.profile?.bio,
-                            user.profile?.hourlyRate,
-                            user.profile?.skills?.length,
-                            user.profile?.availability,
-                            user.profile?.experience
+                            user.freelancerProfile?.title,
+                            user.freelancerProfile?.bio,
+                            user.freelancerProfile?.hourlyRate,
+                            user.freelancerProfile?.skills?.length,
+                            user.freelancerProfile?.availability,
+                            user.freelancerProfile?.experience
                           ];
                           const completed = fields.filter(field => field && field !== '' && field !== 0).length;
                           return Math.round((completed / fields.length) * 100);
@@ -335,12 +307,12 @@ export default function ProfilePreview() {
                         style={{ 
                           width: `${(() => {
                             const fields = [
-                              user.profile?.title,
-                              user.profile?.bio,
-                              user.profile?.hourlyRate,
-                              user.profile?.skills?.length,
-                              user.profile?.availability,
-                              user.profile?.experience
+                              user.freelancerProfile?.title,
+                              user.freelancerProfile?.bio,
+                              user.freelancerProfile?.hourlyRate,
+                              user.freelancerProfile?.skills?.length,
+                              user.freelancerProfile?.availability,
+                              user.freelancerProfile?.experience
                             ];
                             const completed = fields.filter(field => field && field !== '' && field !== 0).length;
                             return Math.round((completed / fields.length) * 100);

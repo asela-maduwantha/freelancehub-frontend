@@ -17,53 +17,12 @@ import {
   EyeOff
 } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, freelancerAPI } from '@/lib/api';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  profile?: {
-    bio?: string;
-    hourlyRate?: number;
-    skills?: string[];
-    availability?: string;
-    title?: string;
-    experience?: string;
-    languages?: string[];
-    timezone?: string;
-  };
-  verification?: {
-    emailVerified?: boolean;
-    phoneVerified?: boolean;
-  };
-  location?: {
-    country?: string;
-    city?: string;
-    coordinates?: [number, number];
-  };
-  phone?: string;
-}
-
-interface FormData {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  phone: string;
-  location: {
-    country: string;
-    city: string;
-  };
-  timezone: string;
-}
+import { authService, usersService, freelancerAPI, IUser } from '@/lib/api';
+import { EditFreelancerProfileType, Location, Language, Education, Certification, PortfolioItem, WorkingHours } from '@/lib/types';
 
 export default function EditProfile() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,35 +34,58 @@ export default function EditProfile() {
     confirmPassword: ''
   });
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<Partial<EditFreelancerProfileType>>({
     firstName: '',
     lastName: '',
-    username: '',
     email: '',
     phone: '',
     location: {
       country: '',
-      city: ''
+      city: '',
+      timezone: ''
     },
-    timezone: ''
+    title: '',
+    bio: '',
+    skills: [],
+    experience: undefined,
+    education: [],
+    certifications: [],
+    portfolio: [],
+    hourlyRate: undefined,
+    availability: undefined,
+    workingHours: undefined,
+    languages: []
   });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userData = await authAPI.getCurrentUser();
+        const userData = await authService.getProfile();
         setUser(userData);
         setFormData({
           firstName: userData.firstName || '',
           lastName: userData.lastName || '',
-          username: userData.username || '',
           email: userData.email || '',
           phone: userData.phone || '',
           location: {
             country: userData.location?.country || '',
-            city: userData.location?.city || ''
+            city: userData.location?.city || '',
+            timezone: userData.location?.timezone || ''
           },
-          timezone: userData.profile?.timezone || ''
+          title: userData.freelancerProfile?.title || '',
+          bio: userData.freelancerProfile?.bio || '',
+          skills: userData.freelancerProfile?.skills || [],
+          experience: userData.freelancerProfile?.experience as 'beginner' | 'intermediate' | 'expert' | undefined,
+          education: userData.freelancerProfile?.education || [],
+          certifications: userData.freelancerProfile?.certifications || [],
+          portfolio: userData.freelancerProfile?.portfolio || [],
+          hourlyRate: userData.freelancerProfile?.hourlyRate,
+          availability: userData.freelancerProfile?.availability as 'full-time' | 'part-time' | 'not-available' | 'available' | undefined,
+          workingHours: userData.freelancerProfile?.workingHours,
+          languages: (userData.languages || []).map(lang => ({
+            language: lang.language,
+            proficiency: lang.proficiency as 'basic' | 'conversational' | 'fluent' | 'native'
+          }))
         });
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
@@ -116,13 +98,13 @@ export default function EditProfile() {
     fetchUserProfile();
   }, []);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof FormData] as Record<string, any>),
+          ...(prev[parent as keyof typeof prev] as Record<string, any>),
           [child]: value
         }
       }));
@@ -148,29 +130,59 @@ export default function EditProfile() {
     setSuccess(null);
 
     try {
-      // Update basic profile information
-      const updateData = {
+      // Update basic user profile information
+      const userUpdateData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        username: formData.username,
         email: formData.email,
         phone: formData.phone,
         location: formData.location,
-        profile: {
-          ...user?.profile,
-          timezone: formData.timezone
-        }
+        profilePicture: formData.profilePicture
       };
 
-      await freelancerAPI.updateProfile(updateData);
+      await usersService.updateProfile(userUpdateData);
+
+      // Update freelancer profile information
+      const freelancerUpdateData = {
+        title: formData.title,
+        bio: formData.bio,
+        skills: formData.skills,
+        experience: formData.experience,
+        education: formData.education,
+        certifications: formData.certifications,
+        portfolio: formData.portfolio,
+        hourlyRate: formData.hourlyRate,
+        availability: formData.availability,
+        workingHours: formData.workingHours,
+        languages: formData.languages
+      };
+
+      await freelancerAPI.updateProfile(freelancerUpdateData);
+
       setSuccess('Profile updated successfully!');
       
       // Update local user state
       if (user) {
-        setUser({
-          ...user,
-          ...updateData
-        });
+        const updatedUser = { ...user };
+        if (userUpdateData.firstName) updatedUser.firstName = userUpdateData.firstName;
+        if (userUpdateData.lastName) updatedUser.lastName = userUpdateData.lastName;
+        if (userUpdateData.email) updatedUser.email = userUpdateData.email;
+        if (userUpdateData.phone) updatedUser.phone = userUpdateData.phone;
+        if (userUpdateData.location && userUpdateData.location.country && userUpdateData.location.city && userUpdateData.location.timezone) {
+          updatedUser.location = {
+            country: userUpdateData.location.country,
+            city: userUpdateData.location.city,
+            timezone: userUpdateData.location.timezone
+          };
+        }
+        if (userUpdateData.profilePicture) updatedUser.profilePicture = userUpdateData.profilePicture;
+        
+        updatedUser.freelancerProfile = {
+          ...user.freelancerProfile,
+          ...freelancerUpdateData
+        };
+        
+        setUser(updatedUser);
       }
     } catch (err: any) {
       console.error('Failed to update profile:', err);
@@ -198,18 +210,8 @@ export default function EditProfile() {
     setSuccess(null);
 
     try {
-      await authAPI.resetPassword({
-        email: formData.email,
-        otp: '', // This would need to be handled differently for password changes
-        newPassword: passwordData.newPassword
-      });
-      
-      setSuccess('Password updated successfully!');
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
+      // Note: Password update functionality not implemented in current API
+      setError('Password update is not currently available');
     } catch (err: any) {
       console.error('Failed to update password:', err);
       setError(err.message || 'Failed to update password');
@@ -322,12 +324,12 @@ export default function EditProfile() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username
+                  Email Address
                 </label>
                 <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
@@ -335,38 +337,15 @@ export default function EditProfile() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                  {user.verification?.emailVerified && (
-                    <CheckCircle className="w-5 h-5 text-green-600" aria-label="Email verified" />
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="+1234567890"
-                  />
-                  {user.verification?.phoneVerified && (
-                    <CheckCircle className="w-5 h-5 text-green-600" aria-label="Phone verified" />
-                  )}
-                </div>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="+1234567890"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -376,7 +355,7 @@ export default function EditProfile() {
                   </label>
                   <input
                     type="text"
-                    value={formData.location.city}
+                    value={formData.location?.city || ''}
                     onChange={(e) => handleInputChange('location.city', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -388,7 +367,7 @@ export default function EditProfile() {
                   </label>
                   <input
                     type="text"
-                    value={formData.location.country}
+                    value={formData.location?.country || ''}
                     onChange={(e) => handleInputChange('location.country', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -400,8 +379,8 @@ export default function EditProfile() {
                   Timezone
                 </label>
                 <select
-                  value={formData.timezone}
-                  onChange={(e) => handleInputChange('timezone', e.target.value)}
+                  value={formData.location?.timezone || ''}
+                  onChange={(e) => handleInputChange('location.timezone', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select timezone</option>

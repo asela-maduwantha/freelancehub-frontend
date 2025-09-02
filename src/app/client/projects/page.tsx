@@ -19,33 +19,8 @@ import {
   Search
 } from 'lucide-react';
 import Link from 'next/link';
-import { clientAPI } from '@/lib/api';
+import { clientsService, IProject } from '@/lib/api';
 import Header from '@/components/ui/Header';
-
-interface Project {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled';
-  budget: number;
-  budgetType: 'fixed' | 'hourly';
-  requiredSkills: Array<{
-    skill: string;
-    level: string;
-    _id: string;
-  }>;
-  analytics: {
-    views: number;
-    applications: number;
-    saves: number;
-  };
-  postedAt: string;
-  duration?: string;
-  workType?: string[];
-  experienceLevel?: string;
-  category?: string;
-  subcategory?: string;
-}
 
 interface ProjectStats {
   total: number;
@@ -58,8 +33,8 @@ interface ProjectStats {
 export default function ClientProjectsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<IProject[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<IProject[]>([]);
   const [stats, setStats] = useState<ProjectStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,9 +56,9 @@ export default function ClientProjectsPage() {
 
   const loadProjects = async () => {
     try {
-      const response = await clientAPI.getProjects();
-      setProjects(response.projects || []);
-      calculateStats(response.projects || []);
+      const response = await clientsService.getProjects();
+      setProjects(response || []);
+      calculateStats(response || []);
     } catch (error) {
       console.error('Failed to load projects:', error);
       setProjects([]);
@@ -93,11 +68,11 @@ export default function ClientProjectsPage() {
     }
   };
 
-  const calculateStats = (projectsList: Project[]) => {
+  const calculateStats = (projectsList: IProject[]) => {
     const stats = {
       total: projectsList.length,
       open: projectsList.filter(p => p.status === 'open').length,
-      inProgress: projectsList.filter(p => p.status === 'in_progress').length,
+      inProgress: projectsList.filter(p => p.status === 'in-progress').length,
       completed: projectsList.filter(p => p.status === 'completed').length,
       cancelled: projectsList.filter(p => p.status === 'cancelled').length
     };
@@ -112,7 +87,7 @@ export default function ClientProjectsPage() {
       filtered = filtered.filter(project =>
         project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.requiredSkills.some(skillObj => skillObj.skill.toLowerCase().includes(searchTerm.toLowerCase()))
+        (project.skills && project.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())))
       );
     }
 
@@ -272,7 +247,7 @@ export default function ClientProjectsPage() {
                 <option value="all">All Status</option>
                 <option value="draft">Draft</option>
                 <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
+                <option value="in-progress">In Progress</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
@@ -296,7 +271,7 @@ export default function ClientProjectsPage() {
                       <div className="flex-shrink-0">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           project.status === 'completed' ? 'bg-green-100' :
-                          project.status === 'in_progress' ? 'bg-yellow-100' :
+                          project.status === 'in-progress' ? 'bg-yellow-100' :
                           project.status === 'open' ? 'bg-blue-100' : 'bg-gray-100'
                         }`}>
                           {getStatusIcon(project.status)}
@@ -323,18 +298,18 @@ export default function ClientProjectsPage() {
 
                               <div className="flex items-center">
                                 <MessageSquare className="h-4 w-4 mr-1" />
-                                <span>{project.analytics.applications} proposals</span>
+                                <span>{project.analytics?.applications || 0} proposals</span>
                               </div>
 
                               <div className="flex items-center">
                                 <Calendar className="h-4 w-4 mr-1" />
-                                <span>Posted {formatDate(project.postedAt)}</span>
+                                <span>Posted {project.postedAt ? formatDate(project.postedAt) : formatDate(project.createdAt)}</span>
                               </div>
 
                             </div>
 
                             <div className="flex flex-wrap gap-2 mb-3">
-                              {project.requiredSkills.slice(0, 5).map((skillObj) => (
+                              {project.requiredSkills && project.requiredSkills.slice(0, 5).map((skillObj) => (
                                 <span
                                   key={skillObj._id}
                                   className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
@@ -342,7 +317,7 @@ export default function ClientProjectsPage() {
                                   {skillObj.skill}
                                 </span>
                               ))}
-                              {project.requiredSkills.length > 5 && (
+                              {project.requiredSkills && project.requiredSkills.length > 5 && (
                                 <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
                                   +{project.requiredSkills.length - 5} more
                                 </span>
@@ -370,12 +345,12 @@ export default function ClientProjectsPage() {
                       {project.status === 'open' && (
                         <Link href={`/client/projects/${project._id}/proposals`}>
                           <Button variant="premium" size="sm" className="font-inter">
-                            View Proposals ({project.analytics.applications})
+                            View Proposals ({project.analytics?.applications || 0})
                           </Button>
                         </Link>
                       )}
 
-                      {project.status === 'in_progress' && (
+                      {project.status === 'in-progress' && (
                         <Link href={`/client/contracts/${project._id}`}>
                           <Button variant="premium" size="sm" className="font-inter">
                             Manage Contract

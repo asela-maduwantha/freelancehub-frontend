@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search as SearchIcon, Star, MapPin, Clock } from "lucide-react";
-import { freelancerAPI } from "../../lib/api/freelancer";
+import { usersService } from "../../lib/api";
 
 // Dummy categories data
 const dummyCategories = [
@@ -56,8 +56,8 @@ export default function Search() {
     const fetchFreelancers = async () => {
       try {
         setLoading(true);
-        const response = await freelancerAPI.getFreelancers({ limit: 8 });
-        setFreelancers(response.freelancers || []);
+        const response = await usersService.getFreelancers({ limit: 8 });
+        setFreelancers(response.data || []);
       } catch (err) {
         console.error('Error fetching freelancers:', err);
         setError('Failed to load freelancers');
@@ -77,8 +77,8 @@ export default function Search() {
       if (searchQuery) {
         filters.skills = searchQuery;
       }
-      const response = await freelancerAPI.getFreelancers(filters);
-      setFreelancers(response.freelancers || []);
+      const response = await usersService.getFreelancers(filters);
+      setFreelancers(response.data || []);
     } catch (err) {
       console.error('Error searching freelancers:', err);
       setError('Failed to search freelancers');

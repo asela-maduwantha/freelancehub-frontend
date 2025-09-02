@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, LoginData } from '@/lib/api';
+import { authService, LoginRequest } from '@/lib/api';
 
 interface FormData {
   email: string;
@@ -66,12 +66,12 @@ export default function LoginPage() {
 
     try {
       // Make API call to login
-      const loginData: LoginData = {
+      const loginData: LoginRequest = {
         email: formData.email,
         password: formData.password
       };
 
-      const response = await authAPI.login(loginData);
+      const response = await authService.login(loginData);
       
       // Store tokens and user data
       localStorage.setItem('user', JSON.stringify(response.user));

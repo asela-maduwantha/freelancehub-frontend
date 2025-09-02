@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Briefcase, Mail, Lock, Phone, MapPin, Globe } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, RegisterData } from '@/lib/api';
+import { authService, RegisterData } from '@/lib/api';
 
 interface FormData {
   email: string;
@@ -133,7 +133,7 @@ export default function FreelancerRegisterPage() {
       };
 
       // Make API call to register the user
-      const response = await authAPI.register(registrationData);
+      const response = await authService.register(registrationData);
       
       // Store basic profile data for later use
       const profileData = {

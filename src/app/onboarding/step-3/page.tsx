@@ -7,7 +7,7 @@ import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Folder, Plus, X, ExternalLink, Upload, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
-import { userAPI } from '@/lib/api';
+import { usersService } from '@/lib/api';
 import { uploadAPI } from '@/lib/api';
 
 interface PortfolioItem {

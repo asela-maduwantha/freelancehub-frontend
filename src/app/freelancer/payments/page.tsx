@@ -28,7 +28,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import DataTable from '@/components/ui/DataTable';
 import AppLayout from '@/components/layout/AppLayout';
-import { paymentAPI } from '@/lib/api';
+import { paymentsService } from '@/lib/api';
 
 interface Payment {
   id: string;

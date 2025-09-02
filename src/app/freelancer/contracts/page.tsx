@@ -28,7 +28,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import DataTable from '@/components/ui/DataTable';
 import ProgressTracker from '@/components/ui/ProgressTracker';
 import AppLayout from '@/components/layout/AppLayout';
-import { contractAPI } from '@/lib/api';
+import { contractsService } from '@/lib/api';
 
 interface Contract {
   id: string;

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Building, Users, Globe, FileText, Save } from 'lucide-react';
 import Link from 'next/link';
-import { userAPI } from '@/lib/api';
+import { usersService } from '@/lib/api';
 
 interface ClientProfileData {
   companyName: string;
@@ -71,7 +71,7 @@ export default function ClientProfilePage() {
 
   const loadExistingProfile = async () => {
     try {
-      const profile = await userAPI.getProfile();
+      const profile = await usersService.getProfile();
       if (profile.clientProfile) {
         setFormData({
           companyName: profile.clientProfile.companyName || '',
@@ -125,7 +125,7 @@ export default function ClientProfilePage() {
     setIsSaving(true);
 
     try {
-      await userAPI.updateClientProfile(formData);
+      await usersService.updateClientProfile(formData);
       router.push('/client/freelancers?profile=completed');
     } catch (error: any) {
       console.error('Profile update failed:', error);

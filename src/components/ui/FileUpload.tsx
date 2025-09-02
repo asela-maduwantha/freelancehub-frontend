@@ -15,22 +15,16 @@ import {
   CheckCircle,
   Loader
 } from 'lucide-react';
-import { enhancedUploadAPI, FileMetadata } from '@/lib/api/enhanced-upload';
+import { storageService } from '@/lib/api/storage.service';
+import { UploadResponse, UploadMultipleResponse, FileData } from '@/lib/types';
 
 interface FileUploadProps {
-  onFilesUploaded?: (files: FileMetadata[]) => void;
+  onFilesUploaded?: (files: FileData[]) => void;
   onFileRemoved?: (fileId: string) => void;
   maxFiles?: number;
   maxSize?: number; // in MB
   allowedTypes?: string[];
   folder?: string;
-  associatedEntity?: {
-    type: 'project' | 'proposal' | 'contract' | 'profile' | 'dispute';
-    id: string;
-    name: string;
-  };
-  entityType?: 'project' | 'proposal' | 'contract' | 'profile' | 'dispute';
-  entityId?: string;
   showPreview?: boolean;
   showDownload?: boolean;
   showDelete?: boolean;
@@ -43,7 +37,7 @@ interface UploadProgress {
   progress: number;
   status: 'uploading' | 'completed' | 'error';
   error?: string;
-  uploadedFile?: FileMetadata;
+  uploadedFile?: FileData;
 }
 
 export default function EnhancedFileUpload({
@@ -53,27 +47,45 @@ export default function EnhancedFileUpload({
   maxSize = 10, // MB
   allowedTypes,
   folder = 'general',
-  associatedEntity,
-  entityType,
-  entityId,
   showPreview = true,
   showDownload = true,
   showDelete = true,
   className = '',
   disabled = false
 }: FileUploadProps) {
-  const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileData[]>([]);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = useCallback((file: File): { valid: boolean; error?: string } => {
-    return enhancedUploadAPI.validateFile(file, {
-      maxSize: maxSize * 1024 * 1024,
-      allowedTypes
-    });
+    // Check file size
+    if (file.size > maxSize * 1024 * 1024) {
+      return {
+        valid: false,
+        error: `File size exceeds ${maxSize}MB limit`
+      };
+    }
+
+    // Check file type
+    if (allowedTypes && !allowedTypes.includes(file.type)) {
+      return {
+        valid: false,
+        error: 'File type not allowed'
+      };
+    }
+
+    return { valid: true };
   }, [maxSize, allowedTypes]);
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || disabled) return;
@@ -117,31 +129,27 @@ export default function EnhancedFileUpload({
     setUploadProgress(prev => [...prev, ...initialProgress]);
 
     try {
-      // Determine associated entity
-      const finalAssociatedEntity = associatedEntity || (entityType && entityId ? {
-        type: entityType,
-        id: entityId,
-        name: `${entityType} ${entityId}`
-      } : undefined);
+      let uploadResponse: UploadResponse | UploadMultipleResponse;
 
-      // Upload files
-      const uploadResponse = await enhancedUploadAPI.uploadFiles(
-        validFiles,
-        folder,
-        {
-          associatedEntity: finalAssociatedEntity,
-          description: 'Uploaded via enhanced file upload component'
-        }
-      );
+      // Use appropriate upload method based on number of files
+      if (validFiles.length === 1) {
+        uploadResponse = await storageService.uploadSingleFile(validFiles[0], folder);
+      } else {
+        uploadResponse = await storageService.uploadMultipleFiles(validFiles, folder);
+      }
 
       if (uploadResponse.success) {
-        const newUploadedFiles = uploadResponse.data;
+        // Handle response based on single or multiple upload
+        const newUploadedFiles: FileData[] = Array.isArray(uploadResponse.data) 
+          ? uploadResponse.data 
+          : [uploadResponse.data];
+
         setUploadedFiles(prev => [...prev, ...newUploadedFiles]);
 
         // Update progress to completed
         setUploadProgress(prev =>
           prev.map(progress => {
-            const uploadedFile = newUploadedFiles.find(f => f.originalName === progress.file.name);
+            const uploadedFile = newUploadedFiles.find(f => f.fileName === progress.file.name);
             return uploadedFile
               ? { ...progress, status: 'completed', progress: 100, uploadedFile }
               : progress;
@@ -150,6 +158,11 @@ export default function EnhancedFileUpload({
 
         // Notify parent component
         onFilesUploaded?.(newUploadedFiles);
+
+        // Clear upload progress after a delay
+        setTimeout(() => {
+          setUploadProgress([]);
+        }, 2000);
       } else {
         throw new Error(uploadResponse.message || 'Upload failed');
       }
@@ -162,7 +175,7 @@ export default function EnhancedFileUpload({
         prev.map(progress => ({ ...progress, status: 'error', error: err.message }))
       );
     }
-  }, [disabled, validateFile, uploadedFiles.length, maxFiles, folder, associatedEntity, onFilesUploaded]);
+  }, [disabled, validateFile, uploadedFiles.length, maxFiles, folder, onFilesUploaded]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -192,7 +205,8 @@ export default function EnhancedFileUpload({
 
   const handleRemoveFile = useCallback(async (fileId: string) => {
     try {
-      await enhancedUploadAPI.deleteFile(fileId);
+      // Note: You'll need to implement a delete method in your StorageService
+      // For now, just remove from local state
       setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
       onFileRemoved?.(fileId);
     } catch (err: any) {
@@ -201,27 +215,37 @@ export default function EnhancedFileUpload({
     }
   }, [onFileRemoved]);
 
-  const handleDownloadFile = useCallback(async (file: FileMetadata) => {
+  const handleDownloadFile = useCallback(async (file: FileData) => {
     try {
-      const response = await enhancedUploadAPI.getFileDownloadUrl(file.id);
-      window.open(response.downloadUrl, '_blank');
+      if (file.url) {
+        // If file has a direct URL, use it
+        window.open(file.url, '_blank');
+      } else {
+        // You'll need to implement a download method in your StorageService
+        console.warn('Download functionality not implemented in StorageService');
+        setError('Download functionality not available');
+      }
     } catch (err: any) {
-      console.error('Failed to get download URL:', err);
+      console.error('Failed to download file:', err);
       setError('Failed to download file');
     }
   }, []);
 
-  const handlePreviewFile = useCallback(async (file: FileMetadata) => {
+  const handlePreviewFile = useCallback(async (file: FileData) => {
     try {
-      const response = await enhancedUploadAPI.getFilePreviewUrl(file.id);
-      window.open(response.previewUrl, '_blank');
+      if (file.url && file.mimeType.startsWith('image/')) {
+        window.open(file.url, '_blank');
+      } else {
+        console.warn('Preview functionality not implemented in StorageService');
+        setError('Preview not available for this file type');
+      }
     } catch (err: any) {
-      console.error('Failed to get preview URL:', err);
+      console.error('Failed to preview file:', err);
       setError('Failed to preview file');
     }
   }, []);
 
-  const getFileIcon = (file: FileMetadata) => {
+  const getFileIcon = (file: FileData) => {
     if (file.mimeType.startsWith('image/')) return <Image className="h-5 w-5 text-blue-500" />;
     if (file.mimeType === 'application/pdf') return <FileText className="h-5 w-5 text-red-500" />;
     if (file.mimeType.includes('word') || file.mimeType.includes('document')) return <FileText className="h-5 w-5 text-blue-600" />;
@@ -324,7 +348,7 @@ export default function EnhancedFileUpload({
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
-                    {getFileIcon({ mimeType: progress.file.type } as FileMetadata)}
+                    {getFileIcon({ mimeType: progress.file.type } as FileData)}
                     <span className="ml-2 font-medium text-gray-900">{progress.file.name}</span>
                   </div>
                   <div className="flex items-center">
@@ -388,10 +412,10 @@ export default function EnhancedFileUpload({
                   <div className="flex items-center flex-1 min-w-0">
                     {getFileIcon(file)}
                     <div className="ml-3 flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{file.originalName}</p>
+                      <p className="font-medium text-gray-900 truncate">{file.fileName}</p>
                       <p className="text-sm text-gray-500">
-                        {enhancedUploadAPI.formatFileSize(file.size)} •
-                        Uploaded {new Date(file.uploadedAt).toLocaleDateString()}
+                        {formatFileSize(file.size)} •
+                        Uploaded {new Date(file.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

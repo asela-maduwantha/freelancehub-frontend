@@ -18,19 +18,19 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { contractAPI } from '@/lib/api';
+import { contractsService } from '@/lib/api';
 import Header from '@/components/ui/Header';
 import ContractApprovalModal from '@/components/ui/ContractApprovalModal';
-import { Contract } from '@/lib/api/types';
+import { IContract } from '@/lib/types';
 
 export default function ClientContractsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [contracts, setContracts] = useState<Contract[]>([]);
-  const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<IContract[]>([]);
+  const [filteredContracts, setFilteredContracts] = useState<IContract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [selectedContract, setSelectedContract] = useState<IContract | null>(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
 
   useEffect(() => {
@@ -49,45 +49,77 @@ export default function ClientContractsPage() {
 
   const loadContracts = async () => {
     try {
-      const response = await contractAPI.getContracts();
-      setContracts(response.contracts || response.data || []);
+      const response = await contractsService.getContracts(user._id);
+      setContracts(response || []);
     } catch (error) {
       console.error('Failed to load contracts:', error);
       // Mock data for demonstration
-      const mockContracts: Contract[] = [
+      const mockContracts: any[] = [
         {
           _id: '1',
           projectId: {
             _id: '1',
             title: 'Build E-commerce Website',
-            description: 'Full-stack e-commerce website with payment integration'
+            description: 'Full-stack e-commerce website with payment integration',
+            status: 'in-progress',
+            budget: 2200,
+            deadline: '2024-02-20T00:00:00Z',
+            category: 'Web Development',
+            skills: ['React', 'Node.js', 'MongoDB'],
+            clientId: '1',
+            freelancerId: '1',
+            createdAt: '2024-01-20T00:00:00Z'
           },
           clientId: {
             _id: '1',
             firstName: 'Client',
             lastName: 'User',
-            email: 'client@example.com'
+            companyName: 'Client Company',
+            email: 'client@example.com',
+            profilePicture: 'https://example.com/avatar.jpg',
+            rating: 4.8,
+            reviewsCount: 15
           },
           freelancerId: {
             _id: '1',
             firstName: 'John',
             lastName: 'Developer',
-            email: 'john@example.com'
+            email: 'john@example.com',
+            profilePicture: 'https://example.com/freelancer-avatar.jpg',
+            phoneNumber: '+1234567890',
+            companyName: null,
+            rating: 4.9,
+            reviewsCount: 42,
+            skills: ['JavaScript', 'React', 'Node.js', 'Python', 'AWS']
           },
-          proposalId: '1',
+          proposalId: {
+            _id: '1',
+            proposedBudget: 2200,
+            proposedDuration: {
+              value: 30,
+              unit: 'days'
+            },
+            coverLetter: 'I am excited to work on this e-commerce project...',
+            milestones: [],
+            attachments: [],
+            status: 'accepted',
+            createdAt: '2024-01-15T00:00:00Z'
+          },
           status: 'active',
           terms: {
             budget: 2200,
             paymentType: 'fixed',
             startDate: '2024-01-20T00:00:00Z',
             endDate: '2024-02-20T00:00:00Z',
-            paymentSchedule: 'Upon milestone completion'
+            paymentSchedule: 'milestone-based'
           },
           approvalWorkflow: {
             clientApproved: false,
             freelancerApproved: false,
             approvalOrder: 'client_first'
           },
+          totalPaid: 0,
+          totalEscrow: 2200,
           milestones: [
             {
               _id: '1',
@@ -122,28 +154,58 @@ export default function ClientContractsPage() {
           projectId: {
             _id: '2',
             title: 'Mobile App UI Design',
-            description: 'Design modern UI/UX for fitness tracking app'
+            description: 'Design modern UI/UX for fitness tracking app',
+            status: 'completed',
+            budget: 1100,
+            deadline: '2024-01-30T00:00:00Z',
+            category: 'UI/UX Design',
+            skills: ['Figma', 'Adobe XD', 'Sketch'],
+            clientId: '2',
+            freelancerId: '2',
+            createdAt: '2024-01-15T00:00:00Z'
           },
           clientId: {
             _id: '2',
             firstName: 'Client',
             lastName: 'User2',
-            email: 'client2@example.com'
+            companyName: 'Client Company 2',
+            email: 'client2@example.com',
+            profilePicture: 'https://example.com/avatar2.jpg',
+            rating: 4.7,
+            reviewsCount: 8
           },
           freelancerId: {
             _id: '2',
             firstName: 'Sarah',
             lastName: 'Designer',
-            email: 'sarah@example.com'
+            email: 'sarah@example.com',
+            profilePicture: 'https://example.com/freelancer-avatar2.jpg',
+            phoneNumber: '+0987654321',
+            companyName: null,
+            rating: 4.9,
+            reviewsCount: 35,
+            skills: ['Figma', 'Adobe XD', 'Sketch', 'UI Design', 'UX Design']
           },
-          proposalId: '2',
+          proposalId: {
+            _id: '2',
+            proposedBudget: 1100,
+            proposedDuration: {
+              value: 15,
+              unit: 'days'
+            },
+            coverLetter: 'I specialize in mobile app UI/UX design...',
+            milestones: [],
+            attachments: [],
+            status: 'accepted',
+            createdAt: '2024-01-10T00:00:00Z'
+          },
           status: 'completed',
           terms: {
             budget: 1100,
             paymentType: 'fixed',
             startDate: '2024-01-15T00:00:00Z',
             endDate: '2024-01-30T00:00:00Z',
-            paymentSchedule: 'Upon milestone completion'
+            paymentSchedule: 'milestone-based'
           },
           approvalWorkflow: {
             clientApproved: true,
@@ -152,7 +214,8 @@ export default function ClientContractsPage() {
             freelancerApprovedAt: '2024-01-16T00:00:00Z',
             approvalOrder: 'client_first'
           },
-          pdfUrl: 'https://example.com/contract-2.pdf',
+          totalPaid: 1100,
+          totalEscrow: 0,
           milestones: [
             {
               _id: '4',
@@ -222,7 +285,7 @@ export default function ClientContractsPage() {
 
   const handleApproveMilestone = async (contractId: string, milestoneId: string) => {
     try {
-      await contractAPI.approveMilestone(contractId, milestoneId);
+      await contractsService.approveMilestone(contractId, milestoneId);
       // Update local state
       setContracts(prev => prev.map(contract => {
         if (contract._id === contractId) {
@@ -247,7 +310,7 @@ export default function ClientContractsPage() {
 
   const handleRejectMilestone = async (contractId: string, milestoneId: string) => {
     try {
-      await contractAPI.rejectMilestone(contractId, milestoneId, 'Work does not meet requirements', 'Please revise according to specifications');
+      await contractsService.rejectMilestone(contractId, milestoneId, 'Work does not meet requirements');
       // Update local state
       setContracts(prev => prev.map(contract => {
         if (contract._id === contractId) {
@@ -268,7 +331,7 @@ export default function ClientContractsPage() {
     }
   };
 
-  const handleApprovalSuccess = (updatedContract: Contract) => {
+  const handleApprovalSuccess = (updatedContract: IContract) => {
     setContracts(prev => prev.map(contract =>
       contract._id === updatedContract._id ? updatedContract : contract
     ));
@@ -489,17 +552,6 @@ export default function ClientContractsPage() {
                         <div className="text-sm text-blue-600 font-medium">
                           Waiting for freelancer approval
                         </div>
-                      )}
-                      {contract.approvalWorkflow.clientApproved && contract.approvalWorkflow.freelancerApproved && contract.pdfUrl && (
-                        <Button
-                          onClick={() => window.open(contract.pdfUrl, '_blank')}
-                          variant="premium"
-                          size="sm"
-                          className="font-inter"
-                        >
-                          <FileText className="h-4 w-4 mr-1" />
-                          View PDF
-                        </Button>
                       )}
                     </div>
                     {contract.status === 'active' && (

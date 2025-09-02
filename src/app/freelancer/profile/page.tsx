@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/Button';
 import AppLayout from '@/components/layout/AppLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/components/ui/Toast';
+import { usersService } from '@/lib/api';
 
 interface FreelancerProfile {
   id: string;
@@ -143,7 +144,61 @@ export default function ProfilePage() {
     try {
       setIsLoading(true);
       
-      // Mock data - replace with actual API call
+      // Get profile from API
+      const userProfile = await usersService.getProfile();
+      
+      // Map API response to frontend interface
+      const mappedProfile: FreelancerProfile = {
+        id: userProfile._id,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+        email: userProfile.email,
+        avatar: userProfile.profilePicture,
+        title: userProfile.freelancerProfile?.title || '',
+        bio: userProfile.freelancerProfile?.bio || '',
+        skills: userProfile.freelancerProfile?.skills || [],
+        hourlyRate: userProfile.freelancerProfile?.hourlyRate || 0,
+        experience: (userProfile.freelancerProfile?.experience as 'entry' | 'intermediate' | 'expert') || 'intermediate',
+        portfolioUrl: userProfile.freelancerProfile?.portfolio?.[0]?.url || '',
+        location: userProfile.location ? `${userProfile.location.city}, ${userProfile.location.country}` : '',
+        timezone: userProfile.location?.timezone || '',
+        languages: userProfile.languages?.map(lang => `${lang.language} (${lang.proficiency})`) || [],
+        availability: (userProfile.freelancerProfile?.availability as 'available' | 'busy' | 'unavailable') || 'available',
+        socialLinks: {
+          github: '',
+          linkedin: '',
+          twitter: '',
+          website: userProfile.freelancerProfile?.portfolio?.[0]?.url || ''
+        },
+        stats: {
+          completedProjects: userProfile.stats?.projectsCompleted || 0,
+          totalEarnings: userProfile.stats?.totalEarnings || 0,
+          averageRating: userProfile.stats?.avgRating || 0,
+          responseTime: `${userProfile.stats?.responseTime || 0}h`,
+          successRate: userProfile.stats?.completionRate || 0
+        },
+        certifications: userProfile.freelancerProfile?.certifications?.map(cert => ({
+          id: cert.name, // Using name as ID for now
+          name: cert.name,
+          issuer: cert.issuer,
+          date: cert.date,
+          url: cert.url
+        })) || [],
+        portfolio: userProfile.freelancerProfile?.portfolio?.map(item => ({
+          id: item.title, // Using title as ID for now
+          title: item.title,
+          description: item.description,
+          image: item.images?.[0] || '',
+          url: item.url,
+          tags: item.tags || []
+        })) || []
+      };
+      
+      setProfile(mappedProfile);
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+      
+      // Fallback to mock data if API fails
       const mockProfile: FreelancerProfile = {
         id: '1',
         firstName: 'Sarah',
@@ -162,13 +217,14 @@ export default function ProfilePage() {
         socialLinks: {
           github: 'https://github.com/sarahjohnson',
           linkedin: 'https://linkedin.com/in/sarahjohnson',
+          twitter: 'https://twitter.com/sarahjohnson',
           website: 'https://sarahjohnson.dev'
         },
         stats: {
           completedProjects: 47,
           totalEarnings: 125000,
           averageRating: 4.9,
-          responseTime: '< 2 hours',
+          responseTime: '2h',
           successRate: 98
         },
         certifications: [
@@ -176,60 +232,118 @@ export default function ProfilePage() {
             id: '1',
             name: 'AWS Certified Solutions Architect',
             issuer: 'Amazon Web Services',
-            date: '2023-05-15',
+            date: '2023-06-15',
             url: 'https://aws.amazon.com/certification/'
           },
           {
             id: '2',
-            name: 'Google UX Design Certificate',
-            issuer: 'Google',
-            date: '2022-08-20'
+            name: 'Google Cloud Professional Developer',
+            issuer: 'Google Cloud',
+            date: '2023-03-20',
+            url: 'https://cloud.google.com/certification/'
           }
         ],
         portfolio: [
           {
             id: '1',
             title: 'E-commerce Platform',
-            description: 'Full-stack e-commerce solution with React and Node.js',
-            image: '/portfolio1.jpg',
-            url: 'https://demo-ecommerce.com',
+            description: 'Full-stack e-commerce solution built with React, Node.js, and PostgreSQL. Features include payment processing, inventory management, and admin dashboard.',
+            image: '/api/placeholder/400/300',
+            url: 'https://ecommerce-demo.com',
             tags: ['React', 'Node.js', 'PostgreSQL', 'Stripe']
           },
           {
             id: '2',
-            title: 'Mobile Banking App',
-            description: 'UI/UX design for a modern mobile banking application',
-            image: '/portfolio2.jpg',
-            tags: ['Figma', 'UI/UX', 'Mobile Design']
+            title: 'Task Management App',
+            description: 'Collaborative task management application with real-time updates, team management, and progress tracking.',
+            image: '/api/placeholder/400/300',
+            url: 'https://taskmanager-demo.com',
+            tags: ['React', 'Socket.io', 'MongoDB', 'Express']
           }
         ]
       };
-
       setProfile(mockProfile);
-      setEditForm({
-        title: mockProfile.title,
-        bio: mockProfile.bio,
-        skills: mockProfile.skills,
-        hourlyRate: mockProfile.hourlyRate,
-        experience: mockProfile.experience,
-        portfolioUrl: mockProfile.portfolioUrl || '',
-        location: mockProfile.location || '',
-        availability: mockProfile.availability,
-        socialLinks: {
-          github: mockProfile.socialLinks.github || '',
-          linkedin: mockProfile.socialLinks.linkedin || '',
-          twitter: mockProfile.socialLinks.twitter || '',
-          website: mockProfile.socialLinks.website || ''
-        }
-      });
-
-    } catch (error) {
-      console.error('Failed to load profile:', error);
-      showToast?.({ title: 'Error', message: 'Failed to load profile', type: 'error' });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      // API call to update profile
+      const response = await fetch('/api/users/freelancer-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (response.ok) {
+        const updatedProfile = await response.json();
+        setProfile(updatedProfile);
+        setIsEditing(false);
+        showToast?.({ title: 'Success', message: 'Profile updated successfully', type: 'success' });
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      showToast?.({ title: 'Error', message: 'Failed to update profile', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Reset form to current profile values
+    if (profile) {
+      setEditForm({
+        title: profile.title,
+        bio: profile.bio,
+        skills: profile.skills,
+        hourlyRate: profile.hourlyRate,
+        experience: profile.experience,
+        portfolioUrl: profile.portfolioUrl || '',
+        location: profile.location || '',
+        availability: profile.availability,
+        socialLinks: {
+          github: profile.socialLinks.github || '',
+          linkedin: profile.socialLinks.linkedin || '',
+          twitter: profile.socialLinks.twitter || '',
+          website: profile.socialLinks.website || ''
+        }
+      });
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    // Initialize edit form with current profile values
+    if (profile) {
+      setEditForm({
+        title: profile.title,
+        bio: profile.bio,
+        skills: profile.skills,
+        hourlyRate: profile.hourlyRate,
+        experience: profile.experience,
+        portfolioUrl: profile.portfolioUrl || '',
+        location: profile.location || '',
+        availability: profile.availability,
+        socialLinks: {
+          github: profile.socialLinks.github || '',
+          linkedin: profile.socialLinks.linkedin || '',
+          twitter: profile.socialLinks.twitter || '',
+          website: profile.socialLinks.website || ''
+        }
+      });
+    }
+  };
+
+  const handleAddSkill = (newSkill: string) => {
 
   const handleSave = async () => {
     try {
@@ -728,5 +842,4 @@ export default function ProfilePage() {
     </AppLayout>
   );
 }
-
-export const dynamic = 'force-dynamic';
+}

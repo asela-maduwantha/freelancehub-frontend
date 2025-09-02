@@ -19,7 +19,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { freelancerAPI } from '@/lib/api';
+import { usersService } from '@/lib/api';
 import Header from '@/components/ui/Header';
 
 interface Freelancer {
@@ -90,7 +90,7 @@ export default function FreelancersPage() {
 
   const loadFreelancers = async () => {
     try {
-      const response = await freelancerAPI.getFreelancers();
+      const response = await usersService.getFreelancers();
       // Mock data for demonstration
       const mockFreelancers: Freelancer[] = [
         {

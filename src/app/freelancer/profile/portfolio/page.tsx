@@ -18,7 +18,7 @@ import {
   X
 } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, freelancerAPI } from '@/lib/api';
+import { authService, freelancerAPI, IUser } from '@/lib/api';
 
 interface UserProfile {
   id: string;
@@ -61,7 +61,7 @@ interface PortfolioItem {
 
 export default function PortfolioManagement() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +103,7 @@ export default function PortfolioManagement() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const userData = await authAPI.getCurrentUser();
+        const userData = await authService.getProfile();
         setUser(userData);
         // In a real app, you'd fetch portfolio items from the API
         setPortfolioItems([]);

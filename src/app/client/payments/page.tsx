@@ -19,17 +19,18 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { paymentAPI, Payment, PaymentStats } from '@/lib/api/payment';
+import { paymentsService, PaymentStats } from '@/lib/api/payments.service';
+import { IPayment } from '@/lib/types';
 
 export default function ClientPaymentsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [payments, setPayments] = useState<IPayment[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
-  const [filteredPayments, setFilteredPayments] = useState<Payment[]>([]);
+  const [filteredPayments, setFilteredPayments] = useState<IPayment[]>([]);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -48,14 +49,16 @@ export default function ClientPaymentsPage() {
 
   const loadPayments = async () => {
     try {
-      const response = await paymentAPI.getPayments();
+      const response = await paymentsService.getPayments();
       setPayments((response as any).data || []);
     } catch (error) {
       console.error('Failed to load payments:', error);
       // Mock data for demonstration
-      const mockPayments: Payment[] = [
+      const mockPayments: IPayment[] = [
         {
+          _id: '1',
           id: '1',
+          contractId: 'contract-1',
           payeeId: 'freelancer-1',
           payerId: 'client-1',
           projectId: 'project-1',
@@ -63,6 +66,7 @@ export default function ClientPaymentsPage() {
           amount: 550,
           currency: 'USD',
           status: 'completed',
+          type: 'milestone',
           stripePaymentIntentId: 'pi_1234567890',
           createdAt: '2024-01-25T10:00:00Z',
           completedAt: '2024-01-25T10:05:00Z',
@@ -77,7 +81,9 @@ export default function ClientPaymentsPage() {
           }
         },
         {
+          _id: '2',
           id: '2',
+          contractId: 'contract-2',
           payeeId: 'freelancer-2',
           payerId: 'client-1',
           projectId: 'project-2',
@@ -85,6 +91,7 @@ export default function ClientPaymentsPage() {
           amount: 1100,
           currency: 'USD',
           status: 'completed',
+          type: 'milestone',
           stripePaymentIntentId: 'pi_0987654321',
           createdAt: '2024-02-10T14:30:00Z',
           completedAt: '2024-02-10T14:35:00Z',
@@ -99,7 +106,9 @@ export default function ClientPaymentsPage() {
           }
         },
         {
+          _id: '3',
           id: '3',
+          contractId: 'contract-1',
           payeeId: 'freelancer-1',
           payerId: 'client-1',
           projectId: 'project-1',
@@ -107,6 +116,7 @@ export default function ClientPaymentsPage() {
           amount: 1100,
           currency: 'USD',
           status: 'pending',
+          type: 'milestone',
           createdAt: '2024-02-15T09:00:00Z',
           contract: {
             id: 'contract-1',
@@ -127,13 +137,16 @@ export default function ClientPaymentsPage() {
 
   const loadStats = async () => {
     try {
-      const response = await paymentAPI.getPaymentStats();
+      const response = await paymentsService.getPaymentStats();
       setStats((response as any).data);
     } catch (error) {
       console.error('Failed to load payment stats:', error);
       // Mock stats for demonstration
       const mockStats: PaymentStats = {
         totalPaid: 1650,
+        totalReceived: 1650,
+        pendingPayments: 1,
+        completedPayments: 2,
         totalPending: 1100,
         totalFailed: 0,
         paymentCount: 3,
@@ -149,7 +162,8 @@ export default function ClientPaymentsPage() {
             amount: 1650,
             count: 2
           }
-        ]
+        ],
+        currency: 'USD'
       };
       setStats(mockStats);
     }
@@ -191,8 +205,9 @@ export default function ClientPaymentsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -211,7 +226,7 @@ export default function ClientPaymentsPage() {
   const getUniqueProjects = () => {
     const projects = payments.map(payment => ({
       id: payment.projectId,
-      title: payment.contract.title
+      title: payment.contract?.title || 'Unknown Project',
     }));
     return Array.from(new Set(projects.map(p => p.id)))
       .map(id => projects.find(p => p.id === id))
@@ -396,9 +411,9 @@ export default function ClientPaymentsPage() {
                         <h3 className="text-lg font-semibold text-gray-900 font-poppins">
                           {formatCurrency(payment.amount, payment.currency)}
                         </h3>
-                        <p className="text-gray-600">{payment.contract.title}</p>
+                        <p className="text-gray-600">{payment.contract?.title || 'Unknown Project'}</p>
                         <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                          <span>{payment.freelancer.firstName} {payment.freelancer.lastName}</span>
+                          <span>{payment.freelancer?.firstName || 'Unknown'} {payment.freelancer?.lastName || 'Freelancer'}</span>
                           <span>•</span>
                           <span>{formatDate(payment.createdAt)}</span>
                         </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react';
 import Link from 'next/link';
-import { clientAPI } from '@/lib/api';
+import { clientsService } from '@/lib/api';
 
 interface ProjectData {
   title: string;
@@ -124,6 +124,10 @@ export default function NewProjectPage() {
       newErrors.budget = 'Budget should be at least $50';
     }
 
+    if (!formData.timeline.deadline.trim()) {
+      newErrors.deadline = 'Project deadline is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -198,15 +202,16 @@ export default function NewProjectPage() {
     setIsLoading(true);
 
     try {
-      const projectData = {
-        ...formData,
-        budget: {
-          ...formData.budget,
-          type: formData.type
-        }
+      const apiProjectData = {
+        title: formData.title,
+        description: formData.description,
+        budget: formData.budget.amount,
+        deadline: formData.timeline.deadline,
+        category: formData.category,
+        skills: formData.requiredSkills,
       };
 
-      await clientAPI.createProject(projectData);
+      await clientsService.createProject(apiProjectData);
       router.push('/client/dashboard?created=true');
       
     } catch (error: any) {
@@ -458,6 +463,23 @@ export default function NewProjectPage() {
                     </div>
                     {errors.budget && <p className="mt-1 text-sm text-red-500">{errors.budget}</p>}
                   </div>
+                </div>
+
+                {/* Deadline */}
+                <div className="mt-6">
+                  <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Deadline *
+                  </label>
+                  <input
+                    type="date"
+                    id="deadline"
+                    value={formData.timeline.deadline}
+                    onChange={(e) => handleInputChange('timeline.deadline', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                      errors.deadline ? 'border-red-500' : 'border-gray-300'
+                    } font-inter`}
+                  />
+                  {errors.deadline && <p className="mt-1 text-sm text-red-500">{errors.deadline}</p>}
                 </div>
               </div>
 

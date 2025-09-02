@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { Mail, ArrowLeft, RefreshCw, Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI, userAPI } from '@/lib/api';
+import { authService, usersService } from '@/lib/api';
 
 function VerifyOTPContent() {
   const router = useRouter();
@@ -79,7 +79,7 @@ function VerifyOTPContent() {
     setError('');
 
     try {
-      const response = await authAPI.verifyEmailOTP({
+      const response = await authService.verifyEmailOTP({
         email,
         otp: otpString
       });
@@ -96,7 +96,7 @@ function VerifyOTPContent() {
       if (pendingProfileData) {
         try {
           const profileData = JSON.parse(pendingProfileData);
-          await userAPI.updateProfile(profileData);
+          await usersService.updateProfile(profileData);
           localStorage.removeItem('pendingProfileData'); // Clean up
         } catch (profileError) {
           console.warn('Failed to update profile:', profileError);
@@ -127,7 +127,7 @@ function VerifyOTPContent() {
     setError('');
 
     try {
-      await authAPI.sendEmailOTP({
+      await authService.sendEmailOTP({
         email,
         type: 'verification'
       });

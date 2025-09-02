@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { Mail, ArrowLeft, RefreshCw, CheckCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { authAPI } from '@/lib/api';
+import { authService } from '@/lib/api';
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -33,7 +33,7 @@ function VerifyEmailContent() {
 
     try {
       // Make API call to resend verification email
-      await authAPI.sendEmailOTP({
+      await authService.sendEmailOTP({
         email,
         type: 'verification'
       });

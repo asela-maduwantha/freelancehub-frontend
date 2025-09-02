@@ -4,15 +4,15 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, Clock, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { contractAPI } from '@/lib/api';
-import { Contract } from '@/lib/api/types';
+import { contractsService } from '@/lib/api';
+import { IContract } from '@/lib/types';
 
 interface ContractApprovalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  contract: Contract;
+  contract: IContract;
   userRole: 'client' | 'freelancer';
-  onApprovalSuccess: (updatedContract: Contract) => void;
+  onApprovalSuccess: (updatedContract: IContract) => void;
 }
 
 export default function ContractApprovalModal({
@@ -54,12 +54,16 @@ export default function ContractApprovalModal({
     try {
       let response;
       if (userRole === 'client') {
-        response = await contractAPI.approveContractAsClient(contract._id);
+        response = await contractsService.clientApproveContract(contract._id);
       } else {
-        response = await contractAPI.approveContractAsFreelancer(contract._id);
+        response = await contractsService.freelancerApproveContract(contract._id);
       }
 
-      onApprovalSuccess(response.contract);
+      if (response.data?.contract) {
+        onApprovalSuccess(response.data.contract);
+      } else {
+        throw new Error('Contract data not found in response');
+      }
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to approve contract');
@@ -236,9 +240,8 @@ export default function ContractApprovalModal({
                   </Button>
                 )}
 
-                {approvalWorkflow.clientApproved && approvalWorkflow.freelancerApproved && contract.pdfUrl && (
+                {approvalWorkflow.clientApproved && approvalWorkflow.freelancerApproved && (
                   <Button
-                    onClick={() => window.open(contract.pdfUrl, '_blank')}
                     variant="premium"
                     className="min-w-[120px]"
                   >

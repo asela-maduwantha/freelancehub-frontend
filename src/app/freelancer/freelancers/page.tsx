@@ -19,7 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { freelancerAPI, authAPI } from '@/lib/api';
+import { freelancerAPI, authService } from '@/lib/api';
 import Header from '@/components/ui/Header';
 
 interface Freelancer {

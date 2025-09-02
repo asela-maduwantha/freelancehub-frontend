@@ -25,7 +25,7 @@ import {
   X
 } from 'lucide-react';
 import Link from 'next/link';
-import { contractAPI, authAPI } from '@/lib/api';
+import { contractsService, authService } from '@/lib/api';
 import Header from '@/components/ui/Header';
 
 interface Contract {
@@ -92,8 +92,7 @@ export default function ContractDetail() {
   const [selectedMilestone, setSelectedMilestone] = useState<string | null>(null);
   const [submissionData, setSubmissionData] = useState({
     description: '',
-    files: [] as File[],
-    deliverables: ''
+    files: [] as File[]
   });
 
   useEffect(() => {
@@ -110,8 +109,8 @@ export default function ContractDetail() {
       setIsLoading(true);
       setError(null);
 
-      const response = await contractAPI.getContract(contractId);
-      setContract(response.contract || response.data);
+      const response = await contractsService.getContractById(contractId);
+      setContract(response as unknown as Contract);
     } catch (error) {
       console.error('Failed to load contract:', error);
       setError('Failed to load contract details. Please try again.');
@@ -127,15 +126,14 @@ export default function ContractDetail() {
     }
 
     try {
-      await contractAPI.submitMilestone(contractId, milestoneId, {
+      await contractsService.submitMilestone(contractId, milestoneId, {
         description: submissionData.description,
-        files: submissionData.files.map(f => f.name), // In real implementation, upload files first
-        deliverables: submissionData.deliverables
+        files: submissionData.files.map(f => f.name) // In real implementation, upload files first
       });
 
       alert('Milestone submitted successfully!');
       setSelectedMilestone(null);
-      setSubmissionData({ description: '', files: [], deliverables: '' });
+      setSubmissionData({ description: '', files: [] });
       loadContract(); // Refresh contract data
     } catch (error) {
       console.error('Failed to submit milestone:', error);
@@ -338,18 +336,6 @@ export default function ContractDetail() {
                               rows={4}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                               placeholder="Describe what you've completed for this milestone..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Deliverables
-                            </label>
-                            <textarea
-                              value={submissionData.deliverables}
-                              onChange={(e) => setSubmissionData(prev => ({ ...prev, deliverables: e.target.value }))}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                              placeholder="List the specific deliverables you're submitting..."
                             />
                           </div>
                           <div>

@@ -22,49 +22,15 @@ import {
   Send
 } from 'lucide-react';
 import Link from 'next/link';
-import { projectAPI, authAPI } from '@/lib/api';
-import { contractAPI } from '@/lib/api';
-
-interface Project {
-  _id: string;
-  title: string;
-  description: string;
-  category: string;
-  subcategory?: string;
-  requiredSkills: Array<{
-    skill: string;
-    level: string;
-    _id: string;
-  }>;
-  budgetType: 'fixed' | 'hourly';
-  budget: number;
-  duration: string;
-  workType?: string[];
-  experienceLevel?: string;
-  clientId: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-  };
-  status: string;
-  analytics: {
-    views: number;
-    applications: number;
-    saves: number;
-  };
-  proposals: any[];
-  attachments: any[];
-  postedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { projectsService, authService, IProject } from '@/lib/api';
+import { contractsService } from '@/lib/api';
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id as string;
   
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<IProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -88,7 +54,7 @@ export default function ProjectDetailPage() {
       setLoading(true);
       setError(null);
       
-      const response = await projectAPI.getProject(projectId);
+      const response = await projectsService.getProjectById(projectId);
       setProject(response);
     } catch (err: any) {
       console.error('Failed to fetch project:', err);
@@ -100,7 +66,7 @@ export default function ProjectDetailPage() {
 
   const fetchUser = async () => {
     try {
-      const userData = await authAPI.getCurrentUser();
+      const userData = await authService.getProfile();
       setUser(userData);
     } catch (err) {
       console.error('Failed to fetch user:', err);
@@ -122,9 +88,9 @@ export default function ProjectDetailPage() {
     
     try {
       setLoadingContract(true);
-      const response = await contractAPI.getContracts({ projectId: project._id });
-      if (response.contracts && response.contracts.length > 0) {
-        setProjectContract(response.contracts[0]);
+      const contracts = await contractsService.getContractsByProject(project._id);
+      if (contracts && contracts.length > 0) {
+        setProjectContract(contracts[0]);
       }
     } catch (error) {
       console.error('Failed to fetch project contract:', error);
@@ -214,7 +180,7 @@ export default function ProjectDetailPage() {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
-                <p className="text-gray-600">Posted by {project.clientId.firstName} {project.clientId.lastName}</p>
+                <p className="text-gray-600">Posted by {typeof project.clientId === 'object' ? `${project.clientId.firstName} ${project.clientId.lastName}` : 'Client'}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -256,7 +222,7 @@ export default function ProjectDetailPage() {
               <div className="mb-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-3">Required Skills</h3>
                 <div className="flex flex-wrap gap-2">
-                  {project.requiredSkills.map((skillObj) => (
+                  {project.requiredSkills?.map((skillObj: { _id: string; skill: string; level: 'beginner' | 'intermediate' | 'expert' }) => (
                     <span
                       key={skillObj._id}
                       className={`px-3 py-1 text-sm font-medium rounded-full border ${
@@ -286,7 +252,7 @@ export default function ProjectDetailPage() {
                 <div className="mb-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-3">Work Type</h3>
                   <div className="flex flex-wrap gap-2">
-                    {project.workType.map((type, index) => (
+                    {project.workType?.map((type: string, index: number) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full border border-blue-200"
@@ -304,7 +270,7 @@ export default function ProjectDetailPage() {
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Attachments</h2>
                 <div className="space-y-2">
-                  {project.attachments.map((attachment: any, index: number) => (
+                  {project.attachments?.map((attachment: string, index: number) => (
                     <div key={index} className="flex items-center p-3 border border-gray-200 rounded-lg">
                       <FileText className="h-5 w-5 text-gray-400 mr-3" />
                       <span className="text-gray-700">{attachment}</span>
@@ -329,8 +295,8 @@ export default function ProjectDetailPage() {
                     <span>Budget</span>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatBudget(project.budget, project.budgetType)}</div>
-                    <div className="text-sm text-gray-600">{project.budgetType === 'fixed' ? 'Fixed Price' : 'Hourly Rate'}</div>
+                    <div className="font-semibold text-gray-900">{formatBudget(project.budget, project.budgetType || 'fixed')}</div>
+                    <div className="text-sm text-gray-600">{(project.budgetType || 'fixed') === 'fixed' ? 'Fixed Price' : 'Hourly Rate'}</div>
                   </div>
                 </div>
 
@@ -340,7 +306,7 @@ export default function ProjectDetailPage() {
                     <Clock className="h-5 w-5 mr-2" />
                     <span>Duration</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{project.duration}</span>
+                  <span className="font-semibold text-gray-900">{project.duration || 'Not specified'}</span>
                 </div>
 
                 {/* Deadline */}
@@ -349,7 +315,7 @@ export default function ProjectDetailPage() {
                     <Calendar className="h-5 w-5 mr-2" />
                     <span>Posted Date</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{formatDate(project.postedAt)}</span>
+                  <span className="font-semibold text-gray-900">{formatDate(project.postedAt || project.createdAt)}</span>
                 </div>
 
                 {/* Proposals */}
@@ -358,7 +324,7 @@ export default function ProjectDetailPage() {
                     <Users className="h-5 w-5 mr-2" />
                     <span>Proposals</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{project.proposals.length}</span>
+                  <span className="font-semibold text-gray-900">{project.proposals?.length || 0}</span>
                 </div>
 
                 {/* Views */}
@@ -367,7 +333,7 @@ export default function ProjectDetailPage() {
                     <Eye className="h-5 w-5 mr-2" />
                     <span>Views</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{project.analytics.views}</span>
+                  <span className="font-semibold text-gray-900">{project.analytics?.views || 0}</span>
                 </div>
 
                 {/* Posted Date */}
@@ -402,11 +368,13 @@ export default function ProjectDetailPage() {
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                   <span className="text-lg font-medium text-gray-600">
-                    {project.clientId.firstName.charAt(0).toUpperCase()}
+                    {typeof project.clientId === 'object' ? project.clientId.firstName.charAt(0).toUpperCase() : 'C'}
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">{project.clientId.firstName} {project.clientId.lastName}</h4>
+                  <h4 className="font-semibold text-gray-900">
+                    {typeof project.clientId === 'object' ? `${project.clientId.firstName} ${project.clientId.lastName}` : 'Client'}
+                  </h4>
                   <div className="flex items-center">
                     <Star className="h-4 w-4 text-yellow-400 fill-current" />
                     <span className="text-sm text-gray-600 ml-1">4.5</span>
@@ -417,7 +385,7 @@ export default function ProjectDetailPage() {
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex justify-between">
                   <span>Client ID:</span>
-                  <span className="font-medium">{project.clientId._id}</span>
+                  <span className="font-medium">{typeof project.clientId === 'object' ? project.clientId._id : project.clientId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Member Since:</span>

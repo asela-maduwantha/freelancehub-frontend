@@ -18,9 +18,9 @@ import {
   MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
-import { clientAPI } from '@/lib/api';
+import { clientsService } from '@/lib/api';
 import ProposalAcceptanceModal from '@/components/ui/ProposalAcceptanceModal';
-import { Contract } from '@/lib/api/types';
+import { IContract } from '@/lib/types';
 
 interface Proposal {
   _id: string;
@@ -88,10 +88,10 @@ export default function ClientProposalsPage() {
   const fetchProposals = async () => {
     try {
       setLoading(true);
-      const response = await clientAPI.getProposals(filters);
-      setProposals(response.data || []);
-      setTotalProposals(response.total || 0);
-      setTotalPages(response.totalPages || 0);
+      const response = await clientsService.getProposals(filters);
+      setProposals(response || []);
+      setTotalProposals(response?.length || 0);
+      setTotalPages(Math.ceil((response?.length || 0) / (filters.limit || 10)));
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch proposals');
@@ -122,7 +122,7 @@ export default function ClientProposalsPage() {
     }
   };
 
-  const handleProposalAcceptance = (contract: Contract) => {
+  const handleProposalAcceptance = (contract: IContract) => {
     // Update the proposal status to accepted
     setProposals(prev => prev.map(proposal =>
       proposal._id === selectedProposal?._id

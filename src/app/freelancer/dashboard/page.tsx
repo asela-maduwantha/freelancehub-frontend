@@ -28,15 +28,27 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { freelancerAPI, authAPI, projectAPI, contractAPI } from '@/lib/api';
+import { usersService, authService, projectsService, contractsService, freelancersService } from '@/lib/api';
 
 interface DashboardStats {
+  totalProjects: number;
   activeProjects: number;
-  totalEarnings: number;
   completedProjects: number;
-  averageRating: number;
-  totalHours: number;
-  pendingPayments: number;
+  totalEarned: number;
+  activeContracts: number;
+  pendingProposals: number;
+  recentProjects: {
+    _id: string;
+    title: string;
+    status: string;
+    createdAt: string;
+    budget: {
+      amount: number;
+    };
+  }[];
+  averageRating?: number;
+  totalHours?: number;
+  pendingPayments?: number;
 }
 
 interface Project {
@@ -113,15 +125,24 @@ export default function FreelancerDashboard() {
 
       // Load dashboard stats
       try {
-        const dashboardResponse = await freelancerAPI.getDashboard();
-        setStats(dashboardResponse.data);
+        const dashboardResponse = await freelancersService.getDashboard();
+        setStats({
+          ...dashboardResponse,
+          averageRating: 0, // Default value since not provided by backend
+          totalHours: 0, // Default value
+          pendingPayments: 0 // Default value
+        });
       } catch (error) {
         console.error('Failed to load dashboard stats:', error);
         // Set default stats if API fails
         setStats({
+          totalProjects: 0,
           activeProjects: 0,
-          totalEarnings: 0,
           completedProjects: 0,
+          totalEarned: 0,
+          activeContracts: 0,
+          pendingProposals: 0,
+          recentProjects: [],
           averageRating: 0,
           totalHours: 0,
           pendingPayments: 0
@@ -130,12 +151,10 @@ export default function FreelancerDashboard() {
 
       // Load active projects (contracts)
       try {
-        const contractsResponse = await contractAPI.getContracts({
-          status: 'active',
-          limit: 5
-        });
+        const contractsResponse = await contractsService.getContracts();
+        const activeContracts = contractsResponse.filter((contract: any) => contract.status === 'active').slice(0, 5);
         
-        const projects = contractsResponse.contracts.map((contract: any) => ({
+        const projects = activeContracts.map((contract: any) => ({
           id: contract.projectId,
           title: contract.terms.scope,
           status: contract.status,
@@ -155,9 +174,9 @@ export default function FreelancerDashboard() {
 
       // Load new opportunities
       try {
-        const projectsResponse = await projectAPI.getProjects({
+        const projectsResponse = await projectsService.getProjects({
           limit: 5,
-          status: 'open'
+          status: ['open']
         });
         
         const opportunities = projectsResponse.data.map((project: any) => ({
@@ -275,7 +294,7 @@ export default function FreelancerDashboard() {
             />
             <StatsCard
               title="Total Earned"
-              value={formatCurrency(stats.totalEarnings)}
+              value={formatCurrency(stats.totalEarned)}
               icon={DollarSign}
               color="blue"
               onClick={() => router.push('/freelancer/payments')}
@@ -296,13 +315,13 @@ export default function FreelancerDashboard() {
             />
             <StatsCard
               title="Hours Worked"
-              value={stats.totalHours}
+              value={stats.totalHours ?? 0}
               icon={Clock}
               color="indigo"
             />
             <StatsCard
               title="Pending"
-              value={formatCurrency(stats.pendingPayments)}
+              value={formatCurrency(stats.pendingPayments ?? 0)}
               icon={TrendingUp}
               color="orange"
               onClick={() => router.push('/freelancer/payments')}
