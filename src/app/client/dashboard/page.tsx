@@ -108,7 +108,7 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 
       <div className="flex items-center justify-between text-xs text-gray-600">
         <div className="flex items-center space-x-3">
-          <span>Budget: ${project.budget.amount.toLocaleString()}</span>
+          <span>Budget: ${project.budget.amount?.toLocaleString()}</span>
           {project.proposalsCount !== undefined && (
             <span>{project.proposalsCount} proposals</span>
           )}
