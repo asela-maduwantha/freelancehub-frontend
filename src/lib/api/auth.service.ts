@@ -54,13 +54,6 @@ export class AuthService {
   }
 
   /**
-   * Send email OTP for verification
-   */
-  async sendEmailOTP(data: { email: string; type: string }): Promise<IApiResponse> {
-    return apiClient.post('/auth/send-otp', data);
-  }
-
-  /**
    * Refresh access token
    */
   async refreshToken(refreshToken: string): Promise<AuthResponse> {

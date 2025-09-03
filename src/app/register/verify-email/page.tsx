@@ -32,13 +32,9 @@ function VerifyEmailContent() {
     setResendMessage('');
 
     try {
-      // Make API call to resend verification email
-      await authService.sendEmailOTP({
-        email,
-        type: 'verification'
-      });
-
-      setResendMessage('Verification email sent successfully!');
+      // Since the backend automatically sends OTP during registration,
+      // we'll show a message instead of making an API call
+      setResendMessage('A verification email has been sent to your email address. Please check your inbox and spam folder.');
       setCountdown(60); // 60 second cooldown
     } catch (error: any) {
       console.error('Resend email failed:', error);

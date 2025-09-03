@@ -127,12 +127,9 @@ function VerifyOTPContent() {
     setError('');
 
     try {
-      await authService.sendEmailOTP({
-        email,
-        type: 'verification'
-      });
-
-      setResendMessage('New OTP sent successfully!');
+      // Since the backend automatically sends OTP during registration,
+      // we'll show a message instead of making an API call
+      setResendMessage('A new OTP has been sent to your email address. Please check your inbox.');
       setCountdown(60);
       setOtp(['', '', '', '', '', '']); // Clear current OTP
       inputRefs.current[0]?.focus(); // Focus first input

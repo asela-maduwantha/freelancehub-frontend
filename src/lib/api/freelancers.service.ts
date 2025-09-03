@@ -87,42 +87,6 @@ export interface IFreelancerProject {
   assignedAt: string;
 }
 
-export interface IFreelancerActiveProject {
-  id: string;
-  title: string;
-  client: {
-    firstName: string;
-    lastName: string;
-  };
-  contract: {
-    totalValue: number;
-    paidAmount: number;
-    remainingAmount: number;
-  };
-  currentMilestone: {
-    title: string;
-    dueDate: string;
-    amount: number;
-  };
-  progress: number;
-  daysRemaining: number;
-  status: string;
-}
-
-export interface IFreelancerCompletedProject {
-  id: string;
-  title: string;
-  client: {
-    firstName: string;
-    lastName: string;
-  };
-  completedAt: string;
-  finalAmount: number;
-  rating?: number;
-  review?: string;
-  testimonial?: string;
-}
-
 // Proposal Types
 export interface IFreelancerProposal {
   id: string;
@@ -191,97 +155,6 @@ export interface IFreelancerDashboard {
   }[];
 }
 
-// Earnings Types
-export interface IFreelancerEarnings {
-  period: string;
-  totalEarnings: number;
-  availableBalance: number;
-  pendingPayments: number;
-  withheldAmount: number;
-  breakdown: {
-    completedProjects: number;
-    bonuses: number;
-    referrals: number;
-  };
-  monthlyTrend: {
-    month: string;
-    earnings: number;
-  }[];
-}
-
-// Analytics Types
-export interface IFreelancerAnalytics {
-  profileViews: number;
-  proposalViews: number;
-  proposalAcceptanceRate: number;
-  averageResponseTime: string;
-  clientSatisfaction: number;
-  skillsDemand: {
-    skill: string;
-    demand: 'low' | 'medium' | 'high';
-    avgRate: number;
-  }[];
-  marketPosition: {
-    rank: number;
-    percentile: number;
-    comparedTo: string;
-  };
-}
-
-// Message Types
-export interface IFreelancerMessage {
-  id: string;
-  projectId: string;
-  projectTitle: string;
-  sender: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-  subject: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  attachments?: {
-    name: string;
-    url: string;
-  }[];
-}
-
-export interface ISendMessageRequest {
-  projectId: string;
-  subject: string;
-  message: string;
-  attachments?: string[];
-}
-
-// Skills & Portfolio Types
-export interface ISkillEndorsement {
-  skill: string;
-  endorsements: {
-    client: {
-      firstName: string;
-      lastName: string;
-    };
-    project: string;
-    comment: string;
-    endorsedAt: string;
-  }[];
-  endorsementCount: number;
-}
-
-export interface IPortfolioItem {
-  title: string;
-  description: string;
-  projectUrl?: string;
-  sourceUrl?: string;
-  technologies: string[];
-  images?: string[];
-  category: string;
-  completionDate: string;
-}
-
 export interface IFreelancerPublicProfile {
   id: string;
   firstName: string;
@@ -322,20 +195,6 @@ export class FreelancersService {
   }
 
   /**
-   * Complete freelancer profile setup
-   */
-  async completeProfile(data: IFreelancerProfileComplete): Promise<IApiResponse<{ profile: IFreelancerProfile }>> {
-    return apiClient.put('/freelancers/profile/complete', data);
-  }
-
-  /**
-   * Update freelancer availability status
-   */
-  async updateAvailability(data: IFreelancerAvailability): Promise<IApiResponse<{ availability: IFreelancerAvailability }>> {
-    return apiClient.put('/freelancers/availability', data);
-  }
-
-  /**
    * Get projects assigned to current freelancer
    */
   async getAssignedProjects(params?: { page?: number; limit?: number; status?: string }): Promise<IFreelancerProject[]> {
@@ -343,25 +202,11 @@ export class FreelancersService {
   }
 
   /**
-   * Get active projects for freelancer
-   */
-  async getActiveProjects(): Promise<IFreelancerActiveProject[]> {
-    return apiClient.get('/freelancers/projects/active');
-  }
-
-  /**
-   * Get completed projects for freelancer
-   */
-  async getCompletedProjects(params?: { page?: number; limit?: number; year?: number }): Promise<PaginatedApiResponse<IFreelancerCompletedProject>> {
-    return apiClient.get('/freelancers/projects/completed', { params });
-  }
-
-  /**
    * Get current user's proposals (freelancer view)
    */
   async getMyProposals(params?: { page?: number; limit?: number; status?: string }): Promise<IFreelancerProposal[]> {
     const response = await apiClient.get('/proposals/my', { params });
-    
+
     // Handle different response structures
     if (Array.isArray(response)) {
       return response;
@@ -370,7 +215,7 @@ export class FreelancersService {
     } else if (response && typeof response === 'object' && 'proposals' in response && Array.isArray(response.proposals)) {
       return response.proposals;
     }
-    
+
     // If response is not an array, return empty array
     console.warn('Unexpected response structure for getMyProposals:', response);
     return [];
@@ -381,7 +226,7 @@ export class FreelancersService {
    */
   async getMyProjectProposals(params?: { page?: number; limit?: number; status?: string }): Promise<IFreelancerProposal[]> {
     const response = await apiClient.get('/projects/my-proposals', { params });
-    
+
     // Handle different response structures
     if (Array.isArray(response)) {
       return response;
@@ -390,7 +235,7 @@ export class FreelancersService {
     } else if (response && typeof response === 'object' && 'proposals' in response && Array.isArray(response.proposals)) {
       return response.proposals;
     }
-    
+
     // If response is not an array, return empty array
     console.warn('Unexpected response structure for getMyProjectProposals:', response);
     return [];
@@ -409,48 +254,6 @@ export class FreelancersService {
    */
   async getDashboard(): Promise<IFreelancerDashboard> {
     return apiClient.get('/freelancers/dashboard');
-  }
-
-  /**
-   * Get freelancer earnings summary
-   */
-  async getEarnings(params?: { period?: 'week' | 'month' | 'year' | 'all' }): Promise<IFreelancerEarnings> {
-    return apiClient.get('/freelancers/earnings', { params });
-  }
-
-  /**
-   * Get freelancer performance analytics
-   */
-  async getAnalytics(): Promise<IFreelancerAnalytics> {
-    return apiClient.get('/freelancers/analytics');
-  }
-
-  /**
-   * Get freelancer messages and communications
-   */
-  async getMessages(params?: { projectId?: string; unread?: boolean }): Promise<IFreelancerMessage[]> {
-    return apiClient.get('/freelancers/messages', { params });
-  }
-
-  /**
-   * Send message to client
-   */
-  async sendMessage(data: ISendMessageRequest): Promise<IApiResponse<{ messageId: string }>> {
-    return apiClient.post('/freelancers/messages', data);
-  }
-
-  /**
-   * Get skill endorsements from clients
-   */
-  async getSkillEndorsements(): Promise<{ skills: ISkillEndorsement[] }> {
-    return apiClient.get('/freelancers/skills/endorsements');
-  }
-
-  /**
-   * Add portfolio item
-   */
-  async addPortfolioItem(data: IPortfolioItem): Promise<IApiResponse<{ portfolioItem: { id: string; title: string; featured: boolean } }>> {
-    return apiClient.post('/freelancers/portfolio', data);
   }
 
   /**
