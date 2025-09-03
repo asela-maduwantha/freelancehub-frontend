@@ -57,7 +57,7 @@ export default function Hero() {
   }, [controls, displayStats]);
 
   return (
-    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -69,7 +69,7 @@ export default function Hero() {
           transition={{ duration: 4, repeat: Infinity }}
         />
         <motion.div
-          className="absolute top-40 right-20 w-16 h-16 bg-blue-200 rounded-full opacity-20"
+          className="absolute top-40 right-20 w-16 h-16 bg-green-200 rounded-full opacity-20"
           animate={{
             y: [0, 20, 0],
             scale: [1, 0.9, 1],

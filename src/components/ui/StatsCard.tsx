@@ -7,7 +7,7 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  color: 'green' | 'blue' | 'purple' | 'yellow' | 'red' | 'indigo' | 'orange';
+  color: 'green' | 'green' | 'purple' | 'yellow' | 'red' | 'indigo' | 'orange';
   change?: {
     value: number;
     period: string;
@@ -21,10 +21,10 @@ const colorClasses = {
     icon: 'text-green-600',
     text: 'text-green-700'
   },
-  blue: {
-    bg: 'bg-blue-100',
-    icon: 'text-blue-600',
-    text: 'text-blue-700'
+  green: {
+    bg: 'bg-green-100',
+    icon: 'text-green-600',
+    text: 'text-green-700'
   },
   purple: {
     bg: 'bg-purple-100',

@@ -24,3 +24,18 @@ export interface FreelancerProfileResponse {
   data: import('../entities/freelancer.types').FreelancerProfile;
   message?: string;
 }
+
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface ProjectsResponse {
+  data: {
+    projects: import('../entities/project.types').IProject[];
+    pagination: PaginationInfo;
+  };
+  timestamp: string;
+}

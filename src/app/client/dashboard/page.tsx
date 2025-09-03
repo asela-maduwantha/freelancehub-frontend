@@ -69,7 +69,7 @@ interface Proposal {
 const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'open': return 'bg-green-100 text-green-800 border-green-200';
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
       case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
@@ -198,6 +198,7 @@ export default function ClientDashboard() {
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [recentProposals, setRecentProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -211,115 +212,23 @@ export default function ClientDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Try to load real data from API
+      setIsLoading(true);
       const dashboardData = await clientsService.getDashboard();
-      if (dashboardData && dashboardData.totalProjects !== undefined) {
-        setStats({
-          totalProjects: dashboardData.totalProjects || 0,
-          activeProjects: dashboardData.activeProjects || 0,
-          completedProjects: dashboardData.completedProjects || 0,
-          totalSpent: dashboardData.totalSpent || 0,
-          activeContracts: dashboardData.activeContracts || 0,
-          pendingProposals: dashboardData.pendingProposals || 0
-        });
-        setRecentProjects(dashboardData.recentProjects || []);
-        setRecentProposals(dashboardData.recentProposals || []);
-      } else {
-        console.log('API returned empty or invalid data, using mock data');
-        // Mock data for demonstration
-        setStats({
-          totalProjects: 12,
-          activeProjects: 3,
-          completedProjects: 9,
-          totalSpent: 8500,
-          activeContracts: 5,
-          pendingProposals: 8
-        });
-
-        setRecentProjects([
-          {
-            _id: '1',
-            title: 'Build E-commerce Website with Advanced Features',
-            status: 'active',
-            createdAt: '2024-01-15',
-            budget: { amount: 2500 },
-            proposalsCount: 12,
-            deadline: '2024-02-15'
-          },
-          {
-            _id: '2',
-            title: 'Mobile App UI/UX Design',
-            status: 'open',
-            createdAt: '2024-01-10',
-            budget: { amount: 1200 },
-            proposalsCount: 8
-          },
-          {
-            _id: '3',
-            title: 'Content Writing for Blog',
-            status: 'completed',
-            createdAt: '2024-01-05',
-            budget: { amount: 800 },
-            proposalsCount: 15
-          },
-          {
-            _id: '4',
-            title: 'SEO Optimization & Marketing',
-            status: 'active',
-            createdAt: '2024-01-20',
-            budget: { amount: 1500 },
-            proposalsCount: 6
-          }
-        ]);
-
-        setRecentProposals([
-          {
-            _id: '1',
-            freelancer: {
-              firstName: 'John',
-              lastName: 'Developer',
-              avatar: '/user.jpg',
-              rating: 4.9
-            },
-            projectId: {
-              title: 'Build E-commerce Website'
-            },
-            proposedBudget: 2200,
-            createdAt: new Date().toISOString()
-          },
-          {
-            _id: '2',
-            freelancer: {
-              firstName: 'Sarah',
-              lastName: 'Designer',
-              avatar: '/user.jpg',
-              rating: 4.8
-            },
-            projectId: {
-              title: 'Mobile App UI/UX Design'
-            },
-            proposedBudget: 1100,
-            createdAt: new Date(Date.now() - 86400000).toISOString()
-          },
-          {
-            _id: '3',
-            freelancer: {
-              firstName: 'Michael',
-              lastName: 'Writer',
-              avatar: '/user.jpg',
-              rating: 4.7
-            },
-            projectId: {
-              title: 'Content Writing for Blog'
-            },
-            proposedBudget: 750,
-            createdAt: new Date(Date.now() - 172800000).toISOString()
-          }
-        ]);
-      }
+      
+      setStats({
+        totalProjects: dashboardData.totalProjects || 0,
+        activeProjects: dashboardData.activeProjects || 0,
+        completedProjects: dashboardData.completedProjects || 0,
+        totalSpent: dashboardData.totalSpent || 0,
+        activeContracts: dashboardData.activeContracts || 0,
+        pendingProposals: dashboardData.pendingProposals || 0
+      });
+      setRecentProjects(dashboardData.recentProjects || []);
+      setRecentProposals(dashboardData.recentProposals || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      // Fallback to mock data
+      setError('Failed to load dashboard data. Please try again.');
+      // Set empty state instead of mock data
       setStats({
         totalProjects: 0,
         activeProjects: 0,
@@ -328,6 +237,8 @@ export default function ClientDashboard() {
         activeContracts: 0,
         pendingProposals: 0
       });
+      setRecentProjects([]);
+      setRecentProposals([]);
     } finally {
       setIsLoading(false);
     }
@@ -336,7 +247,24 @@ export default function ClientDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadDashboardData} className="bg-green-600 hover:bg-green-700">
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -361,7 +289,7 @@ export default function ClientDashboard() {
             </Button>
           </Link>
           <Link href="/client/projects/new">
-            <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700">
+            <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4" />
               <span>Post New Project</span>
             </Button>
@@ -377,7 +305,7 @@ export default function ClientDashboard() {
           icon={Briefcase}
           change="+2 this month"
           changeType="positive"
-          gradient="bg-gradient-to-r from-blue-500 to-blue-600"
+          gradient="bg-gradient-to-r from-green-500 to-green-600"
         />
         <StatCard
           title="Active Projects"
@@ -422,17 +350,17 @@ export default function ClientDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+      <div className="bg-gradient-to-r from-green-50 to-indigo-50 rounded-xl p-6 border border-green-100">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link href="/client/projects/new">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-300 cursor-pointer transition-all"
+              className="bg-white rounded-lg p-4 border border-green-200 hover:border-green-300 cursor-pointer transition-all"
             >
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Plus className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Plus className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Post a Project</h3>
@@ -485,16 +413,30 @@ export default function ClientDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Recent Projects</h2>
             <Link href="/client/projects">
-              <Button variant="ghost" className="text-blue-600 hover:text-blue-700">
+              <Button variant="ghost" className="text-green-600 hover:text-green-700">
                 View All
                 <ArrowUpRight className="h-4 w-4 ml-1" />
               </Button>
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {recentProjects.map((project) => (
-              <ProjectCard key={project._id} project={project} />
-            ))}
+            {recentProjects.length > 0 ? (
+              recentProjects.map((project) => (
+                <ProjectCard key={project._id} project={project} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No projects yet</h3>
+                <p className="text-gray-600 mb-4">Start by posting your first project to find talented freelancers.</p>
+                <Link href="/client/projects/new">
+                  <Button className="bg-green-600 hover:bg-green-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Post Your First Project
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -503,50 +445,93 @@ export default function ClientDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Latest Proposals</h2>
             <Link href="/client/proposals">
-              <Button variant="ghost" className="text-blue-600 hover:text-blue-700">
+              <Button variant="ghost" className="text-green-600 hover:text-green-700">
                 View All
                 <ArrowUpRight className="h-4 w-4 ml-1" />
               </Button>
             </Link>
           </div>
           <div className="space-y-4">
-            {recentProposals.map((proposal) => (
-              <ProposalCard key={proposal._id} proposal={proposal} />
-            ))}
+            {recentProposals.length > 0 ? (
+              recentProposals.map((proposal) => (
+                <ProposalCard key={proposal._id} proposal={proposal} />
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No proposals yet</h3>
+                <p className="text-gray-600 mb-4">Proposals from freelancers will appear here once you post projects.</p>
+                <Link href="/client/projects">
+                  <Button variant="outline">
+                    View Your Projects
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Activity Feed */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
+          <Button variant="ghost" className="text-green-600 hover:text-green-700">
+            View All
+            <ArrowUpRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
         <div className="space-y-4">
-          <div className="flex items-start space-x-4">
+          <div className="flex items-start space-x-4 p-4 bg-green-50 rounded-lg border border-green-100">
             <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-green-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">Project "Mobile App UI Design" was completed</p>
-              <p className="text-xs text-gray-500">2 hours ago</p>
+              <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
             </div>
+            <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
+              View
+            </Button>
           </div>
-          <div className="flex items-start space-x-4">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <MessageSquare className="h-4 w-4 text-blue-600" />
+          
+          <div className="flex items-start space-x-4 p-4 bg-green-50 rounded-lg border border-green-100">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <MessageSquare className="h-5 w-5 text-green-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">New message from John Developer</p>
-              <p className="text-xs text-gray-500">5 hours ago</p>
+              <p className="text-xs text-gray-500 mt-1">5 hours ago</p>
             </div>
+            <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
+              Reply
+            </Button>
           </div>
-          <div className="flex items-start space-x-4">
+          
+          <div className="flex items-start space-x-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <FileText className="h-4 w-4 text-purple-600" />
+              <FileText className="h-5 w-5 text-purple-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">3 new proposals received for "E-commerce Website"</p>
-              <p className="text-xs text-gray-500">1 day ago</p>
+              <p className="text-xs text-gray-500 mt-1">1 day ago</p>
             </div>
+            <Button variant="ghost" size="sm" className="text-purple-600 hover:text-purple-700">
+              Review
+            </Button>
+          </div>
+          
+          <div className="flex items-start space-x-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Star className="h-5 w-5 text-yellow-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Sarah Tech left a 5-star review</p>
+              <p className="text-xs text-gray-500 mt-1">2 days ago</p>
+            </div>
+            <Button variant="ghost" size="sm" className="text-yellow-600 hover:text-yellow-700">
+              View
+            </Button>
           </div>
         </div>
       </div>

@@ -288,7 +288,7 @@ export default function ReviewsPage() {
       title: 'Type',
       render: (value: boolean) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+          value ? 'bg-green-100 text-green-800' : 'bg-green-100 text-green-800'
         }`}>
           {value ? 'Received' : 'Given'}
         </span>
@@ -376,7 +376,7 @@ export default function ReviewsPage() {
                   <p className="text-sm font-medium text-gray-600">Reviews Given</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalGiven}</p>
                 </div>
-                <MessageSquare className="h-8 w-8 text-blue-400" />
+                <MessageSquare className="h-8 w-8 text-green-400" />
               </div>
             </div>
 
@@ -475,7 +475,7 @@ export default function ReviewsPage() {
           actions={actions}
           onRowClick={(review) => router.push(`/freelancer/reviews/${review.id}`)}
           rowClassName={(review) => 
-            review.isReceived ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
+            review.isReceived ? 'bg-green-50 border-green-200' : 'bg-green-50 border-green-200'
           }
         />
 

@@ -533,7 +533,7 @@ export default function DisputesPage() {
                 <p className="text-sm font-medium text-gray-600">Avg. Resolution</p>
                 <p className="text-lg font-bold text-gray-900">{stats.averageResolutionTime}</p>
               </div>
-              <Calendar className="h-8 w-8 text-blue-400" />
+              <Calendar className="h-8 w-8 text-green-400" />
             </div>
           </div>
         </div>

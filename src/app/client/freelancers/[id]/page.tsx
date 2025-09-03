@@ -19,11 +19,27 @@ import {
   ThumbsDown,
   Calendar,
   Mail,
-  Globe
+  Globe,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
-import { freelancersService, reviewsService } from '@/lib/api';
+import { usersService } from '@/lib/api/users.service';
+import { reviewsService } from '@/lib/api/reviews.service';
 import { Review } from '@/lib/types';
+
+const mapAvailability = (apiAvailability: string): 'AVAILABLE' | 'PART_TIME' | 'BUSY' | 'UNAVAILABLE' => {
+  switch (apiAvailability) {
+    case 'available':
+      return 'AVAILABLE';
+    case 'part-time':
+      return 'PART_TIME';
+    case 'full-time':
+      return 'BUSY';
+    case 'not-available':
+    default:
+      return 'UNAVAILABLE';
+  }
+};
 
 interface FreelancerProfile {
   id: string;
@@ -60,6 +76,7 @@ export default function FreelancerProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -74,33 +91,48 @@ export default function FreelancerProfilePage() {
 
   const loadFreelancerProfile = async () => {
     try {
-      // In a real implementation, this would fetch freelancer profile
-      // For now, using mock data
-      const mockFreelancer: FreelancerProfile = {
-        id: freelancerId,
-        firstName: 'John',
-        lastName: 'Developer',
-        title: 'Full Stack Developer',
-        bio: 'Experienced full-stack developer with 5+ years of experience in React, Node.js, and cloud technologies. I specialize in building scalable web applications and have worked with startups and enterprises alike.',
-        skills: ['React', 'Node.js', 'TypeScript', 'MongoDB', 'AWS', 'Docker', 'GraphQL'],
-        hourlyRate: 75,
-        rating: 4.9,
-        totalReviews: 127,
-        completedProjects: 89,
-        location: {
-          country: 'USA',
-          city: 'San Francisco'
-        },
-        availability: 'AVAILABLE',
-        memberSince: '2020-03-15T00:00:00Z',
-        email: 'john@example.com',
-        portfolio: 'https://johndeveloper.dev',
-        languages: ['English', 'Spanish'],
-        experience: 'Senior Developer with 5+ years of experience'
-      };
-      setFreelancer(mockFreelancer);
+      // Try to get freelancer data from API first
+      const freelancersResponse = await usersService.getFreelancers();
+      const freelancers = freelancersResponse.data || freelancersResponse || [];
+      const freelancerData = freelancers.find((f: any) => f._id === freelancerId || f.id === freelancerId);
+      
+      if (freelancerData) {
+        // Map the API response to FreelancerProfile format
+        const mappedFreelancer: FreelancerProfile = {
+          id: freelancerData._id,
+          firstName: freelancerData.firstName,
+          lastName: freelancerData.lastName,
+          profilePicture: freelancerData.profilePicture,
+          title: freelancerData.freelancerProfile?.title || 'Freelancer',
+          bio: freelancerData.freelancerProfile?.bio || '',
+          skills: freelancerData.freelancerProfile?.skills || [],
+          hourlyRate: freelancerData.freelancerProfile?.hourlyRate || 0,
+          rating: freelancerData.stats?.avgRating || 0,
+          totalReviews: freelancerData.stats?.avgRating ? 1 : 0, // Placeholder since totalReviews isn't in stats
+          completedProjects: freelancerData.stats?.projectsCompleted || 0,
+          location: {
+            country: freelancerData.location?.country || '',
+            city: freelancerData.location?.city || ''
+          },
+          availability: mapAvailability(freelancerData.freelancerProfile?.availability || 'not-available'),
+          memberSince: freelancerData.createdAt,
+          email: freelancerData.email,
+          portfolio: freelancerData.freelancerProfile?.portfolio?.map(p => p.title).join(', ') || '',
+          languages: freelancerData.languages?.map(lang => lang.language) || [],
+          experience: freelancerData.freelancerProfile?.experience || 'beginner'
+        };
+        
+        setFreelancer(mappedFreelancer);
+        setError(null); // Clear any previous errors
+      } else {
+        // If freelancer not found in API, show error
+        throw new Error('Freelancer not found');
+      }
     } catch (error) {
       console.error('Failed to load freelancer profile:', error);
+      setError('Failed to load freelancer profile. Please try again.');
+      // Set empty freelancer state
+      setFreelancer(null);
     }
   };
 
@@ -108,74 +140,11 @@ export default function FreelancerProfilePage() {
     try {
       const response = await reviewsService.getUserReviews(freelancerId, { reviewType: 'freelancer' });
       setReviews((response as any).data || []);
+      setError(null); // Clear any previous errors
     } catch (error) {
       console.error('Failed to load freelancer reviews:', error);
-      // Mock reviews for demonstration
-      const mockReviews: Review[] = [
-        {
-          id: '1',
-          reviewerId: 'client-1',
-          revieweeId: freelancerId,
-          projectId: 'project-1',
-          rating: 5,
-          review: 'John was excellent to work with! He delivered the project on time and exceeded our expectations. Great communication throughout the project.',
-          reviewType: 'freelancer',
-          createdAt: '2024-01-25T00:00:00Z',
-          reviewer: {
-            id: 'client-1',
-            firstName: 'Sarah',
-            lastName: 'Johnson',
-            avatar: '/user.jpg'
-          },
-          project: {
-            id: 'project-1',
-            title: 'E-commerce Website'
-          }
-        },
-        {
-          id: '2',
-          reviewerId: 'client-2',
-          revieweeId: freelancerId,
-          projectId: 'project-2',
-          rating: 5,
-          review: 'Professional and skilled developer. The code quality was outstanding and he was very responsive to feedback.',
-          reviewType: 'freelancer',
-          createdAt: '2024-01-20T00:00:00Z',
-          reviewer: {
-            id: 'client-2',
-            firstName: 'Mike',
-            lastName: 'Chen',
-            avatar: '/user.jpg'
-          },
-          project: {
-            id: 'project-2',
-            title: 'Mobile App Backend'
-          }
-        },
-        {
-          id: '3',
-          reviewerId: 'client-3',
-          revieweeId: freelancerId,
-          projectId: 'project-3',
-          rating: 4,
-          review: 'Good work overall. There were some minor delays but the final product was solid. Would work with again.',
-          reviewType: 'freelancer',
-          createdAt: '2024-01-15T00:00:00Z',
-          reviewer: {
-            id: 'client-3',
-            firstName: 'Emma',
-            lastName: 'Davis',
-            avatar: '/user.jpg'
-          },
-          project: {
-            id: 'project-3',
-            title: 'API Development'
-          }
-        }
-      ];
-      setReviews(mockReviews);
-    } finally {
-      setIsLoading(false);
+      setError('Failed to load reviews. Please try again.');
+      setReviews([]); // Set empty array instead of mock data
     }
   };
 
@@ -214,7 +183,7 @@ export default function FreelancerProfilePage() {
   const getAvailabilityColor = (availability: string) => {
     switch (availability) {
       case 'AVAILABLE': return 'bg-green-100 text-green-800';
-      case 'PART_TIME': return 'bg-blue-100 text-blue-800';
+      case 'PART_TIME': return 'bg-green-100 text-green-800';
       case 'BUSY': return 'bg-yellow-100 text-yellow-800';
       case 'UNAVAILABLE': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -222,6 +191,23 @@ export default function FreelancerProfilePage() {
   };
 
   if (!user || isLoading || !freelancer) {
+    if (error) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <AlertTriangle className="h-12 w-12 mx-auto" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Profile</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-green-500 hover:bg-green-600">
+              Try Again
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -375,7 +361,7 @@ export default function FreelancerProfilePage() {
                     {freelancer.skills.map((skill, index) => (
                       <span
                         key={index}
-                        className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                        className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium"
                       >
                         {skill}
                       </span>
@@ -420,7 +406,7 @@ export default function FreelancerProfilePage() {
                             href={freelancer.portfolio}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-green-600 hover:text-green-800"
                           >
                             {freelancer.portfolio}
                           </a>

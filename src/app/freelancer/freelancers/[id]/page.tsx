@@ -312,7 +312,7 @@ export default function FreelancerDetailPage() {
               className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6"
             >
               <div className="text-center">
-                <div className="w-24 h-24 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                <div className="w-24 h-24 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                   {freelancer.firstName[0]}{freelancer.lastName[0]}
                 </div>
                 
@@ -330,7 +330,7 @@ export default function FreelancerDetailPage() {
                 </div>
                 
                 <p className="text-gray-600 mb-4">@{freelancer.username}</p>
-                <p className="text-blue-600 font-medium mb-4">{freelancer.title}</p>
+                <p className="text-green-600 font-medium mb-4">{freelancer.title}</p>
 
                 <div className="flex items-center justify-center mb-4">
                   {renderStars(Math.round(freelancer.stats.averageRating))}
@@ -450,9 +450,9 @@ export default function FreelancerDetailPage() {
                       href={freelancer.socialLinks.linkedin} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                      className="p-2 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
                     >
-                      <Linkedin className="h-5 w-5 text-blue-700" />
+                      <Linkedin className="h-5 w-5 text-green-700" />
                     </a>
                   )}
                   {freelancer.socialLinks.website && (
@@ -526,7 +526,7 @@ export default function FreelancerDetailPage() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Experience Level</h3>
                       <span className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
                         freelancer.experience === 'expert' ? 'bg-purple-100 text-purple-800' :
-                        freelancer.experience === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+                        freelancer.experience === 'intermediate' ? 'bg-green-100 text-green-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         <Award className="h-4 w-4 mr-2" />
@@ -564,7 +564,7 @@ export default function FreelancerDetailPage() {
                           <p className="text-gray-600 mb-4">{project.description}</p>
                           <div className="flex flex-wrap gap-2 mb-4">
                             {project.technologies.map((tech) => (
-                              <span key={tech} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <span key={tech} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 {tech}
                               </span>
                             ))}

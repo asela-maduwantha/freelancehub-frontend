@@ -16,7 +16,9 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  User
 } from 'lucide-react';
 import Link from 'next/link';
 import { paymentsService, PaymentStats } from '@/lib/api/payments.service';
@@ -31,6 +33,7 @@ export default function ClientPaymentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [filteredPayments, setFilteredPayments] = useState<IPayment[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -49,87 +52,13 @@ export default function ClientPaymentsPage() {
 
   const loadPayments = async () => {
     try {
+      setIsLoading(true);
       const response = await paymentsService.getPayments();
-      setPayments((response as any).data || []);
+      setPayments((response as any).data || response || []);
     } catch (error) {
       console.error('Failed to load payments:', error);
-      // Mock data for demonstration
-      const mockPayments: IPayment[] = [
-        {
-          _id: '1',
-          id: '1',
-          contractId: 'contract-1',
-          payeeId: 'freelancer-1',
-          payerId: 'client-1',
-          projectId: 'project-1',
-          milestoneId: 'milestone-1',
-          amount: 550,
-          currency: 'USD',
-          status: 'completed',
-          type: 'milestone',
-          stripePaymentIntentId: 'pi_1234567890',
-          createdAt: '2024-01-25T10:00:00Z',
-          completedAt: '2024-01-25T10:05:00Z',
-          contract: {
-            id: 'contract-1',
-            title: 'Build E-commerce Website'
-          },
-          freelancer: {
-            id: 'freelancer-1',
-            firstName: 'John',
-            lastName: 'Developer'
-          }
-        },
-        {
-          _id: '2',
-          id: '2',
-          contractId: 'contract-2',
-          payeeId: 'freelancer-2',
-          payerId: 'client-1',
-          projectId: 'project-2',
-          milestoneId: 'milestone-2',
-          amount: 1100,
-          currency: 'USD',
-          status: 'completed',
-          type: 'milestone',
-          stripePaymentIntentId: 'pi_0987654321',
-          createdAt: '2024-02-10T14:30:00Z',
-          completedAt: '2024-02-10T14:35:00Z',
-          contract: {
-            id: 'contract-2',
-            title: 'Mobile App UI Design'
-          },
-          freelancer: {
-            id: 'freelancer-2',
-            firstName: 'Sarah',
-            lastName: 'Designer'
-          }
-        },
-        {
-          _id: '3',
-          id: '3',
-          contractId: 'contract-1',
-          payeeId: 'freelancer-1',
-          payerId: 'client-1',
-          projectId: 'project-1',
-          milestoneId: 'milestone-3',
-          amount: 1100,
-          currency: 'USD',
-          status: 'pending',
-          type: 'milestone',
-          createdAt: '2024-02-15T09:00:00Z',
-          contract: {
-            id: 'contract-1',
-            title: 'Build E-commerce Website'
-          },
-          freelancer: {
-            id: 'freelancer-1',
-            firstName: 'John',
-            lastName: 'Developer'
-          }
-        }
-      ];
-      setPayments(mockPayments);
+      setError('Failed to load payments. Please try again.');
+      setPayments([]);
     } finally {
       setIsLoading(false);
     }
@@ -138,34 +67,11 @@ export default function ClientPaymentsPage() {
   const loadStats = async () => {
     try {
       const response = await paymentsService.getPaymentStats();
-      setStats((response as any).data);
+      setStats((response as any).data || response);
     } catch (error) {
       console.error('Failed to load payment stats:', error);
-      // Mock stats for demonstration
-      const mockStats: PaymentStats = {
-        totalPaid: 1650,
-        totalReceived: 1650,
-        pendingPayments: 1,
-        completedPayments: 2,
-        totalPending: 1100,
-        totalFailed: 0,
-        paymentCount: 3,
-        averagePayment: 825,
-        monthlyStats: [
-          {
-            month: '2024-01',
-            amount: 550,
-            count: 1
-          },
-          {
-            month: '2024-02',
-            amount: 1650,
-            count: 2
-          }
-        ],
-        currency: 'USD'
-      };
-      setStats(mockStats);
+      setError('Failed to load payment statistics. Please try again.');
+      setStats(null);
     }
   };
 
@@ -187,7 +93,7 @@ export default function ClientPaymentsPage() {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
+      case 'processing': return 'bg-green-100 text-green-800';
       case 'failed': return 'bg-red-100 text-red-800';
       case 'cancelled': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -237,6 +143,23 @@ export default function ClientPaymentsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Payments</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => { loadPayments(); loadStats(); }} className="bg-green-600 hover:bg-green-700">
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -321,12 +244,12 @@ export default function ClientPaymentsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                  <p className="text-2xl font-bold text-blue-600 font-poppins">
+                  <p className="text-2xl font-bold text-green-600 font-poppins">
                     {stats.paymentCount}
                   </p>
                 </div>
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <CreditCard className="h-6 w-6 text-blue-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CreditCard className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </div>
@@ -384,14 +307,30 @@ export default function ClientPaymentsPage() {
         </div>
 
         {/* Payments List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 font-poppins">
-              Payment History ({filteredPayments.length})
-            </h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900 font-poppins">
+                Payment History ({filteredPayments.length})
+              </h2>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span>Completed</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <span>Pending</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span>Processing</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-100">
             {filteredPayments.length > 0 ? (
               filteredPayments.map((payment) => (
                 <motion.div
@@ -401,73 +340,108 @@ export default function ClientPaymentsPage() {
                   className="p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-6">
+                      {/* Status Indicator */}
+                      <div className={`flex-shrink-0 w-4 h-4 rounded-full ${
+                        payment.status === 'completed' ? 'bg-green-500' :
+                        payment.status === 'pending' ? 'bg-yellow-500' :
+                        payment.status === 'processing' ? 'bg-green-500' :
+                        payment.status === 'failed' ? 'bg-red-500' :
+                        'bg-gray-500'
+                      }`}></div>
+
+                      {/* Payment Icon */}
                       <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                          <DollarSign className="h-5 w-5 text-gray-500" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <DollarSign className="h-6 w-6 text-white" />
                         </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 font-poppins">
-                          {formatCurrency(payment.amount, payment.currency)}
-                        </h3>
-                        <p className="text-gray-600">{payment.contract?.title || 'Unknown Project'}</p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                          <span>{payment.freelancer?.firstName || 'Unknown'} {payment.freelancer?.lastName || 'Freelancer'}</span>
-                          <span>•</span>
-                          <span>{formatDate(payment.createdAt)}</span>
+
+                      {/* Payment Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-4 mb-2">
+                          <h3 className="text-xl font-semibold text-gray-900 font-poppins">
+                            {formatCurrency(payment.amount, payment.currency)}
+                          </h3>
+                          <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+                            payment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            payment.status === 'processing' ? 'bg-green-100 text-green-800' :
+                            payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {getStatusIcon(payment.status)}
+                            <span className="ml-2 capitalize">{payment.status}</span>
+                          </div>
+                        </div>
+                        <p className="text-gray-600 font-medium mb-1">{payment.contract?.title || 'Unknown Project'}</p>
+                        <div className="flex items-center space-x-6 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-1" />
+                            <span>{payment.freelancer?.firstName || 'Unknown'} {payment.freelancer?.lastName || 'Freelancer'}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            <span>{formatDate(payment.createdAt)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(payment.status)}`}>
-                        {getStatusIcon(payment.status)}
-                        <span className="ml-1 capitalize">{payment.status}</span>
-                      </div>
-
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Details
+                    {/* Actions */}
+                    <div className="flex items-center space-x-3">
+                      <Button variant="outline" size="sm" className="px-4 py-2">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Details
+                      </Button>
+                      {payment.status === 'pending' && (
+                        <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 px-4 py-2">
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Cancel
                         </Button>
-                        {payment.status === 'pending' && (
-                          <Button variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50">
-                            <XCircle className="h-4 w-4 mr-1" />
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
+                      )}
+                      {payment.status === 'completed' && (
+                        <Button variant="outline" size="sm" className="border-green-300 text-green-600 hover:bg-green-50 px-4 py-2">
+                          <Download className="h-4 w-4 mr-2" />
+                          Receipt
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </motion.div>
               ))
             ) : (
-              <div className="text-center py-12">
-                <CreditCard className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
-                <p className="text-gray-500 mb-6">
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-100 to-purple-100 rounded-full mb-6">
+                  <CreditCard className="h-12 w-12 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+                  {statusFilter === 'all' && projectFilter === 'all' ? 'No payments yet' : 'No payments found'}
+                </h3>
+                <p className="text-gray-500 mb-8 text-lg max-w-md mx-auto">
                   {statusFilter === 'all' && projectFilter === 'all'
                     ? 'Payments will appear here once you start making payments to freelancers'
                     : 'No payments match your current filters'
                   }
                 </p>
-                <div className="flex justify-center space-x-4">
+                <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
                   <Link href="/client/contracts">
-                    <Button variant="premium" className="font-poppins">
+                    <Button variant="premium" className="px-8 py-3 text-lg">
                       View Contracts
                     </Button>
                   </Link>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setStatusFilter('all');
-                      setProjectFilter('all');
-                    }}
-                    className="font-inter"
-                  >
-                    Clear Filters
-                  </Button>
+                  {(statusFilter !== 'all' || projectFilter !== 'all') && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setStatusFilter('all');
+                        setProjectFilter('all');
+                      }}
+                      className="px-6 py-3"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

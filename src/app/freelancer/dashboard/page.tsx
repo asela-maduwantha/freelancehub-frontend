@@ -339,7 +339,7 @@ export default function FreelancerDashboard() {
             title="Total Earned"
             value={formatCurrency(stats.totalEarned)}
             icon={DollarSign}
-            color="blue"
+            color="green"
             onClick={() => router.push('/freelancer/payments')}
           />
           <StatsCard
@@ -455,12 +455,12 @@ export default function FreelancerDashboard() {
 
           {/* New Opportunities */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-green-50 to-indigo-50">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-900 font-poppins">
                   New Opportunities
                 </h2>
-                <Link href="/freelancer/projects" className="text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline transition-colors">
+                <Link href="/freelancer/projects" className="text-green-600 hover:text-green-700 text-sm font-medium hover:underline transition-colors">
                   View All
                 </Link>
               </div>
@@ -469,24 +469,24 @@ export default function FreelancerDashboard() {
               {newOpportunities.length > 0 ? (
                 <div className="space-y-4">
                   {newOpportunities.slice(0, 4).map((opportunity) => (
-                    <div key={opportunity.id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                    <div key={opportunity.id} className="border border-gray-200 rounded-xl p-4 hover:border-green-300 hover:shadow-md transition-all duration-200">
                       <h3 className="font-semibold text-gray-900 mb-3 font-inter">{opportunity.title}</h3>
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-lg font-bold text-blue-600">
+                        <span className="text-lg font-bold text-green-600">
                           {formatCurrency(opportunity.budget.amount, opportunity.budget.currency)}
                         </span>
                         <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{opportunity.proposalCount} proposals</span>
                       </div>
                       <div className="flex flex-wrap gap-1 mb-4">
                         {opportunity.skills.slice(0, 3).map((skill, index) => (
-                          <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                          <span key={index} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                             {skill}
                           </span>
                         ))}
                       </div>
                       <Link 
                         href={`/freelancer/projects/${opportunity.id && typeof opportunity.id === 'string' ? opportunity.id : 'unknown'}`}
-                        className="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-200 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors font-inter"
+                        className="w-full inline-flex items-center justify-center px-4 py-2 border border-green-200 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50 transition-colors font-inter"
                       >
                         View Details
                       </Link>
@@ -524,9 +524,9 @@ export default function FreelancerDashboard() {
                 </Link>
                 <Link 
                   href="/freelancer/profile"
-                  className="w-full inline-flex items-center justify-start px-4 py-3 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-blue-200 hover:text-blue-600 transition-all duration-200 font-inter group"
+                  className="w-full inline-flex items-center justify-start px-4 py-3 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-green-200 hover:text-green-600 transition-all duration-200 font-inter group"
                 >
-                  <Target className="h-5 w-5 mr-3 text-blue-500 group-hover:text-blue-600" />
+                  <Target className="h-5 w-5 mr-3 text-green-500 group-hover:text-green-600" />
                   Update Profile
                 </Link>
               </div>

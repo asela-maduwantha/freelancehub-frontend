@@ -141,7 +141,7 @@ export default function ProjectDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function ProjectDetailPage() {
           <p className="text-gray-600 mb-4">{error || 'The project you are looking for does not exist.'}</p>
           <Link
             href="/freelancer/projects"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Projects
@@ -189,7 +189,7 @@ export default function ProjectDetailPage() {
               </button>
               <button
                 onClick={() => handleSaveProject(project._id)}
-                className="text-gray-400 hover:text-blue-600 transition-colors"
+                className="text-gray-400 hover:text-green-600 transition-colors"
               >
                 {savedProjects.includes(project._id) ? (
                   <Bookmark className="h-5 w-5 fill-current" />
@@ -255,7 +255,7 @@ export default function ProjectDetailPage() {
                     {project.workType?.map((type: string, index: number) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full border border-blue-200"
+                        className="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full border border-green-200"
                       >
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </span>
@@ -354,7 +354,7 @@ export default function ProjectDetailPage() {
                   </span>
                 )}
                 {project.experienceLevel && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
                     {project.experienceLevel}
                   </span>
                 )}
@@ -404,7 +404,7 @@ export default function ProjectDetailPage() {
                 
                 {loadingContract ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mr-2"></div>
                     <span className="text-sm text-gray-600">Checking contract status...</span>
                   </div>
                 ) : projectContract ? (
@@ -434,7 +434,7 @@ export default function ProjectDetailPage() {
                     <div className="pt-3 border-t">
                       <Link
                         href={`/freelancer/contracts/${projectContract._id}`}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium text-sm"
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center font-medium text-sm"
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View Contract
@@ -462,7 +462,7 @@ export default function ProjectDetailPage() {
                   Submit Proposal
                 </Link>
                 
-                <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium">
+                <button className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center font-medium">
                   <Users className="h-5 w-5 mr-2" />
                   Contact Client
                 </button>

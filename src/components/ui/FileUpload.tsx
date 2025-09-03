@@ -246,9 +246,9 @@ export default function EnhancedFileUpload({
   }, []);
 
   const getFileIcon = (file: FileData) => {
-    if (file.mimeType.startsWith('image/')) return <Image className="h-5 w-5 text-blue-500" />;
+    if (file.mimeType.startsWith('image/')) return <Image className="h-5 w-5 text-green-500" />;
     if (file.mimeType === 'application/pdf') return <FileText className="h-5 w-5 text-red-500" />;
-    if (file.mimeType.includes('word') || file.mimeType.includes('document')) return <FileText className="h-5 w-5 text-blue-600" />;
+    if (file.mimeType.includes('word') || file.mimeType.includes('document')) return <FileText className="h-5 w-5 text-green-600" />;
     if (file.mimeType.includes('zip') || file.mimeType.includes('compressed')) return <File className="h-5 w-5 text-yellow-500" />;
     return <File className="h-5 w-5 text-gray-500" />;
   };
@@ -261,7 +261,7 @@ export default function EnhancedFileUpload({
       <div
         className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           isDragOver
-            ? 'border-blue-400 bg-blue-50'
+            ? 'border-green-400 bg-green-50'
             : disabled
             ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
             : 'border-gray-300 hover:border-gray-400 cursor-pointer'
@@ -284,7 +284,7 @@ export default function EnhancedFileUpload({
         <div className="space-y-4">
           <div className="flex justify-center">
             {isUploading ? (
-              <Loader className="h-12 w-12 text-blue-500 animate-spin" />
+              <Loader className="h-12 w-12 text-green-500 animate-spin" />
             ) : (
               <Upload className={`h-12 w-12 ${disabled ? 'text-gray-300' : 'text-gray-400'}`} />
             )}
@@ -353,7 +353,7 @@ export default function EnhancedFileUpload({
                   </div>
                   <div className="flex items-center">
                     {progress.status === 'uploading' && (
-                      <Loader className="h-4 w-4 text-blue-500 animate-spin mr-2" />
+                      <Loader className="h-4 w-4 text-green-500 animate-spin mr-2" />
                     )}
                     {progress.status === 'completed' && (
                       <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
@@ -372,7 +372,7 @@ export default function EnhancedFileUpload({
                 {progress.status === 'uploading' && (
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <motion.div
-                      className="bg-blue-500 h-2 rounded-full"
+                      className="bg-green-500 h-2 rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress.progress}%` }}
                       transition={{ duration: 0.3 }}

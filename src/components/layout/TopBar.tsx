@@ -132,7 +132,7 @@ export default function TopBar() {
             {/* Messages */}
             <Button variant="ghost" size="icon" className="relative">
               <MessageSquare className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 2
               </span>
             </Button>

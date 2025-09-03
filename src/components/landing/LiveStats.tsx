@@ -18,7 +18,7 @@ const defaultStats = [
     label: "Active Freelancers",
     value: 1250,
     suffix: "+",
-    color: "from-blue-500 to-blue-600",
+    color: "from-green-500 to-green-600",
     description: "Verified professionals ready to work",
     increment: 2,
     key: 'totalFreelancers'
@@ -317,7 +317,7 @@ export default function LiveStats() {
                   <div className="flex items-start gap-3">
                     <div className={`w-3 h-3 rounded-full mt-2 ${
                       activity.type === 'hire' ? 'bg-green-500' :
-                      activity.type === 'complete' ? 'bg-blue-500' :
+                      activity.type === 'complete' ? 'bg-green-500' :
                       activity.type === 'join' ? 'bg-purple-500' : 'bg-yellow-500'
                     }`} />
                     <div className="flex-1">

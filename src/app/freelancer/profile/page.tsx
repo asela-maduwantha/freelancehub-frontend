@@ -749,7 +749,7 @@ export default function ProfilePage() {
               ) : (
                 <span className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
                   profile.experience === 'expert' ? 'bg-purple-100 text-purple-800' :
-                  profile.experience === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+                  profile.experience === 'intermediate' ? 'bg-green-100 text-green-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
                   <Award className="h-4 w-4 mr-2" />

@@ -47,7 +47,7 @@ export default function ProfilePreview() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function ProfilePreview() {
           <p className="text-gray-600 mb-4">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
           >
             Try Again
           </button>
@@ -100,7 +100,7 @@ export default function ProfilePreview() {
               <span className="text-sm text-gray-500">This is how clients see your profile</span>
               <Link
                 href="/freelancer/profile/edit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
               >
                 <Edit className="w-4 h-4" />
                 <span>Edit Profile</span>
@@ -117,7 +117,7 @@ export default function ProfilePreview() {
           className="bg-white rounded-lg shadow-sm border overflow-hidden"
         >
           {/* Profile Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
+          <div className="bg-gradient-to-r from-green-600 to-purple-600 p-8 text-white">
             <div className="flex items-center space-x-6">
               <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
                 <User className="w-12 h-12" />
@@ -127,9 +127,9 @@ export default function ProfilePreview() {
                   {user.firstName} {user.lastName}
                 </h1>
                 {user.freelancerProfile?.title && (
-                  <p className="text-xl text-blue-100 mb-2">{user.freelancerProfile.title}</p>
+                  <p className="text-xl text-green-100 mb-2">{user.freelancerProfile.title}</p>
                 )}
-                <p className="text-blue-100">@{user._id}</p>
+                <p className="text-green-100">@{user._id}</p>
               </div>
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function ProfilePreview() {
                       {user.freelancerProfile.skills.map((skill: string) => (
                         <span
                           key={skill}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                          className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
                         >
                           {skill}
                         </span>
@@ -186,7 +186,7 @@ export default function ProfilePreview() {
                     </p>
                     <Link
                       href="/freelancer/profile/portfolio"
-                      className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium"
+                      className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium"
                     >
                       <span>Add Portfolio Items</span>
                       <ExternalLink className="w-4 h-4" />
@@ -246,15 +246,15 @@ export default function ProfilePreview() {
 
                 {/* Availability */}
                 {user.freelancerProfile?.availability && (
-                  <div className="bg-blue-50 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-4">Availability</h3>
+                  <div className="bg-green-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-green-900 mb-4">Availability</h3>
                     <div className="flex items-center space-x-3">
-                      <Clock className="w-6 h-6 text-blue-600" />
+                      <Clock className="w-6 h-6 text-green-600" />
                       <div>
-                        <p className="text-lg font-medium text-blue-900 capitalize">
+                        <p className="text-lg font-medium text-green-900 capitalize">
                           {user.freelancerProfile.availability}
                         </p>
-                        <p className="text-sm text-blue-700">
+                        <p className="text-sm text-green-700">
                           {user.freelancerProfile.availability === 'AVAILABLE' && 'Ready for new projects'}
                           {user.freelancerProfile.availability === 'PART_TIME' && 'Limited availability'}
                           {user.freelancerProfile.availability === 'BUSY' && 'Currently working on projects'}

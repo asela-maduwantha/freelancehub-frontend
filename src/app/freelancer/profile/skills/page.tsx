@@ -99,7 +99,7 @@ export default function SkillsManagement() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -275,7 +275,7 @@ export default function SkillsManagement() {
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         skills.includes(skill)
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                     >
                       {skill}
@@ -285,9 +285,9 @@ export default function SkillsManagement() {
               </div>
 
               {/* Skills Tips */}
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="text-lg font-medium text-blue-900 mb-4">Skills Tips</h3>
-                <ul className="space-y-3 text-sm text-blue-800">
+              <div className="bg-green-50 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-green-900 mb-4">Skills Tips</h3>
+                <ul className="space-y-3 text-sm text-green-800">
                   <li>• Focus on skills that match your target projects</li>
                   <li>• Be honest about your skill levels</li>
                   <li>• Update skills regularly as you learn new technologies</li>

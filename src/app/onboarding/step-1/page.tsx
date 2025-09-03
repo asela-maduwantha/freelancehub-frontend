@@ -201,9 +201,9 @@ export default function OnboardingStep1() {
           </p>
 
           {/* Tips */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-            <h3 className="text-sm font-semibold text-blue-800 mb-2 font-poppins">💡 Pro Tips</h3>
-            <ul className="text-sm text-blue-700 space-y-1 font-inter">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
+            <h3 className="text-sm font-semibold text-green-800 mb-2 font-poppins">💡 Pro Tips</h3>
+            <ul className="text-sm text-green-700 space-y-1 font-inter">
               <li>• Use a professional title that clearly describes your main service</li>
               <li>• Write a bio that highlights your unique value proposition</li>
               <li>• Be honest about your experience level - clients appreciate transparency</li>

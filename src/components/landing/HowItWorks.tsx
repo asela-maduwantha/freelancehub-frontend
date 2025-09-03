@@ -21,7 +21,7 @@ const steps = [
       "Describe your project needs, set your budget, and specify requirements. Our smart matching system will find the perfect candidates.",
     image: "/post-job.jpg",
     icon: <CheckCircle className="w-6 h-6" />,
-    color: "from-blue-500 to-blue-600",
+    color: "from-green-500 to-green-600",
     stats: "2 min setup",
     features: ["Smart matching", "Budget guidance", "Skill suggestions"]
   },
@@ -87,7 +87,7 @@ const HowItWorks = () => {
           transition={{ duration: 0.8 }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-medium mb-4"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4"
             initial={{ scale: 0 }}
             animate={isInView ? { scale: 1 } : { scale: 0 }}
             transition={{ delay: 0.2 }}

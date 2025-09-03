@@ -34,7 +34,7 @@ export default function ProgressTracker({
                   ${step.status === 'completed' 
                     ? 'bg-green-500 border-green-500 text-white' 
                     : step.status === 'current'
-                    ? 'bg-blue-500 border-blue-500 text-white'
+                    ? 'bg-green-500 border-green-500 text-white'
                     : 'bg-white border-gray-300 text-gray-400'
                   }
                 `}
@@ -60,7 +60,7 @@ export default function ProgressTracker({
               <div 
                 className={`
                   text-sm font-medium
-                  ${step.status === 'current' ? 'text-blue-600' : 'text-gray-900'}
+                  ${step.status === 'current' ? 'text-green-600' : 'text-gray-900'}
                 `}
               >
                 {step.title}
@@ -95,7 +95,7 @@ export default function ProgressTracker({
                 ${step.status === 'completed' 
                   ? 'bg-green-500 border-green-500 text-white' 
                   : step.status === 'current'
-                  ? 'bg-blue-500 border-blue-500 text-white'
+                  ? 'bg-green-500 border-green-500 text-white'
                   : 'bg-white border-gray-300 text-gray-400'
                 }
               `}
@@ -109,7 +109,7 @@ export default function ProgressTracker({
             <div 
               className={`
                 text-xs font-medium mt-2 text-center max-w-20
-                ${step.status === 'current' ? 'text-blue-600' : 'text-gray-600'}
+                ${step.status === 'current' ? 'text-green-600' : 'text-gray-600'}
               `}
             >
               {step.title}

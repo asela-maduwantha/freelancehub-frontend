@@ -13,10 +13,12 @@ import {
   ThumbsUp,
   ThumbsDown,
   Send,
-  CheckCircle
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { reviewsService, ReviewStats } from '@/lib/api/reviews.service';
+import { contractsService } from '@/lib/api';
 import { IReview, CreateReviewRequest } from '@/lib/types';
 
 interface CompletedContract {
@@ -48,6 +50,7 @@ function ClientReviewsPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Review form state
   const [rating, setRating] = useState(0);
@@ -77,61 +80,36 @@ function ClientReviewsPageContent() {
 
   const loadCompletedContracts = async () => {
     try {
-      // In a real implementation, this would fetch completed contracts
-      // For now, using mock data
-      const mockContracts: CompletedContract[] = [
-        {
-          id: '1',
+      setIsLoading(true);
+      // Get completed contracts from the contracts service
+      const response = await contractsService.getContracts(user._id);
+      const contracts = response || [];
+      
+      // Filter for completed contracts and map to CompletedContract format
+      const completedContractsData: CompletedContract[] = contracts
+        .filter((contract: any) => contract.status === 'completed')
+        .map((contract: any) => ({
+          id: contract._id,
           project: {
-            id: '1',
-            title: 'Build E-commerce Website',
-            completedAt: '2024-01-30T00:00:00Z'
+            id: contract.projectId?._id || contract.projectId,
+            title: contract.projectId?.title || 'Unknown Project',
+            completedAt: contract.updatedAt || contract.createdAt
           },
           freelancer: {
-            id: '1',
-            firstName: 'John',
-            lastName: 'Developer',
-            rating: 4.9
+            id: contract.freelancerId?._id || contract.freelancerId,
+            firstName: contract.freelancerId?.firstName || 'Unknown',
+            lastName: contract.freelancerId?.lastName || 'Freelancer',
+            rating: contract.freelancerId?.rating || 0
           },
           status: 'completed',
-          hasReview: true
-        },
-        {
-          id: '2',
-          project: {
-            id: '2',
-            title: 'Mobile App UI Design',
-            completedAt: '2024-02-15T00:00:00Z'
-          },
-          freelancer: {
-            id: '2',
-            firstName: 'Sarah',
-            lastName: 'Designer',
-            rating: 4.8
-          },
-          status: 'completed',
-          hasReview: false
-        },
-        {
-          id: '3',
-          project: {
-            id: '3',
-            title: 'Logo Design Project',
-            completedAt: '2024-03-01T00:00:00Z'
-          },
-          freelancer: {
-            id: '3',
-            firstName: 'Mike',
-            lastName: 'Artist',
-            rating: 4.7
-          },
-          status: 'completed',
-          hasReview: false
-        }
-      ];
-      setCompletedContracts(mockContracts);
+          hasReview: false // This would need to be checked from reviews service
+        }));
+      
+      setCompletedContracts(completedContractsData);
     } catch (error) {
       console.error('Failed to load completed contracts:', error);
+      setError('Failed to load completed contracts. Please try again.');
+      setCompletedContracts([]);
     } finally {
       setIsLoading(false);
     }
@@ -214,6 +192,23 @@ function ClientReviewsPageContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Reviews</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadCompletedContracts} className="bg-green-600 hover:bg-green-700">
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }

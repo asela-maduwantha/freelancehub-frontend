@@ -129,7 +129,7 @@ export default function ContractApprovalModal({
                     <CheckCircle className="h-6 w-6 text-green-500" />
                   )}
                   {approvalStatus.status === 'client_approved' && (
-                    <Clock className="h-6 w-6 text-blue-500" />
+                    <Clock className="h-6 w-6 text-green-500" />
                   )}
                   {approvalStatus.status === 'pending' && (
                     <Clock className="h-6 w-6 text-yellow-500" />
@@ -161,11 +161,11 @@ export default function ContractApprovalModal({
                     {approvalWorkflow.freelancerApproved ? (
                       <CheckCircle className="h-5 w-5 text-green-500" />
                     ) : approvalWorkflow.clientApproved ? (
-                      <Clock className="h-5 w-5 text-blue-500" />
+                      <Clock className="h-5 w-5 text-green-500" />
                     ) : (
                       <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
                     )}
-                    <span className={`text-sm ${approvalWorkflow.freelancerApproved ? 'text-green-700' : approvalWorkflow.clientApproved ? 'text-blue-700' : 'text-gray-500'}`}>
+                    <span className={`text-sm ${approvalWorkflow.freelancerApproved ? 'text-green-700' : approvalWorkflow.clientApproved ? 'text-green-700' : 'text-gray-500'}`}>
                       Freelancer Approval
                       {approvalWorkflow.freelancerApproved && approvalWorkflow.freelancerApprovedAt && (
                         <span className="text-xs text-gray-500 ml-2">

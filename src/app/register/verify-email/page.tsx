@@ -53,7 +53,7 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
 
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-12">
@@ -80,9 +80,9 @@ function VerifyEmailContent() {
           </p>
 
           {/* Instructions */}
-          <div className="bg-blue-50 rounded-lg p-6 mb-8 text-left">
-            <h3 className="font-semibold text-blue-800 mb-3">Next Steps:</h3>
-            <ol className="text-blue-700 space-y-2 text-sm">
+          <div className="bg-green-50 rounded-lg p-6 mb-8 text-left">
+            <h3 className="font-semibold text-green-800 mb-3">Next Steps:</h3>
+            <ol className="text-green-700 space-y-2 text-sm">
               <li className="flex items-start space-x-2">
                 <span className="font-semibold">1.</span>
                 <span>Check your email inbox (and spam/junk folder)</span>
@@ -184,7 +184,7 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
       </div>
     }>

@@ -15,7 +15,8 @@ import {
   Calendar,
   MessageSquare,
   Star,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { contractsService } from '@/lib/api';
@@ -32,6 +33,7 @@ export default function ClientContractsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedContract, setSelectedContract] = useState<IContract | null>(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -49,196 +51,13 @@ export default function ClientContractsPage() {
 
   const loadContracts = async () => {
     try {
-      const response = await contractsService.getContracts(user._id);
+      setIsLoading(true);
+      const response = await contractsService.getContracts(user.id);
       setContracts(response || []);
     } catch (error) {
       console.error('Failed to load contracts:', error);
-      // Mock data for demonstration
-      const mockContracts: any[] = [
-        {
-          _id: '1',
-          projectId: {
-            _id: '1',
-            title: 'Build E-commerce Website',
-            description: 'Full-stack e-commerce website with payment integration',
-            status: 'in-progress',
-            budget: 2200,
-            deadline: '2024-02-20T00:00:00Z',
-            category: 'Web Development',
-            skills: ['React', 'Node.js', 'MongoDB'],
-            clientId: '1',
-            freelancerId: '1',
-            createdAt: '2024-01-20T00:00:00Z'
-          },
-          clientId: {
-            _id: '1',
-            firstName: 'Client',
-            lastName: 'User',
-            companyName: 'Client Company',
-            email: 'client@example.com',
-            profilePicture: 'https://example.com/avatar.jpg',
-            rating: 4.8,
-            reviewsCount: 15
-          },
-          freelancerId: {
-            _id: '1',
-            firstName: 'John',
-            lastName: 'Developer',
-            email: 'john@example.com',
-            profilePicture: 'https://example.com/freelancer-avatar.jpg',
-            phoneNumber: '+1234567890',
-            companyName: null,
-            rating: 4.9,
-            reviewsCount: 42,
-            skills: ['JavaScript', 'React', 'Node.js', 'Python', 'AWS']
-          },
-          proposalId: {
-            _id: '1',
-            proposedBudget: 2200,
-            proposedDuration: {
-              value: 30,
-              unit: 'days'
-            },
-            coverLetter: 'I am excited to work on this e-commerce project...',
-            milestones: [],
-            attachments: [],
-            status: 'accepted',
-            createdAt: '2024-01-15T00:00:00Z'
-          },
-          status: 'active',
-          terms: {
-            budget: 2200,
-            paymentType: 'fixed',
-            startDate: '2024-01-20T00:00:00Z',
-            endDate: '2024-02-20T00:00:00Z',
-            paymentSchedule: 'milestone-based'
-          },
-          approvalWorkflow: {
-            clientApproved: false,
-            freelancerApproved: false,
-            approvalOrder: 'client_first'
-          },
-          totalPaid: 0,
-          totalEscrow: 2200,
-          milestones: [
-            {
-              _id: '1',
-              title: 'Setup and Planning',
-              description: 'Project setup, requirements gathering, and planning phase',
-              amount: 550,
-              status: 'approved',
-              dueDate: '2024-01-25T00:00:00Z'
-            },
-            {
-              _id: '2',
-              title: 'Frontend Development',
-              description: 'Build responsive frontend with React',
-              amount: 1100,
-              status: 'in-progress',
-              dueDate: '2024-02-10T00:00:00Z'
-            },
-            {
-              _id: '3',
-              title: 'Backend Development',
-              description: 'Build REST API and database integration',
-              amount: 550,
-              status: 'pending',
-              dueDate: '2024-02-20T00:00:00Z'
-            }
-          ],
-          createdAt: '2024-01-20T00:00:00Z',
-          updatedAt: '2024-01-20T00:00:00Z'
-        },
-        {
-          _id: '2',
-          projectId: {
-            _id: '2',
-            title: 'Mobile App UI Design',
-            description: 'Design modern UI/UX for fitness tracking app',
-            status: 'completed',
-            budget: 1100,
-            deadline: '2024-01-30T00:00:00Z',
-            category: 'UI/UX Design',
-            skills: ['Figma', 'Adobe XD', 'Sketch'],
-            clientId: '2',
-            freelancerId: '2',
-            createdAt: '2024-01-15T00:00:00Z'
-          },
-          clientId: {
-            _id: '2',
-            firstName: 'Client',
-            lastName: 'User2',
-            companyName: 'Client Company 2',
-            email: 'client2@example.com',
-            profilePicture: 'https://example.com/avatar2.jpg',
-            rating: 4.7,
-            reviewsCount: 8
-          },
-          freelancerId: {
-            _id: '2',
-            firstName: 'Sarah',
-            lastName: 'Designer',
-            email: 'sarah@example.com',
-            profilePicture: 'https://example.com/freelancer-avatar2.jpg',
-            phoneNumber: '+0987654321',
-            companyName: null,
-            rating: 4.9,
-            reviewsCount: 35,
-            skills: ['Figma', 'Adobe XD', 'Sketch', 'UI Design', 'UX Design']
-          },
-          proposalId: {
-            _id: '2',
-            proposedBudget: 1100,
-            proposedDuration: {
-              value: 15,
-              unit: 'days'
-            },
-            coverLetter: 'I specialize in mobile app UI/UX design...',
-            milestones: [],
-            attachments: [],
-            status: 'accepted',
-            createdAt: '2024-01-10T00:00:00Z'
-          },
-          status: 'completed',
-          terms: {
-            budget: 1100,
-            paymentType: 'fixed',
-            startDate: '2024-01-15T00:00:00Z',
-            endDate: '2024-01-30T00:00:00Z',
-            paymentSchedule: 'milestone-based'
-          },
-          approvalWorkflow: {
-            clientApproved: true,
-            freelancerApproved: true,
-            clientApprovedAt: '2024-01-15T00:00:00Z',
-            freelancerApprovedAt: '2024-01-16T00:00:00Z',
-            approvalOrder: 'client_first'
-          },
-          totalPaid: 1100,
-          totalEscrow: 0,
-          milestones: [
-            {
-              _id: '4',
-              title: 'Wireframes and Mockups',
-              description: 'Create wireframes and high-fidelity mockups',
-              amount: 550,
-              status: 'approved',
-              dueDate: '2024-01-22T00:00:00Z'
-            },
-            {
-              _id: '5',
-              title: 'Interactive Prototype',
-              description: 'Build interactive prototype with Figma',
-              amount: 550,
-              status: 'approved',
-              dueDate: '2024-01-30T00:00:00Z'
-            }
-          ],
-          createdAt: '2024-01-15T00:00:00Z',
-          updatedAt: '2024-01-30T00:00:00Z'
-        }
-      ];
-      setContracts(mockContracts);
+      setError('Failed to load contracts. Please try again.');
+      setContracts([]);
     } finally {
       setIsLoading(false);
     }
@@ -256,7 +75,7 @@ export default function ClientContractsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-blue-100 text-blue-800';
+      case 'active': return 'bg-green-100 text-green-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       case 'disputed': return 'bg-yellow-100 text-yellow-800';
@@ -267,7 +86,7 @@ export default function ClientContractsPage() {
   const getMilestoneStatusColor = (status: string) => {
     switch (status) {
       case 'approved': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      case 'in-progress': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-gray-100 text-gray-800';
       case 'submitted': return 'bg-yellow-100 text-yellow-800';
       case 'rejected': return 'bg-red-100 text-red-800';
@@ -345,6 +164,31 @@ export default function ClientContractsPage() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Contracts</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadContracts} className="bg-green-600 hover:bg-green-700">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header backLink="/client/dashboard" backText="Back to Dashboard" />
@@ -380,7 +224,7 @@ export default function ClientContractsPage() {
               onClick={() => setStatusFilter('active')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 statusFilter === 'active'
-                  ? 'bg-blue-100 text-blue-800'
+                  ? 'bg-green-100 text-green-800'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -454,63 +298,99 @@ export default function ClientContractsPage() {
                 </div>
 
                 {/* Milestones */}
-                <div className="p-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">
-                    Milestones
-                  </h4>
+                <div className="p-6 bg-gray-50 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="text-xl font-semibold text-gray-900 font-poppins">
+                      Milestones ({contract.milestones.length})
+                    </h4>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center text-green-600">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        <span>{contract.milestones.filter(m => m.status === 'approved').length} Approved</span>
+                      </div>
+                      <div className="flex items-center text-green-600">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{contract.milestones.filter(m => m.status === 'in-progress').length} In Progress</span>
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-4">
-                    {contract.milestones.map((milestone) => (
-                      <div key={milestone._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-medium text-gray-900">{milestone.title}</h5>
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${getMilestoneStatusColor(milestone.status)}`}>
-                              {milestone.status.replace('_', ' ')}
+                    {contract.milestones.map((milestone, index) => (
+                      <div key={milestone._id} className={`p-5 border-2 rounded-xl transition-all ${
+                        milestone.status === 'approved' ? 'border-green-200 bg-green-50' :
+                        milestone.status === 'in-progress' ? 'border-green-200 bg-green-50' :
+                        milestone.status === 'pending' ? 'border-gray-200 bg-white' :
+                        'border-red-200 bg-red-50'
+                      }`}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h5 className="text-lg font-semibold text-gray-900">{milestone.title}</h5>
+                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                milestone.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                milestone.status === 'in-progress' ? 'bg-green-100 text-green-800' :
+                                milestone.status === 'pending' ? 'bg-gray-100 text-gray-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {milestone.status.replace('_', ' ').charAt(0).toUpperCase() + milestone.status.replace('_', ' ').slice(1)}
+                              </div>
                             </div>
-                          </div>
-                          <p className="text-gray-600 text-sm mb-2">{milestone.description}</p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <DollarSign className="h-4 w-4 mr-1" />
-                              <span>${milestone.amount}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              <span>Due {formatDate(milestone.dueDate)}</span>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">{milestone.description}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="flex items-center p-3 bg-white rounded-lg border border-gray-200">
+                                <DollarSign className="h-5 w-5 text-green-600 mr-2" />
+                                <div>
+                                  <p className="text-sm text-gray-600">Amount</p>
+                                  <p className="font-semibold text-gray-900">${milestone.amount}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center p-3 bg-white rounded-lg border border-gray-200">
+                                <Calendar className="h-5 w-5 text-green-600 mr-2" />
+                                <div>
+                                  <p className="text-sm text-gray-600">Due Date</p>
+                                  <p className="font-semibold text-gray-900">{formatDate(milestone.dueDate)}</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex space-x-2 ml-4">
+
+                        <div className="flex justify-end space-x-3">
                           {milestone.status === 'pending' && contract.status === 'active' && (
                             <>
                               <Button
                                 onClick={() => handleApproveMilestone(contract._id, milestone._id)}
-                                variant="premium"
-                                size="sm"
-                                className="font-inter"
+                                className="bg-green-600 hover:bg-green-700 px-6 py-2 font-semibold"
                               >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve Milestone
                               </Button>
                               <Button
                                 onClick={() => handleRejectMilestone(contract._id, milestone._id)}
                                 variant="outline"
-                                size="sm"
-                                className="font-inter"
+                                className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-2"
                               >
-                                <XCircle className="h-4 w-4 mr-1" />
+                                <XCircle className="h-4 w-4 mr-2" />
                                 Reject
                               </Button>
                             </>
                           )}
                           {milestone.status === 'in-progress' && (
-                            <div className="text-sm text-blue-600 font-medium">
+                            <div className="flex items-center text-green-600 font-medium px-4 py-2 bg-green-100 rounded-lg">
+                              <Clock className="h-4 w-4 mr-2" />
                               In Progress
                             </div>
                           )}
                           {milestone.status === 'approved' && (
-                            <div className="text-sm text-green-600 font-medium">
+                            <div className="flex items-center text-green-600 font-medium px-4 py-2 bg-green-100 rounded-lg">
+                              <CheckCircle className="h-4 w-4 mr-2" />
                               Approved
+                            </div>
+                          )}
+                          {milestone.status === 'rejected' && (
+                            <div className="flex items-center text-red-600 font-medium px-4 py-2 bg-red-100 rounded-lg">
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Rejected
                             </div>
                           )}
                         </div>
@@ -549,7 +429,7 @@ export default function ClientContractsPage() {
                         </Button>
                       )}
                       {contract.approvalWorkflow.clientApproved && !contract.approvalWorkflow.freelancerApproved && (
-                        <div className="text-sm text-blue-600 font-medium">
+                        <div className="text-sm text-green-600 font-medium">
                           Waiting for freelancer approval
                         </div>
                       )}

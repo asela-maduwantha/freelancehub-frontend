@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { IProject, IPaginationOptions } from '../types';
+import { ProjectsResponse } from '../types/api/responses.types';
 
 export interface ClientProject extends IProject {
   freelancer?: {
@@ -7,6 +8,7 @@ export interface ClientProject extends IProject {
     firstName: string;
     lastName: string;
   };
+  deadline: string;
 }
 
 export interface ClientDashboard {
@@ -34,7 +36,7 @@ export class ClientsService {
   /**
    * Get client projects
    */
-  async getProjects(params?: IPaginationOptions & { status?: string }): Promise<ClientProject[]> {
+  async getProjects(params?: IPaginationOptions & { status?: string }): Promise<ProjectsResponse> {
     return apiClient.get('/clients/projects', params);
   }
 

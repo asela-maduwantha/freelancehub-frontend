@@ -289,7 +289,7 @@ export default function BrowseFreelancers() {
   const getAvailabilityColor = (availability: string) => {
     switch (availability) {
       case 'AVAILABLE': return 'text-green-600 bg-green-100';
-      case 'PART_TIME': return 'text-blue-600 bg-blue-100';
+      case 'PART_TIME': return 'text-green-600 bg-green-100';
       case 'BUSY': return 'text-yellow-600 bg-yellow-100';
       case 'UNAVAILABLE': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -492,7 +492,7 @@ export default function BrowseFreelancers() {
                             )}
                             {freelancer.verification?.phoneVerified && (
                               <div title="Phone Verified">
-                                <CheckCircle className="h-5 w-5 text-blue-500" />
+                                <CheckCircle className="h-5 w-5 text-green-500" />
                               </div>
                             )}
                           </div>
@@ -555,7 +555,7 @@ export default function BrowseFreelancers() {
                               {freelancer.profile.skills.slice(0, 4).map((skill, skillIndex) => (
                                 <span
                                   key={skillIndex}
-                                  className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                                  className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
                                 >
                                   {skill}
                                 </span>
@@ -577,7 +577,7 @@ export default function BrowseFreelancers() {
                             <Eye className="h-4 w-4" />
                             View Profile
                           </Link>
-                          <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm">
+                          <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm">
                             <MessageSquare className="h-4 w-4" />
                             Message
                           </button>

@@ -100,7 +100,7 @@ export default function Search() {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-r from-green-50 to-blue-50">
+    <section className="py-16 bg-gradient-to-r from-green-50 to-green-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         <motion.div
           className="text-center mb-12"
@@ -302,7 +302,7 @@ export default function Search() {
               <span className="text-sm font-medium">Verified Freelancers</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <span className="text-sm font-medium">Secure Payments</span>
             </div>
             <div className="flex items-center gap-2">

@@ -355,7 +355,7 @@ export default function ClientProposalsPage() {
                       </div>
                     </div>
                     <div className="flex items-center">
-                      <Clock className="h-5 w-5 text-blue-600 mr-2" />
+                      <Clock className="h-5 w-5 text-green-600 mr-2" />
                       <div>
                         <p className="text-sm text-gray-600">Duration</p>
                         <p className="text-lg font-semibold text-gray-900">{formatDuration(proposal.proposedDuration)}</p>
@@ -389,7 +389,7 @@ export default function ClientProposalsPage() {
                     <div className="flex items-center space-x-4">
                       <Link
                         href={`/client/projects/${proposal.projectId}/proposals`}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-green-600 hover:text-green-800 text-sm font-medium"
                       >
                         View Full Details
                       </Link>

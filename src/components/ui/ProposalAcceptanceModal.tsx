@@ -79,14 +79,14 @@ export default function ProposalAcceptanceModal({
                   </span>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <div className="flex items-start">
-                    <FileText className="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
+                    <FileText className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-blue-900 mb-1">
+                      <h4 className="font-medium text-green-900 mb-1">
                         What happens next?
                       </h4>
-                      <ul className="text-sm text-blue-700 space-y-1">
+                      <ul className="text-sm text-green-700 space-y-1">
                         <li>• A contract will be automatically created</li>
                         <li>• You'll need to approve the contract first</li>
                         <li>• The freelancer will then review and approve</li>

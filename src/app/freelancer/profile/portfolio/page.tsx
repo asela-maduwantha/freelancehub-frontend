@@ -203,7 +203,7 @@ export default function PortfolioManagement() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -319,7 +319,7 @@ export default function PortfolioManagement() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleEditItem(item)}
-                          className="text-blue-600 hover:text-blue-700"
+                          className="text-green-600 hover:text-green-700"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -354,7 +354,7 @@ export default function PortfolioManagement() {
                         href={item.projectUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                        className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700"
                       >
                         <ExternalLink className="w-4 h-4" />
                         <span>View Project</span>
@@ -526,9 +526,9 @@ export default function PortfolioManagement() {
                   </ul>
                 </div>
 
-                <div className="bg-blue-50 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-blue-900 mb-4">Portfolio Statistics</h3>
-                  <div className="space-y-3 text-sm text-blue-800">
+                <div className="bg-green-50 rounded-lg p-6">
+                  <h3 className="text-lg font-medium text-green-900 mb-4">Portfolio Statistics</h3>
+                  <div className="space-y-3 text-sm text-green-800">
                     <div className="flex justify-between">
                       <span>Total Projects:</span>
                       <span className="font-medium">{portfolioItems.length}</span>

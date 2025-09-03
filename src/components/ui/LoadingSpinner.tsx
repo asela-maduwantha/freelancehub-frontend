@@ -2,7 +2,7 @@
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  color?: 'green' | 'blue' | 'gray';
+  color?: 'green' | 'green' | 'gray';
   text?: string;
   className?: string;
 }
@@ -15,7 +15,7 @@ const sizeClasses = {
 
 const colorClasses = {
   green: 'border-green-500',
-  blue: 'border-blue-500',
+  green: 'border-green-500',
   gray: 'border-gray-500'
 };
 

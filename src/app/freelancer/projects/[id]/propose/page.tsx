@@ -429,7 +429,7 @@ export default function SubmitProposalPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -443,7 +443,7 @@ export default function SubmitProposalPage() {
           <p className="text-gray-600 mb-4">{error}</p>
           <Link
             href="/freelancer/projects"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Projects
@@ -520,7 +520,7 @@ export default function SubmitProposalPage() {
             <textarea
               value={proposalData.coverLetter}
               onChange={(e) => handleInputChange('coverLetter', e.target.value)}
-              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder="Introduce yourself and explain why you're the best fit for this project..."
               required
             />
@@ -538,7 +538,7 @@ export default function SubmitProposalPage() {
                   type="number"
                   value={proposalData.pricing.amount}
                   onChange={(e) => handlePricingChange('amount', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="0"
                   required
                 />
@@ -550,7 +550,7 @@ export default function SubmitProposalPage() {
                 <select
                   value={proposalData.pricing.currency}
                   onChange={(e) => handlePricingChange('currency', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="USD">USD</option>
@@ -567,7 +567,7 @@ export default function SubmitProposalPage() {
                 <select
                   value={proposalData.pricing.type}
                   onChange={(e) => handlePricingChange('type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="fixed">Fixed Price</option>
@@ -585,7 +585,7 @@ export default function SubmitProposalPage() {
                   type="number"
                   value={proposalData.pricing.estimatedHours || ''}
                   onChange={(e) => handlePricingChange('estimatedHours', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="0"
                   required
                 />
@@ -599,7 +599,7 @@ export default function SubmitProposalPage() {
               <textarea
                 value={proposalData.pricing.breakdown}
                 onChange={(e) => handlePricingChange('breakdown', e.target.value)}
-                className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 placeholder="Provide a detailed breakdown of your costs..."
                 required
               />
@@ -618,7 +618,7 @@ export default function SubmitProposalPage() {
                   type="number"
                   value={proposalData.timeline.deliveryTime}
                   onChange={(e) => handleTimelineChange('deliveryTime', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="0"
                   required
                 />
@@ -631,7 +631,7 @@ export default function SubmitProposalPage() {
                   type="number"
                   value={proposalData.estimatedDuration}
                   onChange={(e) => handleInputChange('estimatedDuration', Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="0"
                   required
                 />
@@ -644,7 +644,7 @@ export default function SubmitProposalPage() {
                   type="date"
                   value={proposalData.timeline.startDate}
                   onChange={(e) => handleTimelineChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
                 />
               </div>
@@ -658,7 +658,7 @@ export default function SubmitProposalPage() {
               <button
                 type="button"
                 onClick={addMilestone}
-                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-50 hover:bg-blue-100"
+                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-green-600 bg-green-50 hover:bg-green-100"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Milestone
@@ -690,7 +690,7 @@ export default function SubmitProposalPage() {
                         type="text"
                         value={milestone.title}
                         onChange={(e) => handleMilestoneChange(index, 'title', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Milestone title"
                         required
                       />
@@ -703,7 +703,7 @@ export default function SubmitProposalPage() {
                         type="number"
                         value={milestone.amount}
                         onChange={(e) => handleMilestoneChange(index, 'amount', Number(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="0"
                         required
                       />
@@ -717,7 +717,7 @@ export default function SubmitProposalPage() {
                     <textarea
                       value={milestone.description}
                       onChange={(e) => handleMilestoneChange(index, 'description', e.target.value)}
-                      className="w-full h-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full h-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Describe what will be delivered in this milestone..."
                       required
                     />
@@ -731,7 +731,7 @@ export default function SubmitProposalPage() {
                       type="date"
                       value={milestone.deliveryDate}
                       onChange={(e) => handleMilestoneChange(index, 'deliveryDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       required
                     />
                   </div>
@@ -747,7 +747,7 @@ export default function SubmitProposalPage() {
               <button
                 type="button"
                 onClick={addPortfolioLink}
-                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-50 hover:bg-blue-100"
+                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-green-600 bg-green-50 hover:bg-green-100"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Link
@@ -761,7 +761,7 @@ export default function SubmitProposalPage() {
                     type="url"
                     value={link}
                     onChange={(e) => handlePortfolioLinkChange(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     placeholder="https://example.com"
                   />
                   {proposalData.portfolioLinks.length > 1 && (
@@ -835,7 +835,7 @@ export default function SubmitProposalPage() {
             <textarea
               value={proposalData.additionalInfo}
               onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
-              className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder="Any additional information you'd like to share..."
             />
           </div>

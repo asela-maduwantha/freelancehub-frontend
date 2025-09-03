@@ -16,7 +16,8 @@ import {
   User,
   Briefcase,
   Award,
-  CheckCircle
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { usersService } from '@/lib/api';
@@ -57,6 +58,7 @@ export default function FreelancersPage() {
   const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
   const [filteredFreelancers, setFilteredFreelancers] = useState<Freelancer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Filters>({
@@ -90,58 +92,36 @@ export default function FreelancersPage() {
 
   const loadFreelancers = async () => {
     try {
+      setIsLoading(true);
       const response = await usersService.getFreelancers();
-      // Mock data for demonstration
-      const mockFreelancers: Freelancer[] = [
-        {
-          id: '1',
-          firstName: 'John',
-          lastName: 'Developer',
-          title: 'Full Stack Developer',
-          bio: 'Experienced full-stack developer with 5+ years of experience in React, Node.js, and cloud technologies.',
-          skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'MongoDB'],
-          hourlyRate: 50,
-          rating: 4.9,
-          totalReviews: 127,
-          completedProjects: 89,
-          location: { country: 'USA', city: 'San Francisco' },
-          availability: 'AVAILABLE',
-          memberSince: '2020-03-15'
+      const freelancersData = response.data || response || [];
+      
+      // Map IUser[] to Freelancer[]
+      const mappedFreelancers: Freelancer[] = freelancersData.map((user: any) => ({
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        title: user.freelancerProfile?.title || 'Freelancer',
+        bio: user.freelancerProfile?.bio || '',
+        skills: user.freelancerProfile?.skills || [],
+        hourlyRate: user.freelancerProfile?.hourlyRate || 0,
+        rating: user.stats?.avgRating || 0,
+        totalReviews: user.stats?.projectsCompleted || 0,
+        completedProjects: user.stats?.projectsCompleted || 0,
+        location: {
+          country: user.location?.country || '',
+          city: user.location?.city || ''
         },
-        {
-          id: '2',
-          firstName: 'Sarah',
-          lastName: 'Designer',
-          title: 'UI/UX Designer',
-          bio: 'Creative UI/UX designer passionate about creating beautiful and user-friendly interfaces.',
-          skills: ['UI/UX Design', 'Figma', 'Adobe XD', 'Sketch', 'Prototyping'],
-          hourlyRate: 45,
-          rating: 4.8,
-          totalReviews: 95,
-          completedProjects: 67,
-          location: { country: 'Canada', city: 'Toronto' },
-          availability: 'AVAILABLE',
-          memberSince: '2021-01-20'
-        },
-        {
-          id: '3',
-          firstName: 'Mike',
-          lastName: 'Writer',
-          title: 'Content Writer & SEO Specialist',
-          bio: 'Professional content writer with expertise in SEO, blogging, and copywriting.',
-          skills: ['Content Writing', 'SEO', 'Copywriting', 'Blogging', 'WordPress'],
-          hourlyRate: 30,
-          rating: 4.7,
-          totalReviews: 203,
-          completedProjects: 156,
-          location: { country: 'UK', city: 'London' },
-          availability: 'PART_TIME',
-          memberSince: '2019-08-10'
-        }
-      ];
-      setFreelancers(mockFreelancers);
+        availability: (user.freelancerProfile?.availability as 'AVAILABLE' | 'PART_TIME' | 'BUSY' | 'UNAVAILABLE') || 'UNAVAILABLE',
+        memberSince: user.createdAt
+      }));
+      
+      setFreelancers(mappedFreelancers);
     } catch (error) {
       console.error('Failed to load freelancers:', error);
+      setError('Failed to load freelancers. Please try again.');
+      setFreelancers([]);
     } finally {
       setIsLoading(false);
     }
@@ -211,7 +191,7 @@ export default function FreelancersPage() {
   const getAvailabilityColor = (availability: string) => {
     switch (availability) {
       case 'AVAILABLE': return 'bg-green-100 text-green-800';
-      case 'PART_TIME': return 'bg-blue-100 text-blue-800';
+      case 'PART_TIME': return 'bg-green-100 text-green-800';
       case 'BUSY': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -225,9 +205,25 @@ export default function FreelancersPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Freelancers</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadFreelancers} className="bg-green-600 hover:bg-green-700">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header backLink="/client/dashboard" backText="Back to Dashboard" />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -242,8 +238,8 @@ export default function FreelancersPage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
@@ -253,20 +249,25 @@ export default function FreelancersPage() {
                   placeholder="Search freelancers by name, skills, or title..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter text-lg"
                 />
               </div>
             </div>
 
             {/* Filter Toggle */}
-            <Button
-              onClick={() => setShowFilters(!showFilters)}
-              variant="outline"
-              className="font-inter"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant="outline"
+                className="px-6 py-4 font-inter border-2 hover:border-green-300"
+              >
+                <Filter className="h-5 w-5 mr-2" />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+                <span className="ml-2 text-sm text-gray-500">
+                  ({Object.values(filters).filter(v => v !== '' && v !== 0 && (!Array.isArray(v) || v.length > 0)).length} active)
+                </span>
+              </Button>
+            </div>
           </div>
 
           {/* Advanced Filters */}
@@ -275,87 +276,128 @@ export default function FreelancersPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-6 pt-6 border-t border-gray-200"
+              className="mt-8 pt-8 border-t border-gray-200"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 {/* Skills */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="md:col-span-2 xl:col-span-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Skills
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {popularSkills.slice(0, 6).map((skill) => (
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    {popularSkills.slice(0, 8).map((skill) => (
                       <button
                         key={skill}
                         onClick={() => handleSkillFilter(skill)}
-                        className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                        className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
                           filters.skills.includes(skill)
-                            ? 'bg-green-100 border-green-500 text-green-700'
-                            : 'border-gray-300 text-gray-600 hover:border-green-500'
+                            ? 'bg-green-100 border-green-500 text-green-700 shadow-sm'
+                            : 'border-gray-300 text-gray-600 hover:border-green-400 hover:bg-green-50'
                         }`}
                       >
                         {skill}
                       </button>
                     ))}
                   </div>
+                  {filters.skills.length > 0 && (
+                    <button
+                      onClick={() => setFilters(prev => ({ ...prev, skills: [] }))}
+                      className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Clear all skills
+                    </button>
+                  )}
                 </div>
 
                 {/* Rate Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Hourly Rate ($)
                   </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      value={filters.minRate}
-                      onChange={(e) => setFilters(prev => ({ ...prev, minRate: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      value={filters.maxRate}
-                      onChange={(e) => setFilters(prev => ({ ...prev, maxRate: parseInt(e.target.value) || 200 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                    />
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-500">Minimum</label>
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={filters.minRate || ''}
+                        onChange={(e) => setFilters(prev => ({ ...prev, minRate: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500">Maximum</label>
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={filters.maxRate || ''}
+                        onChange={(e) => setFilters(prev => ({ ...prev, maxRate: parseInt(e.target.value) || 200 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Minimum Rating */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Minimum Rating
                   </label>
                   <select
                     value={filters.minRating}
                     onChange={(e) => setFilters(prev => ({ ...prev, minRating: parseFloat(e.target.value) }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value={0}>Any Rating</option>
                     <option value={4.5}>4.5+ Stars</option>
                     <option value={4.0}>4.0+ Stars</option>
                     <option value={3.5}>3.5+ Stars</option>
+                    <option value={3.0}>3.0+ Stars</option>
                   </select>
                 </div>
 
                 {/* Availability */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Availability
                   </label>
                   <select
                     value={filters.availability}
                     onChange={(e) => setFilters(prev => ({ ...prev, availability: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value="">Any Availability</option>
-                    <option value="AVAILABLE">Available</option>
+                    <option value="AVAILABLE">Available Now</option>
                     <option value="PART_TIME">Part Time</option>
                     <option value="BUSY">Busy</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Filter Actions */}
+              <div className="flex justify-end space-x-4 mt-6 pt-6 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFilters({
+                      skills: [],
+                      minRate: 0,
+                      maxRate: 200,
+                      minRating: 0,
+                      location: '',
+                      availability: ''
+                    });
+                  }}
+                  className="px-6"
+                >
+                  Reset All Filters
+                </Button>
+                <Button
+                  onClick={() => setShowFilters(false)}
+                  className="bg-green-600 hover:bg-green-700 px-6"
+                >
+                  Apply Filters
+                </Button>
               </div>
             </motion.div>
           )}

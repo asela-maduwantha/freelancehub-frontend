@@ -117,11 +117,11 @@ function ToastItem({
       message: 'text-yellow-700'
     },
     info: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      icon: 'text-blue-600',
-      title: 'text-blue-800',
-      message: 'text-blue-700'
+      bg: 'bg-green-50',
+      border: 'border-green-200',
+      icon: 'text-green-600',
+      title: 'text-green-800',
+      message: 'text-green-700'
     }
   };
 

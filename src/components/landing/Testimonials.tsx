@@ -138,7 +138,7 @@ const Testimonials = () => {
           transition={{ duration: 20, repeat: Infinity }}
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-24 h-24 bg-blue-100 rounded-full opacity-20"
+          className="absolute bottom-20 right-10 w-24 h-24 bg-green-100 rounded-full opacity-20"
           animate={{
             scale: [1, 0.8, 1],
             rotate: [360, 180, 0],
@@ -400,7 +400,7 @@ const Testimonials = () => {
                 >
                   <div className={`w-2 h-2 rounded-full ${
                     activity.action === 'hired' ? 'bg-green-500' : 
-                    activity.action === 'completed' ? 'bg-blue-500' : 'bg-purple-500'
+                    activity.action === 'completed' ? 'bg-green-500' : 'bg-purple-500'
                   }`} />
                   <div className="flex-1 text-sm">
                     <p className="text-gray-700">

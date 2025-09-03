@@ -297,7 +297,7 @@ export default function ContractsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'text-green-600 bg-green-100';
-      case 'completed': return 'text-blue-600 bg-blue-100';
+      case 'completed': return 'text-green-600 bg-green-100';
       case 'paused': return 'text-yellow-600 bg-yellow-100';
       case 'cancelled': return 'text-red-600 bg-red-100';
       case 'dispute': return 'text-orange-600 bg-orange-100';
@@ -332,7 +332,7 @@ export default function ContractsPage() {
       render: (value: string, contract: Contract) => (
         <div>
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-            value === 'fixed' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+            value === 'fixed' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'
           }`}>
             {value} {value === 'hourly' ? 'Rate' : 'Price'}
           </span>
@@ -491,7 +491,7 @@ export default function ContractsPage() {
                 <p className="text-sm font-medium text-gray-600">Success</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.completionRate.toFixed(0)}%</p>
               </div>
-              <Target className="h-8 w-8 text-blue-400" />
+              <Target className="h-8 w-8 text-green-400" />
             </div>
           </div>
         </div>
@@ -560,7 +560,7 @@ export default function ContractsPage() {
           onRowClick={(contract) => router.push(`/freelancer/contracts/${contract.id}`)}
           rowClassName={(contract) => 
             contract.status === 'active' ? 'bg-green-50 border-green-200' :
-            contract.status === 'completed' ? 'bg-blue-50 border-blue-200' :
+            contract.status === 'completed' ? 'bg-green-50 border-green-200' :
             contract.status === 'dispute' ? 'bg-orange-50 border-orange-200' : ''
           }
         />

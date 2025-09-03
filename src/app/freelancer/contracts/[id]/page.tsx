@@ -164,7 +164,7 @@ export default function ContractDetail() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'text-green-600 bg-green-100';
-      case 'completed': return 'text-blue-600 bg-blue-100';
+      case 'completed': return 'text-green-600 bg-green-100';
       case 'cancelled': return 'text-red-600 bg-red-100';
       case 'disputed': return 'text-yellow-600 bg-yellow-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -174,7 +174,7 @@ export default function ContractDetail() {
   const getMilestoneStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100';
-      case 'in_progress': return 'text-blue-600 bg-blue-100';
+      case 'in_progress': return 'text-green-600 bg-green-100';
       case 'pending': return 'text-gray-600 bg-gray-100';
       case 'rejected': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -313,7 +313,7 @@ export default function ContractDetail() {
                       {contract.status === 'active' && milestone.status === 'in_progress' && (
                         <button
                           onClick={() => setSelectedMilestone(selectedMilestone === milestone._id ? null : milestone._id)}
-                          className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                          className="flex items-center gap-2 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm"
                         >
                           <Upload className="h-4 w-4" />
                           Submit Work
@@ -393,7 +393,7 @@ export default function ContractDetail() {
                                 <div key={fileIndex} className="flex items-center gap-2 text-sm">
                                   <Paperclip className="h-4 w-4 text-gray-500" />
                                   <span>{file.filename}</span>
-                                  <button className="text-blue-500 hover:text-blue-700">
+                                  <button className="text-green-500 hover:text-green-700">
                                     <Download className="h-4 w-4" />
                                   </button>
                                 </div>
@@ -448,7 +448,7 @@ export default function ContractDetail() {
                     <div className="text-sm text-gray-600">Completed</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-green-600">
                       {contract.milestones.filter(m => m.status === 'in_progress').length}
                     </div>
                     <div className="text-sm text-gray-600">In Progress</div>

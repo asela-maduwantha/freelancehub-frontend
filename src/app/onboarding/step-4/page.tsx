@@ -375,8 +375,8 @@ export default function OnboardingStep4() {
             
             <div className="grid md:grid-cols-2 gap-6">
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Shield className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Shield className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 font-poppins">Secure Payments</h4>

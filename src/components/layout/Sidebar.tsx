@@ -203,15 +203,15 @@ export default function Sidebar({
                 <Briefcase className="h-4 w-4 text-green-600" />
               </div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-3">
+            <div className="bg-green-50 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-blue-600 font-medium">Earned</div>
-                  <div className="text-lg font-bold text-blue-700">
+                  <div className="text-xs text-green-600 font-medium">Earned</div>
+                  <div className="text-lg font-bold text-green-700">
                     ${(userProfile.stats?.totalEarnings || 0).toLocaleString()}
                   </div>
                 </div>
-                <DollarSign className="h-4 w-4 text-blue-600" />
+                <DollarSign className="h-4 w-4 text-green-600" />
               </div>
             </div>
           </div>

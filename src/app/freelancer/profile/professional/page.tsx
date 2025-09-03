@@ -118,7 +118,7 @@ export default function ProfessionalProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -359,23 +359,23 @@ export default function ProfessionalProfile() {
               className="space-y-6"
             >
               {/* Profile Tips */}
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="text-lg font-medium text-blue-900 mb-4">Profile Tips</h3>
-                <ul className="space-y-3 text-sm text-blue-800">
+              <div className="bg-green-50 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-green-900 mb-4">Profile Tips</h3>
+                <ul className="space-y-3 text-sm text-green-800">
                   <li className="flex items-start space-x-2">
-                    <Star className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Star className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>Keep your title clear and specific to your expertise</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <TrendingUp className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <TrendingUp className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>Highlight your unique value proposition in your bio</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <DollarSign className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <DollarSign className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>Set competitive rates based on your experience and market</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <Clock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Clock className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>Keep your availability status up to date</span>
                   </li>
                 </ul>

@@ -95,7 +95,7 @@ const FAQ = () => {
           transition={{ duration: 0.8 }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-medium mb-4"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4"
             initial={{ scale: 0 }}
             animate={isInView ? { scale: 1 } : { scale: 0 }}
             transition={{ delay: 0.2 }}
@@ -172,7 +172,7 @@ const FAQ = () => {
               {popularFaqs.slice(0, 4).map((faq, index) => (
                 <motion.div
                   key={`popular-${index}`}
-                  className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-xl cursor-pointer hover:shadow-md transition-all"
+                  className="bg-gradient-to-r from-green-50 to-green-50 p-4 rounded-xl cursor-pointer hover:shadow-md transition-all"
                   onClick={() => {
                     const originalIndex = faqs.findIndex(f => f.question === faq.question);
                     toggleFAQ(originalIndex);
@@ -290,7 +290,7 @@ const FAQ = () => {
 
         {/* Contact Support */}
         <motion.div
-          className="mt-16 text-center bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-2xl"
+          className="mt-16 text-center bg-gradient-to-r from-green-50 to-green-50 p-8 rounded-2xl"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 1 }}

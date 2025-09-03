@@ -20,8 +20,8 @@ const features = [
     description:
       "Search and filter among thousands of verified Sri Lankan freelancers with the exact skills you need.",
     stats: "1,250+ Freelancers",
-    color: "bg-blue-500",
-    hoverColor: "group-hover:bg-blue-600",
+    color: "bg-green-500",
+    hoverColor: "group-hover:bg-green-600",
   },
   {
     icon: <Shield className="w-6 h-6" />,
@@ -187,7 +187,7 @@ const Features = () => {
 
               {/* Interactive Border */}
               <motion.div
-                className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500"
+                className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-green-500"
                 initial={{ width: 0 }}
                 animate={hoveredCard === index ? { width: '100%' } : { width: 0 }}
                 transition={{ duration: 0.4 }}

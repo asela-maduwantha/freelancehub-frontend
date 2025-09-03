@@ -297,7 +297,7 @@ export default function PaymentsPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'milestone': return <CheckCircle className="h-4 w-4 text-blue-500" />;
+      case 'milestone': return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'hourly': return <Clock className="h-4 w-4 text-green-500" />;
       case 'bonus': return <ArrowUpRight className="h-4 w-4 text-purple-500" />;
       case 'refund': return <ArrowDownRight className="h-4 w-4 text-red-500" />;
@@ -446,7 +446,7 @@ export default function PaymentsPage() {
                 <p className="text-sm font-medium text-gray-600">This Month</p>
                 <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.thisMonth)}</p>
               </div>
-              <Calendar className="h-8 w-8 text-blue-400" />
+              <Calendar className="h-8 w-8 text-green-400" />
             </div>
           </div>
 

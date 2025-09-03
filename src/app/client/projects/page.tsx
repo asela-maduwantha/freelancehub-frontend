@@ -23,11 +23,13 @@ import {
   TrendingUp,
   AlertCircle,
   FileText,
-  Star
+  Star,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { clientsService, projectsService, IProject } from '@/lib/api';
 import { ClientProject } from '@/lib/api/clients.service';
+import { ProjectsResponse } from '@/lib/types/api/responses.types';
 
 
 interface ProjectStats {
@@ -47,7 +49,7 @@ const ProjectCard: React.FC<{
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'open': return 'bg-green-100 text-green-800 border-green-200';
       case 'in-progress': return 'bg-green-100 text-green-800 border-green-200';
       case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
@@ -142,17 +144,17 @@ const ProjectCard: React.FC<{
 
       {/* Skills */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {(project.skills || []).slice(0, 3).map((skill: string, index: number) => (
+        {(project.requiredSkills || []).slice(0, 3).map((skill: any, index: number) => (
           <span
             key={index}
-            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium"
+            className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-md font-medium"
           >
-            {skill}
+            {skill.skill}
           </span>
         ))}
-        {(project.skills || []).length > 3 && (
+        {(project.requiredSkills || []).length > 3 && (
           <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium">
-            +{(project.skills || []).length - 3} more
+            +{(project.requiredSkills || []).length - 3} more
           </span>
         )}
       </div>
@@ -172,24 +174,15 @@ const ProjectCard: React.FC<{
         </div>
         
         <div>
-          <p className="text-xs text-gray-500 mb-1">Created</p>
+          <p className="text-xs text-gray-500 mb-1">Posted</p>
           <p className="text-sm text-gray-900">
-            {new Date(project.createdAt).toLocaleDateString()}
+            {new Date(project.postedAt).toLocaleDateString()}
           </p>
         </div>
         
-        {project.deadline && (
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Deadline</p>
-            <p className="text-sm text-gray-900">
-              {new Date(project.deadline).toLocaleDateString()}
-            </p>
-          </div>
-        )}
-        
         <div>
           <p className="text-xs text-gray-500 mb-1">Proposals</p>
-          <p className="text-sm font-semibold text-blue-600">
+          <p className="text-sm font-semibold text-green-600">
             {project.proposals?.length || 0}
           </p>
         </div>
@@ -220,7 +213,7 @@ const ProjectCard: React.FC<{
         </Link>
         
         <Link href={`/client/projects/${project._id}`}>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </Button>
@@ -258,6 +251,7 @@ export default function ClientProjectsPage() {
   const [filteredProjects, setFilteredProjects] = useState<ClientProject[]>([]);
   const [stats, setStats] = useState<ProjectStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -279,102 +273,102 @@ export default function ClientProjectsPage() {
   const loadProjects = async () => {
     try {
       setIsLoading(true);
-      const data = await clientsService.getProjects();
-      
-      if (data && Array.isArray(data)) {
+      setError(null); // Clear any previous errors
+
+      console.log('Loading projects...');
+      const response = await clientsService.getProjects();
+      console.log('API Response:', response);
+
+      // Handle different response formats
+      let projectsData: any[] = [];
+
+      if (response && typeof response === 'object') {
+        // Check if it's the expected ProjectsResponse format
+        if ((response as any).data && (response as any).data.projects) {
+          projectsData = (response as any).data.projects;
+          console.log('Found projects in response.data.projects:', projectsData);
+        }
+        // Check if it's a direct array response
+        else if (Array.isArray(response)) {
+          projectsData = response;
+          console.log('Found projects as direct array:', projectsData);
+        }
+        // Check if projects are directly in response
+        else if ((response as any).projects) {
+          projectsData = (response as any).projects;
+          console.log('Found projects in response.projects:', projectsData);
+        }
+        else {
+          console.log('Unexpected response structure:', response);
+          throw new Error('Unexpected response format from API');
+        }
+      } else {
+        console.log('Invalid response type:', typeof response);
+        throw new Error('Invalid response from API');
+      }
+
+      if (projectsData && Array.isArray(projectsData) && projectsData.length > 0) {
+        console.log('Processing', projectsData.length, 'projects');
+
         // Transform API data to match our local Project interface
-        const transformedProjects: ClientProject[] = data.map((project: any) => ({
-          ...project,
-          skills: project.skills || []
-        }));
+        const transformedProjects: ClientProject[] = projectsData.map((project: any, index: number) => {
+          console.log(`Processing project ${index}:`, project);
+          return {
+            ...project,
+            skills: project.requiredSkills?.map((skill: any) => skill.skill) || [] // Add skills array for backward compatibility
+          };
+        });
+
+        console.log('Transformed projects:', transformedProjects);
         setProjects(transformedProjects);
         calculateStats(transformedProjects);
       } else {
-        // Mock data for demonstration
-        const mockProjects: ClientProject[] = [
+        console.log('No projects found in response - using fallback data for testing');
+        // Temporary fallback for testing - remove this once API is working
+        const fallbackProjects: ClientProject[] = [
           {
-            _id: '1',
-            title: 'E-commerce Website Development',
-            description: 'Build a modern e-commerce platform with React, Node.js, and MongoDB. Should include payment integration, user authentication, and admin dashboard.',
-            clientId: 'client1',
-            status: 'open',
-            budget: 2500,
-            budgetType: 'fixed',
-            deadline: '2024-03-15T00:00:00Z',
-            skills: ['React', 'Node.js', 'MongoDB', 'Payment Integration'],
+            _id: 'test-1',
+            title: 'Test Project - Web Development',
+            description: 'This is a test project to verify the UI is working correctly.',
             category: 'Web Development',
-            createdAt: '2024-01-15T00:00:00Z',
-            updatedAt: '2024-01-15T00:00:00Z'
-          },
-          {
-            _id: '2',
-            title: 'Mobile App UI/UX Design',
-            description: 'Design a modern and intuitive mobile app interface for a fitness tracking application. Need wireframes, mockups, and prototypes.',
-            clientId: 'client1',
-            status: 'in-progress',
-            budget: 1200,
-            budgetType: 'fixed',
-            deadline: '2024-02-28T00:00:00Z',
-            skills: ['UI/UX Design', 'Figma', 'Prototyping', 'Mobile Design'],
-            category: 'Design',
-            createdAt: '2024-01-10T00:00:00Z',
-            updatedAt: '2024-01-10T00:00:00Z',
-            freelancer: {
-              id: 'freelancer1',
-              firstName: 'Sarah',
-              lastName: 'Johnson'
-            }
-          },
-          {
-            _id: '3',
-            title: 'Content Writing for Tech Blog',
-            description: 'Write 20 high-quality articles about web development, AI, and emerging technologies. Each article should be 1500+ words with SEO optimization.',
-            clientId: 'client1',
-            status: 'completed',
-            budget: 800,
-            budgetType: 'fixed',
-            deadline: '2024-01-25T00:00:00Z',
-            skills: ['Content Writing', 'SEO', 'Technology', 'Research'],
-            category: 'Content & Writing',
-            createdAt: '2024-01-05T00:00:00Z',
-            updatedAt: '2024-01-05T00:00:00Z'
-          },
-          {
-            _id: '4',
-            title: 'Python Data Analysis Script',
-            description: 'Create Python scripts for data analysis and visualization of sales data. Include charts, reports, and automated data processing.',
-            clientId: 'client1',
             status: 'open',
-            budget: 600,
+            requiredSkills: [
+              { skill: 'JavaScript', level: 'intermediate', _id: 'skill-1' },
+              { skill: 'React', level: 'intermediate', _id: 'skill-2' }
+            ],
+            budget: 1000,
             budgetType: 'fixed',
-            deadline: '2024-02-20T00:00:00Z',
-            skills: ['Python', 'Data Analysis', 'Pandas', 'Matplotlib'],
-            category: 'Data Science',
-            createdAt: '2024-01-20T00:00:00Z',
-            updatedAt: '2024-01-20T00:00:00Z'
-          },
-          {
-            _id: '5',
-            title: 'Logo and Brand Identity Design',
-            description: 'Design a professional logo and complete brand identity package for a tech startup. Include business cards, letterhead, and brand guidelines.',
-            clientId: 'client1',
-            status: 'draft',
-            budget: 900,
-            budgetType: 'fixed',
-            deadline: '2024-02-15T00:00:00Z',
-            skills: ['Logo Design', 'Brand Identity', 'Adobe Illustrator', 'Graphic Design'],
-            category: 'Design',
-            createdAt: '2024-01-12T00:00:00Z',
-            updatedAt: '2024-01-12T00:00:00Z'
+            postedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            proposals: [],
+            analytics: { views: 10, applications: 2, saves: 1 },
+            clientId: 'test-client',
+            freelancerId: undefined,
+            subcategory: '',
+            duration: 'short-term',
+            workType: ['remote'],
+            experienceLevel: 'intermediate',
+            tags: [],
+            attachments: [],
+            visibility: 'public',
+            milestones: [],
+            payments: [],
+            messages: [],
+            reviews: [],
+            disputes: [],
+            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+            __v: 0
           }
         ];
-        
-        setProjects(mockProjects);
-        calculateStats(mockProjects);
+        setProjects(fallbackProjects);
+        calculateStats(fallbackProjects);
       }
     } catch (error) {
       console.error('Error loading projects:', error);
+      setError(`Failed to load projects: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setProjects([]);
+      setStats(null);
     } finally {
       setIsLoading(false);
     }
@@ -399,7 +393,7 @@ export default function ClientProjectsPage() {
       filtered = filtered.filter(project =>
         project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.skills?.some((skill: string) => skill.toLowerCase().includes(searchTerm.toLowerCase()))
+        project.requiredSkills?.some((skill: any) => skill.skill.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -411,10 +405,10 @@ export default function ClientProjectsPage() {
     // Apply sorting
     switch (sortBy) {
       case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        filtered.sort((a, b) => new Date(b.postedAt || b.createdAt).getTime() - new Date(a.postedAt || a.createdAt).getTime());
         break;
       case 'oldest':
-        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        filtered.sort((a, b) => new Date(a.postedAt || a.createdAt).getTime() - new Date(b.postedAt || b.createdAt).getTime());
         break;
       case 'budget_high':
         filtered.sort((a, b) => (b.budget || 0) - (a.budget || 0));
@@ -434,21 +428,74 @@ export default function ClientProjectsPage() {
     router.push(`/client/projects/${project._id}/edit`);
   };
 
+  const testApiConnection = async () => {
+    try {
+      console.log('Testing API connection...');
+      // Try a simple GET request to see if the API is reachable
+      const testResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/clients/projects`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
+        }
+      });
+      console.log('Test API response status:', testResponse.status);
+      const testData = await testResponse.text();
+      console.log('Test API response data:', testData);
+    } catch (error) {
+      console.error('Test API connection failed:', error);
+    }
+  };
+
   const handleDeleteProject = async (projectId: string) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        await projectsService.deleteProject(projectId);
-        setProjects(projects.filter(p => p._id !== projectId));
-      } catch (error) {
-        console.error('Error deleting project:', error);
-      }
+    try {
+      await projectsService.deleteProject(projectId);
+      // Refresh the projects list after successful deletion
+      await loadProjects();
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      setError('Failed to delete project. Please try again.');
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-12 w-12 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Projects</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="space-x-2">
+            <Button onClick={loadProjects} className="bg-green-600 hover:bg-green-700">
+              Try Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                console.log('Current state:', { projects, filteredProjects, stats, isLoading, error });
+                alert(`Debug Info:\nProjects: ${projects.length}\nFiltered: ${filteredProjects.length}\nStats: ${stats ? 'Available' : 'None'}\nError: ${error}`);
+              }}
+            >
+              Debug Info
+            </Button>
+            <Button
+              variant="outline"
+              onClick={testApiConnection}
+            >
+              Test API
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -464,7 +511,7 @@ export default function ClientProjectsPage() {
           </p>
         </div>
         <Link href="/client/projects/new">
-          <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 mt-4 sm:mt-0">
+          <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 mt-4 sm:mt-0">
             <Plus className="h-4 w-4" />
             <span>Post New Project</span>
           </Button>
@@ -478,13 +525,13 @@ export default function ClientProjectsPage() {
             title="Total Projects"
             value={stats.total}
             icon={Briefcase}
-            color="bg-blue-500"
+            color="bg-green-500"
           />
           <StatCard
             title="Open Projects"
             value={stats.open}
             icon={Clock}
-            color="bg-blue-500"
+            color="bg-green-500"
           />
           <StatCard
             title="In Progress"
@@ -518,7 +565,7 @@ export default function ClientProjectsPage() {
               placeholder="Search projects..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
 
@@ -527,7 +574,7 @@ export default function ClientProjectsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="open">Open</option>
@@ -540,7 +587,7 @@ export default function ClientProjectsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -565,25 +612,48 @@ export default function ClientProjectsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <div className="text-center py-16">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-100 to-purple-100 rounded-full mb-6">
+            <Briefcase className="h-12 w-12 text-green-600" />
+          </div>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
             {searchTerm || statusFilter !== 'all' ? 'No matching projects found' : 'No projects yet'}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-500 mb-8 text-lg max-w-md mx-auto">
             {searchTerm || statusFilter !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Start by posting your first project to find talented freelancers'
+              ? 'Try adjusting your search criteria or filters to find what you\'re looking for'
+              : 'Start building your project portfolio by posting your first project and connecting with talented freelancers'
             }
           </p>
-          {!searchTerm && statusFilter === 'all' && (
-            <Link href="/client/projects/new">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Post Your First Project
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            {!searchTerm && statusFilter === 'all' && (
+              <Link href="/client/projects/new">
+                <Button className="bg-green-600 hover:bg-green-700 px-8 py-3 text-lg">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Post Your First Project
+                </Button>
+              </Link>
+            )}
+            {(searchTerm || statusFilter !== 'all') && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                  setSortBy('newest');
+                }}
+                className="px-6 py-3"
+              >
+                Clear Filters
+              </Button>
+            )}
+            <Link href="/client/freelancers">
+              <Button variant="outline" className="px-6 py-3">
+                <Users className="h-4 w-4 mr-2" />
+                Browse Freelancers
               </Button>
             </Link>
-          )}
+          </div>
         </div>
       )}
     </div>
