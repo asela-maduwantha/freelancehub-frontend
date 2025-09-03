@@ -17,6 +17,7 @@ export interface ClientDashboard {
   activeContracts: number;
   pendingProposals: number;
   recentProjects: ClientDashboardProject[];
+  recentProposals?: any[]; // Add this property
 }
 
 export interface ClientDashboardProject {
