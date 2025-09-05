@@ -75,17 +75,21 @@ export default function LoginPage() {
       console.log(response)
       
       // Store tokens and user data
-      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('user', JSON.stringify({
+        ...response.user,
+        activeRole: response.user.role, // Map single role to activeRole for compatibility
+        _id: response.user.id // Map id to _id for compatibility
+      }));
       localStorage.setItem('accessToken', response.access_token);
       if (response.refresh_token) {
         localStorage.setItem('refreshToken', response.refresh_token);
       }
       
-      if (response.user.activeRole === 'client') {
+      if (response.user.role === 'client') {
         router.push('/client/dashboard');
-      } else if (response.user.activeRole === 'freelancer') {
+      } else if (response.user.role === 'freelancer') {
         router.push('/freelancer/dashboard');
-      } else if (response.user.activeRole === 'admin') {
+      } else if (response.user.role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/dashboard');

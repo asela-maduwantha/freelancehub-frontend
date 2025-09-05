@@ -1,6 +1,6 @@
 import { apiClient } from './client';
-import { IProject, IPaginationOptions } from '../types';
-import { ProjectsResponse } from '../types/api/responses.types';
+import { IProject, IPaginationOptions, IDashboardProposal } from '../types';
+import { ProjectsResponse, ClientDashboardResponse } from '../types/api/responses.types';
 
 export interface ClientProject extends IProject {
   freelancer?: {
@@ -13,13 +13,16 @@ export interface ClientProject extends IProject {
 
 export interface ClientDashboard {
   totalProjects: number;
-  activeProjects: number;
-  completedProjects: number;
-  totalSpent: number;
-  activeContracts: number;
-  pendingProposals: number;
-  recentProjects: ClientDashboardProject[];
-  recentProposals?: any[]; // Add this property
+  projectsByStatus: {
+    open: number;
+    'in-progress': number;
+    completed: number;
+    cancelled: number;
+    disputed: number;
+  };
+  totalProposals: number;
+  recentProjects: IProject[];
+  latestProposals: IDashboardProposal[];
 }
 
 export interface ClientDashboardProject {
@@ -64,7 +67,7 @@ export class ClientsService {
   /**
    * Get client proposals
    */
-  async getProposals(params?: IPaginationOptions): Promise<any[]> {
+  async getProposals(params?: IPaginationOptions): Promise<{ proposals: any[]; total: number; page: number; limit: number }> {
     return apiClient.get('/clients/proposals', params);
   }
 
@@ -101,7 +104,8 @@ export class ClientsService {
    * Get client dashboard
    */
   async getDashboard(): Promise<ClientDashboard> {
-    return apiClient.get('/clients/dashboard');
+    const response: ClientDashboardResponse = await apiClient.get('/clients/dashboard');
+    return response;
   }
 }
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Briefcase, Mail, Lock, Phone, MapPin, Globe } from 'lucide-react';
 import Link from 'next/link';
-import { authService, RegisterData } from '@/lib/api';
+import { authService, RegisterRequest } from '@/lib/api';
 
 interface FormData {
   email: string;
@@ -126,7 +126,7 @@ export default function FreelancerRegisterPage() {
 
     try {
       // Create registration data according to API format
-      const registrationData: RegisterData = {
+      const registrationData: RegisterRequest = {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,

@@ -29,44 +29,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { clientsService } from '@/lib/api';
+import { IProject, IDashboardProposal, DashboardStats } from '@/lib/types';
 
-interface DashboardStats {
-  totalProjects: number;
-  activeProjects: number;
-  completedProjects: number;
-  totalSpent: number;
-  activeContracts: number;
-  pendingProposals: number;
-}
-
-interface Project {
-  _id: string;
-  title: string;
-  status: string;
-  createdAt: string;
-  budget: {
-    amount: number;
-  };
-  proposalsCount?: number;
-  deadline?: string;
-}
-
-interface Proposal {
-  _id: string;
-  freelancer: {
-    firstName: string;
-    lastName: string;
-    avatar?: string;
-    rating: number;
-  };
-  projectId: {
-    title: string;
-  };
-  proposedBudget: number;
-  createdAt: string;
-}
-
-const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
+const ProjectCard: React.FC<{ project: IProject }> = ({ project }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-green-100 text-green-800 border-green-200';
@@ -108,10 +73,7 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 
       <div className="flex items-center justify-between text-xs text-gray-600">
         <div className="flex items-center space-x-3">
-          <span>Budget: ${project.budget.amount?.toLocaleString()}</span>
-          {project.proposalsCount !== undefined && (
-            <span>{project.proposalsCount} proposals</span>
-          )}
+          <span>Budget: ${project.budget?.toLocaleString()} {project.currency}</span>
         </div>
         <span>{new Date(project.createdAt).toLocaleDateString()}</span>
       </div>
@@ -154,7 +116,7 @@ const StatCard: React.FC<{
   );
 };
 
-const ProposalCard: React.FC<{ proposal: Proposal }> = ({ proposal }) => {
+const ProposalCard: React.FC<{ proposal: IDashboardProposal }> = ({ proposal }) => {
   return (
     <motion.div
       whileHover={{ x: 5 }}
@@ -162,27 +124,27 @@ const ProposalCard: React.FC<{ proposal: Proposal }> = ({ proposal }) => {
     >
       <div className="flex items-center space-x-4">
         <img
-          src={proposal.freelancer.avatar || '/user.jpg'}
-          alt={`${proposal.freelancer.firstName} ${proposal.freelancer.lastName}`}
+          src="/user.jpg"
+          alt={`${proposal.freelancerId.name}`}
           className="h-12 w-12 rounded-full object-cover ring-2 ring-gray-200"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-semibold text-gray-900 truncate">
-              {proposal.freelancer.firstName} {proposal.freelancer.lastName}
+              {proposal.freelancerId.name}
             </h4>
             <div className="flex items-center space-x-1">
               <Star className="h-4 w-4 text-yellow-400 fill-current" />
-              <span className="text-sm font-medium text-gray-700">{proposal.freelancer.rating}</span>
+              <span className="text-sm font-medium text-gray-700">4.5</span>
             </div>
           </div>
           <p className="text-sm text-gray-600 truncate mb-2">{proposal.projectId.title}</p>
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-green-600">
-              ${proposal.proposedBudget.toLocaleString()}
+              ${proposal.proposedBudget.amount.toLocaleString()}
             </span>
             <span className="text-xs text-gray-500">
-              {new Date(proposal.createdAt).toLocaleDateString()}
+              {new Date(proposal.submittedAt).toLocaleDateString()}
             </span>
           </div>
         </div>
@@ -195,8 +157,9 @@ export default function ClientDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
-  const [recentProposals, setRecentProposals] = useState<Proposal[]>([]);
+  const [recentProjects, setRecentProjects] = useState<IProject[]>([]);
+  const [recentProposals, setRecentProposals] = useState<IDashboardProposal[]>([]);
+  const [latestProposals, setLatestProposals] = useState<IDashboardProposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -214,31 +177,37 @@ export default function ClientDashboard() {
     try {
       setIsLoading(true);
       const dashboardData = await clientsService.getDashboard();
+      console.log('Dashboard Data:', dashboardData);
       
       setStats({
         totalProjects: dashboardData.totalProjects || 0,
-        activeProjects: dashboardData.activeProjects || 0,
-        completedProjects: dashboardData.completedProjects || 0,
-        totalSpent: dashboardData.totalSpent || 0,
-        activeContracts: dashboardData.activeContracts || 0,
-        pendingProposals: dashboardData.pendingProposals || 0
+        projectsByStatus: dashboardData.projectsByStatus || {
+          open: 0,
+          'in-progress': 0,
+          completed: 0,
+          cancelled: 0,
+          disputed: 0
+        },
+        totalProposals: dashboardData.totalProposals || 0
       });
       setRecentProjects(dashboardData.recentProjects || []);
-      setRecentProposals(dashboardData.recentProposals || []);
+      setLatestProposals(dashboardData.latestProposals || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       setError('Failed to load dashboard data. Please try again.');
       // Set empty state instead of mock data
       setStats({
         totalProjects: 0,
-        activeProjects: 0,
-        completedProjects: 0,
-        totalSpent: 0,
-        activeContracts: 0,
-        pendingProposals: 0
+        projectsByStatus: {
+          open: 0,
+          'in-progress': 0,
+          completed: 0,
+          cancelled: 0,
+          disputed: 0
+        },
+        totalProposals: 0
       });
       setRecentProjects([]);
-      setRecentProposals([]);
     } finally {
       setIsLoading(false);
     }
@@ -275,25 +244,11 @@ export default function ClientDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName}! 👋
+            Welcome back, {user?.name}! 👋
           </h1>
           <p className="text-gray-600 mt-2">
             Here's what's happening with your projects today.
           </p>
-        </div>
-        <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-          <Link href="/client/freelancers">
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>Browse Talent</span>
-            </Button>
-          </Link>
-          <Link href="/client/projects/new">
-            <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4" />
-              <span>Post New Project</span>
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -303,47 +258,39 @@ export default function ClientDashboard() {
           title="Total Projects"
           value={stats?.totalProjects || 0}
           icon={Briefcase}
-          change="+2 this month"
+          change={`${stats?.projectsByStatus?.open || 0} open`}
           changeType="positive"
           gradient="bg-gradient-to-r from-green-500 to-green-600"
         />
         <StatCard
-          title="Active Projects"
-          value={stats?.activeProjects || 0}
+          title="In Progress"
+          value={stats?.projectsByStatus?.['in-progress'] || 0}
           icon={Activity}
-          change={`${stats?.activeProjects || 0} ongoing`}
+          change="Active projects"
           changeType="neutral"
-          gradient="bg-gradient-to-r from-green-500 to-green-600"
+          gradient="bg-gradient-to-r from-blue-500 to-blue-600"
         />
         <StatCard
-          title="Total Spent"
-          value={`$${(stats?.totalSpent || 0).toLocaleString()}`}
-          icon={DollarSign}
-          change="+15% vs last month"
+          title="Completed"
+          value={stats?.projectsByStatus?.completed || 0}
+          icon={CheckCircle}
+          change="Successfully finished"
           changeType="positive"
           gradient="bg-gradient-to-r from-purple-500 to-purple-600"
         />
         <StatCard
-          title="Active Contracts"
-          value={stats?.activeContracts || 0}
-          icon={FileText}
-          change="5 in progress"
+          title="Open Projects"
+          value={stats?.projectsByStatus?.open || 0}
+          icon={Clock}
+          change="Awaiting proposals"
           changeType="neutral"
           gradient="bg-gradient-to-r from-orange-500 to-orange-600"
         />
         <StatCard
-          title="Pending Proposals"
-          value={stats?.pendingProposals || 0}
-          icon={Clock}
-          change="Awaiting review"
-          changeType="neutral"
-          gradient="bg-gradient-to-r from-yellow-500 to-yellow-600"
-        />
-        <StatCard
-          title="Success Rate"
-          value="94%"
-          icon={Award}
-          change="+2% improvement"
+          title="Total Proposals"
+          value={stats?.totalProposals || 0}
+          icon={MessageSquare}
+          change="Received so far"
           changeType="positive"
           gradient="bg-gradient-to-r from-indigo-500 to-indigo-600"
         />
@@ -452,8 +399,8 @@ export default function ClientDashboard() {
             </Link>
           </div>
           <div className="space-y-4">
-            {recentProposals.length > 0 ? (
-              recentProposals.map((proposal) => (
+            {latestProposals.length > 0 ? (
+              latestProposals.map((proposal) => (
                 <ProposalCard key={proposal._id} proposal={proposal} />
               ))
             ) : (

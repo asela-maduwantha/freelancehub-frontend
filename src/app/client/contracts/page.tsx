@@ -21,18 +21,17 @@ import {
 import Link from 'next/link';
 import { contractsService } from '@/lib/api';
 import Header from '@/components/ui/Header';
-import ContractApprovalModal from '@/components/ui/ContractApprovalModal';
 import { IContract } from '@/lib/types';
+import { useToast } from '@/components/ui/Toast';
 
 export default function ClientContractsPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [contracts, setContracts] = useState<IContract[]>([]);
   const [filteredContracts, setFilteredContracts] = useState<IContract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedContract, setSelectedContract] = useState<IContract | null>(null);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,7 +51,7 @@ export default function ClientContractsPage() {
   const loadContracts = async () => {
     try {
       setIsLoading(true);
-      const response = await contractsService.getContracts(user.id);
+      const response = await contractsService.getContracts();
       setContracts(response || []);
     } catch (error) {
       console.error('Failed to load contracts:', error);
@@ -114,9 +113,7 @@ export default function ClientContractsPage() {
               milestone._id === milestoneId
                 ? { ...milestone, status: 'approved' as const }
                 : milestone
-            ),
-            totalPaid: (contract as any).totalPaid || 0 + (contract.milestones.find(m => m._id === milestoneId)?.amount || 0),
-            remainingAmount: (contract as any).remainingAmount || contract.terms.budget - (contract.milestones.find(m => m._id === milestoneId)?.amount || 0)
+            )
           };
         }
         return contract;
@@ -150,10 +147,37 @@ export default function ClientContractsPage() {
     }
   };
 
-  const handleApprovalSuccess = (updatedContract: IContract) => {
-    setContracts(prev => prev.map(contract =>
-      contract._id === updatedContract._id ? updatedContract : contract
-    ));
+  const handleDownloadContract = async (contractId: string) => {
+    try {
+      const pdfBlob = await contractsService.downloadContractPdf(contractId);
+
+      // Create a blob URL for the PDF
+      const blobUrl = URL.createObjectURL(pdfBlob);
+
+      // Create a temporary link element and trigger download
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `contract-${contractId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the blob URL
+      URL.revokeObjectURL(blobUrl);
+
+      showToast({
+        type: 'success',
+        title: 'Success',
+        message: 'Contract PDF downloaded successfully'
+      });
+    } catch (error) {
+      console.error('Failed to download contract:', error);
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to download contract. Please try again.'
+      });
+    }
   };
 
   if (!user || isLoading) {
@@ -270,7 +294,7 @@ export default function ClientContractsPage() {
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <div className="flex items-center">
                             <User className="h-4 w-4 mr-1" />
-                            <span>{contract.freelancerId.firstName} {contract.freelancerId.lastName}</span>
+                            <span>{contract.freelancerId.name}</span>
                           </div>
                           <div className="flex items-center">
                             <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
@@ -278,7 +302,7 @@ export default function ClientContractsPage() {
                           </div>
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
-                            <span>Started {formatDate(contract.terms.startDate)}</span>
+                            <span>Started {formatDate(contract.startDate)}</span>
                           </div>
                         </div>
                       </div>
@@ -288,7 +312,7 @@ export default function ClientContractsPage() {
                         {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                       </div>
                       <div className="text-2xl font-bold text-gray-900 font-poppins">
-                        ${contract.terms.budget}
+                        ${contract.totalAmount}
                       </div>
                       <div className="text-sm text-gray-500">
                         Total Budget
@@ -348,7 +372,7 @@ export default function ClientContractsPage() {
                                 <Calendar className="h-5 w-5 text-green-600 mr-2" />
                                 <div>
                                   <p className="text-sm text-gray-600">Due Date</p>
-                                  <p className="font-semibold text-gray-900">{formatDate(milestone.dueDate)}</p>
+                                  <p className="font-semibold text-gray-900">{formatDate(milestone.deadline)}</p>
                                 </div>
                               </div>
                             </div>
@@ -414,25 +438,15 @@ export default function ClientContractsPage() {
                           View Details
                         </Button>
                       </Link>
-                      {!contract.approvalWorkflow.clientApproved && (
-                        <Button
-                          onClick={() => {
-                            setSelectedContract(contract);
-                            setShowApprovalModal(true);
-                          }}
-                          variant="premium"
-                          size="sm"
-                          className="font-inter"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve Contract
-                        </Button>
-                      )}
-                      {contract.approvalWorkflow.clientApproved && !contract.approvalWorkflow.freelancerApproved && (
-                        <div className="text-sm text-green-600 font-medium">
-                          Waiting for freelancer approval
-                        </div>
-                      )}
+                      <Button
+                        onClick={() => handleDownloadContract(contract._id)}
+                        variant="outline"
+                        size="sm"
+                        className="font-inter"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Download PDF
+                      </Button>
                     </div>
                     {contract.status === 'active' && (
                       <Button
@@ -474,20 +488,6 @@ export default function ClientContractsPage() {
           )}
         </div>
       </div>
-
-      {/* Contract Approval Modal */}
-      {selectedContract && (
-        <ContractApprovalModal
-          isOpen={showApprovalModal}
-          onClose={() => {
-            setShowApprovalModal(false);
-            setSelectedContract(null);
-          }}
-          contract={selectedContract}
-          userRole="client"
-          onApprovalSuccess={handleApprovalSuccess}
-        />
-      )}
     </div>
   );
 }

@@ -34,10 +34,7 @@ export class ContractsService {
   /**
    * Get current user contracts
    */
-  async getContracts(clientId?: string): Promise<IContract[]> {
-    if (clientId) {
-      return apiClient.get(`/contracts/client/${clientId}`);
-    }
+  async getContracts(): Promise<IContract[]> {
     return apiClient.get('/contracts');
   }
 
@@ -137,8 +134,8 @@ export class ContractsService {
   /**
    * Download contract PDF
    */
-  async downloadContractPdf(contractId: string): Promise<{ pdfUrl: string }> {
-    return apiClient.get(`/contracts/${contractId}/download-pdf`);
+  async downloadContractPdf(contractId: string): Promise<Blob> {
+    return apiClient.downloadFile(`/contracts/${contractId}/download-pdf`);
   }
 }
 

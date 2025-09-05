@@ -6,60 +6,79 @@ export interface IContract {
   clientId: IClient;
   freelancerId: IFreelancer;
   proposalId: IProposal;
-  terms: ITerms;
+  title: string;
+  description: string;
+  totalAmount: number;
+  currency: string;
+  contractType: string;
+  terms: string;
   milestones: IMilestone[];
   status: 'active' | 'completed' | 'cancelled' | 'disputed';
-  approvalWorkflow: IApprovalWorkflow;
-  totalPaid: number;
-  totalEscrow: number;
+  startDate: string;
+  endDate: string;
+  client_digital_signed: boolean;
+  freelancer_digital_signed: boolean;
   createdAt: string;
   updatedAt: string;
+  __v: number;
 }
 
 export interface IClient {
   _id: string;
-  firstName: string;
-  lastName: string;
-  companyName: string;
   email: string;
-  profilePicture: string;
-  rating: number;
-  reviewsCount: number;
+  name: string;
+  role: string;
+  emailVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  lastLoginAt?: string;
 }
 
 export interface IFreelancer {
   _id: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  profilePicture?: string;
-  phoneNumber?: string;
-  companyName?: string;
-  rating: number;
-  reviewsCount: number;
-  skills: string[];
+  name: string;
+  role: string;
+  emailVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  lastLoginAt?: string;
 }
 
 export interface IProposal {
   _id: string;
-  proposedBudget: number;
+  coverLetter: string;
+  proposedBudget: {
+    amount: number;
+    currency: string;
+    type: string;
+  };
   proposedDuration: {
     value: number;
     unit: string;
   };
-  coverLetter: string;
-  milestones: IMilestone[];
-  attachments?: string[];
+  attachments: IAttachment[];
+  milestones: IProposalMilestone[];
   status: string;
   createdAt: string;
 }
 
-export interface ITerms {
-  budget: number;
-  paymentType: 'fixed' | 'hourly';
-  startDate: string;
-  endDate: string;
-  paymentSchedule: string;
+export interface IAttachment {
+  filename: string;
+  url: string;
+  description: string;
+}
+
+export interface IProposalMilestone {
+  title: string;
+  description: string;
+  amount: number;
+  durationDays: number;
+  deliveryDate: string;
 }
 
 export interface IMilestone {
@@ -67,22 +86,8 @@ export interface IMilestone {
   title: string;
   description: string;
   amount: number;
-  dueDate: string;
+  deadline: string;
   status: 'pending' | 'in-progress' | 'submitted' | 'approved' | 'rejected';
-  submissions?: ISubmission[];
-}
-
-export interface IApprovalWorkflow {
-  clientApproved: boolean;
-  freelancerApproved: boolean;
-  clientApprovedAt?: string;
-  freelancerApprovedAt?: string;
-  approvalOrder?: string;
-}
-
-export interface ISubmission {
-  files: string[];
-  description: string;
-  submittedAt: string;
-  feedback: string;
+  deliverables: any[];
+  createdAt: string;
 }

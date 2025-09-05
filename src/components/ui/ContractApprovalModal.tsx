@@ -25,20 +25,18 @@ export default function ContractApprovalModal({
   const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { approvalWorkflow } = contract;
-
   const canApprove = () => {
     if (userRole === 'client') {
-      return !approvalWorkflow.clientApproved;
+      return !contract.client_digital_signed;
     } else {
-      return approvalWorkflow.clientApproved && !approvalWorkflow.freelancerApproved;
+      return contract.client_digital_signed && !contract.freelancer_digital_signed;
     }
   };
 
   const getApprovalStatus = () => {
-    if (approvalWorkflow.clientApproved && approvalWorkflow.freelancerApproved) {
+    if (contract.client_digital_signed && contract.freelancer_digital_signed) {
       return { status: 'approved', message: 'Contract fully approved and signed!' };
-    } else if (approvalWorkflow.clientApproved) {
+    } else if (contract.client_digital_signed) {
       return { status: 'client_approved', message: 'Client approved. Waiting for freelancer approval.' };
     } else {
       return { status: 'pending', message: 'Waiting for client approval.' };
@@ -110,13 +108,13 @@ export default function ContractApprovalModal({
                   <div>
                     <span className="text-sm text-gray-500">Budget</span>
                     <p className="text-lg font-semibold text-gray-900">
-                      ${contract.terms.budget}
+                      ${contract.totalAmount}
                     </p>
                   </div>
                   <div>
                     <span className="text-sm text-gray-500">Duration</span>
                     <p className="text-lg font-semibold text-gray-900">
-                      {new Date(contract.terms.startDate).toLocaleDateString()} - {new Date(contract.terms.endDate).toLocaleDateString()}
+                      {new Date(contract.startDate).toLocaleDateString()} - {new Date(contract.endDate).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -142,34 +140,34 @@ export default function ContractApprovalModal({
                 {/* Approval Steps */}
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    {approvalWorkflow.clientApproved ? (
+                    {contract.client_digital_signed ? (
                       <CheckCircle className="h-5 w-5 text-green-500" />
                     ) : (
                       <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
                     )}
-                    <span className={`text-sm ${approvalWorkflow.clientApproved ? 'text-green-700' : 'text-gray-500'}`}>
-                      Client Approval
-                      {approvalWorkflow.clientApproved && approvalWorkflow.clientApprovedAt && (
+                    <span className={`text-sm ${contract.client_digital_signed ? 'text-green-700' : 'text-gray-500'}`}>
+                      Client Signature
+                      {contract.client_digital_signed && (
                         <span className="text-xs text-gray-500 ml-2">
-                          ({new Date(approvalWorkflow.clientApprovedAt).toLocaleDateString()})
+                          (Signed)
                         </span>
                       )}
                     </span>
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    {approvalWorkflow.freelancerApproved ? (
+                    {contract.freelancer_digital_signed ? (
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : approvalWorkflow.clientApproved ? (
+                    ) : contract.client_digital_signed ? (
                       <Clock className="h-5 w-5 text-green-500" />
                     ) : (
                       <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
                     )}
-                    <span className={`text-sm ${approvalWorkflow.freelancerApproved ? 'text-green-700' : approvalWorkflow.clientApproved ? 'text-green-700' : 'text-gray-500'}`}>
-                      Freelancer Approval
-                      {approvalWorkflow.freelancerApproved && approvalWorkflow.freelancerApprovedAt && (
+                    <span className={`text-sm ${contract.freelancer_digital_signed ? 'text-green-700' : contract.client_digital_signed ? 'text-green-700' : 'text-gray-500'}`}>
+                      Freelancer Signature
+                      {contract.freelancer_digital_signed && (
                         <span className="text-xs text-gray-500 ml-2">
-                          ({new Date(approvalWorkflow.freelancerApprovedAt).toLocaleDateString()})
+                          (Signed)
                         </span>
                       )}
                     </span>
@@ -188,7 +186,7 @@ export default function ContractApprovalModal({
                       <div>
                         <span className="font-medium text-gray-900">{milestone.title}</span>
                         <span className="text-sm text-gray-500 ml-2">
-                          ${milestone.amount} • Due {new Date(milestone.dueDate).toLocaleDateString()}
+                          ${milestone.amount} • Due {new Date(milestone.deadline).toLocaleDateString()}
                         </span>
                       </div>
                       <div className="text-sm text-gray-600">
@@ -240,7 +238,7 @@ export default function ContractApprovalModal({
                   </Button>
                 )}
 
-                {approvalWorkflow.clientApproved && approvalWorkflow.freelancerApproved && (
+                {contract.client_digital_signed && contract.freelancer_digital_signed && (
                   <Button
                     variant="premium"
                     className="min-w-[120px]"

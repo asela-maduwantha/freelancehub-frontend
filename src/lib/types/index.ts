@@ -5,6 +5,7 @@ export * from './entities/contract.types';
 export * from './entities/payment.types';
 export * from './entities/review.types';
 export * from './entities/freelancer.types';
+export * from './entities/proposals.types';
 
 // API
 export * from './api/common.types';
@@ -23,3 +24,6 @@ export * from './enums/status.types';
 // Utils
 export * from './utils/generic.types';
 export * from './utils/file.types';
+
+// Client Layout
+export * from './client-layout.types';

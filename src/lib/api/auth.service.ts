@@ -3,15 +3,14 @@ import {
   LoginRequest,
   RegisterRequest,
   VerifyOtpRequest,
-  IUser,
+  AuthResponse,
+  RegisterResponse,
+  VerifyOtpResponse,
+  RefreshTokenResponse,
+  LogoutResponse,
+  ProfileResponse,
   IApiResponse
 } from '../types/index';
-
-export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-  user: IUser;
-}
 
 export interface RefreshRequest {
   refreshToken: string;
@@ -21,7 +20,7 @@ export class AuthService {
   /**
    * Register a new user
    */
-  async register(data: RegisterRequest): Promise<{ user: IUser }> {
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
     return apiClient.post('/auth/register', data);
   }
 
@@ -42,8 +41,8 @@ export class AuthService {
   /**
    * Verify email with OTP
    */
-  async verifyOtp(data: VerifyOtpRequest): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/verify-otp', data);
+  async verifyOtp(data: VerifyOtpRequest): Promise<VerifyOtpResponse> {
+    const response = await apiClient.post<VerifyOtpResponse>('/auth/verify-otp', data);
     
     // Store tokens after successful verification
     if (response.access_token && response.refresh_token) {
@@ -56,8 +55,15 @@ export class AuthService {
   /**
    * Refresh access token
    */
-  async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    return apiClient.post('/auth/refresh', { refreshToken });
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', { refreshToken });
+    
+    // Update the stored access token, keep the existing refresh token
+    if (response.accessToken) {
+      apiClient.setTokens(response.accessToken, refreshToken);
+    }
+    
+    return response;
   }
 
   /**
@@ -76,7 +82,7 @@ export class AuthService {
   /**
    * Get current user profile
    */
-  async getProfile(): Promise<IUser> {
+  async getProfile(): Promise<ProfileResponse> {
     return apiClient.get('/auth/profile');
   }
 

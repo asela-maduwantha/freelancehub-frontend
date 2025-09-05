@@ -39,3 +39,62 @@ export interface ProjectsResponse {
   };
   timestamp: string;
 }
+
+export interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  user: AuthUser;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string; // Full name (firstName + lastName)
+  role: string; // Single role string
+}
+
+export interface RegisterResponse {
+  message: string;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+  access_token: string;
+  refresh_token: string;
+  user: AuthUser;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+}
+
+export interface LogoutResponse {
+  message: string;
+}
+
+export interface ProfileResponse {
+  id: string;
+  email: string;
+  name: string;
+  profilePicture?: string;
+  role: string;
+  emailVerified: boolean;
+  lastLoginAt: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientDashboardResponse {
+    totalProjects: number;
+    projectsByStatus: {
+      open: number;
+      'in-progress': number;
+      completed: number;
+      cancelled: number;
+      disputed: number;
+    };
+    totalProposals: number;
+    recentProjects: import('../entities/project.types').IProject[];
+    latestProposals: import('../entities/proposals.types').IDashboardProposal[];
+  }

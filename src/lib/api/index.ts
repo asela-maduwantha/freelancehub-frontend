@@ -4,6 +4,7 @@ export { usersService, UsersService } from './users.service';
 export { projectsService, ProjectsService } from './projects.service';
 export { proposalsService, ProposalsService } from './proposals.service';
 export { clientsService, ClientsService } from './clients.service';
+export type { ClientDashboard } from './clients.service';
 export { contractsService, ContractsService } from './contracts.service';
 export { paymentsService, PaymentsService } from './payments.service';
 export { reviewsService, ReviewsService } from './reviews.service';

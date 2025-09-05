@@ -15,7 +15,6 @@ const sizeClasses = {
 
 const colorClasses = {
   green: 'border-green-500',
-  green: 'border-green-500',
   gray: 'border-gray-500'
 };
 

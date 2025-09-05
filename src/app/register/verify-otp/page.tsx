@@ -89,7 +89,11 @@ function VerifyOTPContent() {
       localStorage.setItem('refreshToken', response.refresh_token);
       
       // Store user data
-      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('user', JSON.stringify({
+        ...response.user,
+        activeRole: response.user.role, // Map single role to activeRole for compatibility
+        _id: response.user.id // Map id to _id for compatibility
+      }));
       
       // Update profile with pending data if available
       const pendingProfileData = localStorage.getItem('pendingProfileData');

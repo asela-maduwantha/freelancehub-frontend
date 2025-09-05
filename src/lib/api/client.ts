@@ -297,7 +297,7 @@ export class ApiClient {
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const response = await this.axiosInstance.get(endpoint, { params });
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-      return response.data.data;
+      return response.data;
     }
     return response.data;
   }
