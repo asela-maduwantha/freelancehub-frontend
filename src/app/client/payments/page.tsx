@@ -18,22 +18,42 @@ import {
   Clock,
   AlertCircle,
   AlertTriangle,
-  User
+  User,
+  Wallet,
+  Shield,
+  Zap,
+  Plus,
+  Settings,
+  Receipt,
+  Lock
 } from 'lucide-react';
 import Link from 'next/link';
-import { paymentsService, PaymentStats } from '@/lib/api/payments.service';
-import { IPayment } from '@/lib/types';
+import { paymentsService } from '@/lib/api/payments.service';
+import { IPayment, IPaymentStats, IEscrowPayment } from '@/lib/types';
+import { usePaymentStore } from '@/lib/stores/payment.store';
 
 export default function ClientPaymentsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [payments, setPayments] = useState<IPayment[]>([]);
-  const [stats, setStats] = useState<PaymentStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [projectFilter, setProjectFilter] = useState<string>('all');
-  const [filteredPayments, setFilteredPayments] = useState<IPayment[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [escrowPayments, setEscrowPayments] = useState<IEscrowPayment[]>([]);
+  const [showEscrowModal, setShowEscrowModal] = useState(false);
+  const [selectedEscrowPayment, setSelectedEscrowPayment] = useState<IEscrowPayment | null>(null);
+
+  const {
+    payments,
+    stats,
+    isLoading,
+    error,
+    statusFilter,
+    projectFilter,
+    filteredPayments,
+    setPayments,
+    setStats,
+    setLoading,
+    setError,
+    setStatusFilter,
+    setProjectFilter,
+  } = usePaymentStore();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -41,33 +61,30 @@ export default function ClientPaymentsPage() {
       setUser(JSON.parse(userData));
       loadPayments();
       loadStats();
+      loadEscrowPayments();
     } else {
       router.push('/login');
     }
   }, [router]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [payments, statusFilter, projectFilter]);
-
   const loadPayments = async () => {
     try {
-      setIsLoading(true);
-      const response = await paymentsService.getPayments();
-      setPayments((response as any).data || response || []);
+      setLoading(true);
+      const paymentsData = await paymentsService.getPayments();
+      setPayments(Array.isArray(paymentsData) ? paymentsData : []);
     } catch (error) {
       console.error('Failed to load payments:', error);
       setError('Failed to load payments. Please try again.');
       setPayments([]);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const loadStats = async () => {
     try {
-      const response = await paymentsService.getPaymentStats();
-      setStats((response as any).data || response);
+      const statsData = await paymentsService.getPaymentStats();
+      setStats(statsData);
     } catch (error) {
       console.error('Failed to load payment stats:', error);
       setError('Failed to load payment statistics. Please try again.');
@@ -75,18 +92,44 @@ export default function ClientPaymentsPage() {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = payments;
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(payment => payment.status === statusFilter);
+  const loadEscrowPayments = async () => {
+    try {
+      const escrowData = await paymentsService.getEscrowPayments();
+      setEscrowPayments(Array.isArray(escrowData) ? escrowData : []);
+    } catch (error) {
+      console.error('Failed to load escrow payments:', error);
+      // Don't show error to user for escrow, just set empty array
+      setEscrowPayments([]);
     }
+  };
 
-    if (projectFilter !== 'all') {
-      filtered = filtered.filter(payment => payment.projectId === projectFilter);
+  const handleReleaseEscrow = async (paymentId: string) => {
+    try {
+      await paymentsService.releaseEscrowPayment(paymentId);
+      loadEscrowPayments();
+      loadPayments();
+      loadStats();
+    } catch (error) {
+      console.error('Failed to release escrow:', error);
+      setError('Failed to release payment from escrow.');
     }
+  };
 
-    setFilteredPayments(filtered);
+  const handleDownloadReceipt = async (paymentId: string) => {
+    try {
+      const blob = await paymentsService.downloadReceipt(paymentId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `receipt-${paymentId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download receipt:', error);
+      setError('Failed to download receipt.');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -166,24 +209,6 @@ export default function ClientPaymentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
-            </Link>
-            <Link
-              href="/client/dashboard"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -198,6 +223,18 @@ export default function ClientPaymentsPage() {
             </p>
           </div>
           <div className="flex space-x-4 mt-4 lg:mt-0">
+            <Link href="/client/payments/recurring">
+              <Button variant="outline" className="font-inter">
+                <Calendar className="h-4 w-4 mr-2" />
+                Recurring
+              </Button>
+            </Link>
+            <Link href="/client/payments/bulk">
+              <Button variant="outline" className="font-inter">
+                <Plus className="h-4 w-4 mr-2" />
+                Bulk Payment
+              </Button>
+            </Link>
             <Button variant="outline" className="font-inter">
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -215,9 +252,9 @@ export default function ClientPaymentsPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Paid</p>
+                  <p className="text-sm font-medium text-gray-600">Total Spent</p>
                   <p className="text-2xl font-bold text-green-600 font-poppins">
-                    {formatCurrency(stats.totalPaid, 'USD')}
+                    {formatCurrency(stats.totalSpent, 'USD')}
                   </p>
                 </div>
                 <div className="p-2 bg-green-100 rounded-lg">
@@ -229,13 +266,27 @@ export default function ClientPaymentsPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-sm font-medium text-gray-600">Available Balance</p>
+                  <p className="text-2xl font-bold text-blue-600 font-poppins">
+                    {formatCurrency(stats.availableBalance, 'USD')}
+                  </p>
+                </div>
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Wallet className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Held in Escrow</p>
                   <p className="text-2xl font-bold text-yellow-600 font-poppins">
-                    {formatCurrency(stats.totalPending, 'USD')}
+                    {formatCurrency(stats.heldInEscrow, 'USD')}
                   </p>
                 </div>
                 <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Clock className="h-6 w-6 text-yellow-600" />
+                  <Shield className="h-6 w-6 text-yellow-600" />
                 </div>
               </div>
             </div>
@@ -243,32 +294,65 @@ export default function ClientPaymentsPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                  <p className="text-2xl font-bold text-green-600 font-poppins">
-                    {stats.paymentCount}
-                  </p>
-                </div>
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <CreditCard className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Average Payment</p>
+                  <p className="text-sm font-medium text-gray-600">Platform Fees</p>
                   <p className="text-2xl font-bold text-purple-600 font-poppins">
-                    {formatCurrency(stats.averagePayment, 'USD')}
+                    {formatCurrency(stats.platformFees, 'USD')}
                   </p>
                 </div>
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-purple-600" />
+                  <Receipt className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
             </div>
           </motion.div>
         )}
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Link href="/client/payments/create">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Make Payment</h3>
+                  <p className="text-green-100">Pay for completed milestones</p>
+                </div>
+                <Plus className="h-8 w-8" />
+              </div>
+            </motion.div>
+          </Link>
+
+          <Link href="/client/payments/wallet">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Wallet</h3>
+                  <p className="text-blue-100">Manage balance & methods</p>
+                </div>
+                <Wallet className="h-8 w-8" />
+              </div>
+            </motion.div>
+          </Link>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            onClick={() => setShowEscrowModal(true)}
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-lg text-white cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Escrow Management</h3>
+                <p className="text-yellow-100">Release held payments</p>
+              </div>
+              <Lock className="h-8 w-8" />
+            </div>
+          </motion.div>
+        </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -345,8 +429,9 @@ export default function ClientPaymentsPage() {
                       <div className={`flex-shrink-0 w-4 h-4 rounded-full ${
                         payment.status === 'completed' ? 'bg-green-500' :
                         payment.status === 'pending' ? 'bg-yellow-500' :
-                        payment.status === 'processing' ? 'bg-green-500' :
+                        payment.status === 'processing' ? 'bg-blue-500' :
                         payment.status === 'failed' ? 'bg-red-500' :
+                        payment.status === 'refunded' ? 'bg-orange-500' :
                         'bg-gray-500'
                       }`}></div>
 
@@ -366,13 +451,20 @@ export default function ClientPaymentsPage() {
                           <div className={`px-4 py-2 rounded-full text-sm font-medium ${
                             payment.status === 'completed' ? 'bg-green-100 text-green-800' :
                             payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            payment.status === 'processing' ? 'bg-green-100 text-green-800' :
+                            payment.status === 'processing' ? 'bg-blue-100 text-blue-800' :
                             payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            payment.status === 'refunded' ? 'bg-orange-100 text-orange-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {getStatusIcon(payment.status)}
                             <span className="ml-2 capitalize">{payment.status}</span>
                           </div>
+                          {payment.escrowStatus === 'held' && (
+                            <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                              <Lock className="h-3 w-3 inline mr-1" />
+                              Escrow
+                            </div>
+                          )}
                         </div>
                         <p className="text-gray-600 font-medium mb-1">{payment.contract?.title || 'Unknown Project'}</p>
                         <div className="flex items-center space-x-6 text-sm text-gray-500">
@@ -384,26 +476,47 @@ export default function ClientPaymentsPage() {
                             <Calendar className="h-4 w-4 mr-1" />
                             <span>{formatDate(payment.createdAt)}</span>
                           </div>
+                          {payment.platformFee > 0 && (
+                            <div className="flex items-center">
+                              <Receipt className="h-4 w-4 mr-1" />
+                              <span>Fee: {formatCurrency(payment.platformFee, payment.currency)}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center space-x-3">
-                      <Button variant="outline" size="sm" className="px-4 py-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/client/payments/${payment.id}`)}
+                        className="px-4 py-2"
+                      >
                         <Eye className="h-4 w-4 mr-2" />
                         Details
                       </Button>
-                      {payment.status === 'pending' && (
-                        <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 px-4 py-2">
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Cancel
-                        </Button>
-                      )}
-                      {payment.status === 'completed' && (
-                        <Button variant="outline" size="sm" className="border-green-300 text-green-600 hover:bg-green-50 px-4 py-2">
+                      {payment.status === 'completed' && payment.receipt && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadReceipt(payment.id)}
+                          className="border-green-300 text-green-600 hover:bg-green-50 px-4 py-2"
+                        >
                           <Download className="h-4 w-4 mr-2" />
                           Receipt
+                        </Button>
+                      )}
+                      {payment.escrowStatus === 'held' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReleaseEscrow(payment.id)}
+                          className="border-blue-300 text-blue-600 hover:bg-blue-50 px-4 py-2"
+                        >
+                          <Zap className="h-4 w-4 mr-2" />
+                          Release
                         </Button>
                       )}
                     </div>
@@ -448,6 +561,89 @@ export default function ClientPaymentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Escrow Management Modal */}
+      {showEscrowModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden"
+          >
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Escrow Management</h2>
+                <button
+                  onClick={() => setShowEscrowModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {escrowPayments.length > 0 ? (
+                <div className="space-y-4">
+                  {escrowPayments.map((escrow) => (
+                    <div key={escrow.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {formatCurrency(escrow.amount, 'USD')}
+                          </h3>
+                          <p className="text-gray-600">{escrow.milestone.title}</p>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          escrow.status === 'held' ? 'bg-yellow-100 text-yellow-800' :
+                          escrow.status === 'released' ? 'bg-green-100 text-green-800' :
+                          escrow.status === 'disputed' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {escrow.status === 'held' && <Lock className="h-4 w-4 inline mr-1" />}
+                          {escrow.status === 'released' && <CheckCircle className="h-4 w-4 inline mr-1" />}
+                          {escrow.status === 'disputed' && <AlertTriangle className="h-4 w-4 inline mr-1" />}
+                          <span className="capitalize">{escrow.status}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                        <span>Freelancer: {escrow.freelancer.name}</span>
+                        <span>Held: {formatDate(escrow.heldAt)}</span>
+                        {escrow.autoReleaseAt && (
+                          <span>Auto-release: {formatDate(escrow.autoReleaseAt)}</span>
+                        )}
+                      </div>
+
+                      {escrow.status === 'held' && (
+                        <div className="flex space-x-3">
+                          <Button
+                            onClick={() => handleReleaseEscrow(escrow.paymentId)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Zap className="h-4 w-4 mr-2" />
+                            Release Payment
+                          </Button>
+                          <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">
+                            <AlertTriangle className="h-4 w-4 mr-2" />
+                            Dispute
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Escrow Payments</h3>
+                  <p className="text-gray-600">All payments have been released or there are no held payments.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

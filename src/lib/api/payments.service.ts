@@ -1,5 +1,14 @@
 import { apiClient } from './client';
-import { IPayment, IApiResponse } from '../types';
+import {
+  IPayment,
+  IPaymentStats,
+  IWallet,
+  IEscrowPayment,
+  IPaymentIntent,
+  ICreatePaymentRequest,
+  IPaymentConfirmation,
+  IApiResponse
+} from '../types';
 
 export interface CreatePaymentIntentRequest {
   amount: number;
@@ -34,16 +43,16 @@ export interface PaymentStats {
 
 export class PaymentsService {
   /**
-   * Create Stripe payment intent
+   * Create payment
    */
-  async createPaymentIntent(data: CreatePaymentIntentRequest): Promise<PaymentIntent> {
-    return apiClient.post('/payments/create-intent', data);
+  async createPayment(data: ICreatePaymentRequest): Promise<IPaymentIntent> {
+    return apiClient.post('/payments/create', data);
   }
 
   /**
-   * Confirm payment with Stripe
+   * Confirm payment
    */
-  async confirmPayment(paymentId: string, data: ConfirmPaymentRequest): Promise<IApiResponse<{ payment: IPayment }>> {
+  async confirmPayment(paymentId: string, data: any): Promise<IPaymentConfirmation> {
     return apiClient.post(`/payments/${paymentId}/confirm`, data);
   }
 
@@ -55,14 +64,18 @@ export class PaymentsService {
     limit?: number;
     offset?: number;
   }): Promise<IPayment[]> {
-    return apiClient.get('/payments', params);
+    const response: any = await apiClient.get('/payments', params);
+    // Handle API response structure: { data: [...], timestamp: "..." }
+    return response?.data || response || [];
   }
 
   /**
    * Get payment statistics
    */
-  async getPaymentStats(): Promise<PaymentStats> {
-    return apiClient.get('/payments/stats');
+  async getPaymentStats(): Promise<IPaymentStats> {
+    const response: any = await apiClient.get('/payments/stats');
+    // Handle API response structure: { data: {...}, timestamp: "..." }
+    return response?.data || response;
   }
 
   /**
@@ -77,6 +90,58 @@ export class PaymentsService {
    */
   async refundPayment(id: string, reason: string): Promise<IApiResponse<{ refund: any }>> {
     return apiClient.post(`/payments/${id}/refund`, { reason });
+  }
+
+  /**
+   * Get escrow payments
+   */
+  async getEscrowPayments(): Promise<IEscrowPayment[]> {
+    try {
+      const response: any = await apiClient.get('/payments/escrow');
+      // Handle API response structure: { data: [...], timestamp: "..." }
+      return response?.data || response || [];
+    } catch (error) {
+      console.error('Escrow endpoint error:', error);
+      // Return empty array if endpoint is not implemented
+      return [];
+    }
+  }
+
+  /**
+   * Release escrow payment
+   */
+  async releaseEscrowPayment(paymentId: string): Promise<IApiResponse<{ payment: IPayment }>> {
+    return apiClient.post(`/payments/${paymentId}/release-escrow`);
+  }
+
+  /**
+   * Get wallet information
+   */
+  async getWallet(): Promise<IWallet> {
+    const response: any = await apiClient.get('/payments/wallet');
+    // Handle API response structure: { data: {...}, timestamp: "..." }
+    return response?.data || response;
+  }
+
+  /**
+   * Add funds to wallet
+   */
+  async addFunds(amount: number, paymentMethod: string): Promise<IPaymentIntent> {
+    return apiClient.post('/payments/wallet/add-funds', { amount, paymentMethod });
+  }
+
+  /**
+   * Download payment receipt
+   */
+  async downloadReceipt(paymentId: string): Promise<Blob> {
+    return apiClient.get(`/payments/${paymentId}/receipt`, { responseType: 'blob' });
+  }
+
+  /**
+   * Create Stripe payment intent (legacy)
+   */
+  async createPaymentIntent(data: CreatePaymentIntentRequest): Promise<PaymentIntent> {
+    return apiClient.post('/payments/create-intent', data);
   }
 }
 

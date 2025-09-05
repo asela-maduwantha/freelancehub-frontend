@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search as SearchIcon, Star, MapPin, Clock } from "lucide-react";
-import { usersService } from "../../lib/api";
+import { freelancerAPI } from "../../lib/api";
 
 // Dummy categories data
 const dummyCategories = [
@@ -20,19 +20,63 @@ const dummyCategories = [
 
 interface Freelancer {
   _id: string;
-  firstName: string;
-  lastName: string;
-  freelancerProfile?: {
-    title?: string;
-    bio?: string;
-    skills?: string[];
-    experience?: string;
-    hourlyRate?: number;
-    availability?: string;
-    portfolio?: Array<{
-      images?: string[];
-    }>;
+  userId: {
+    _id: string;
+    email: string;
+    name: string;
+    role: string;
+    emailVerified: boolean;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    lastLoginAt?: string;
   };
+  professionalTitle: string;
+  description: string;
+  skills: string[];
+  categories: string[];
+  experienceLevel: string;
+  hourlyRate: number;
+  availability: {
+    status: string;
+    hoursPerWeek: number;
+    workingHours: {
+      timezone: string;
+      schedule: Record<string, string>;
+    };
+  };
+  portfolio: Array<{
+    title: string;
+    description: string;
+    imageUrl: string;
+    projectUrl?: string;
+    tags: string[];
+  }>;
+  education?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    year: number;
+  }>;
+  certifications?: Array<{
+    name: string;
+    issuer: string;
+    year: number;
+    url?: string;
+  }>;
+  languages?: Array<{
+    language: string;
+    proficiency: string;
+  }>;
+  location?: {
+    country: string;
+    city: string;
+    province: string;
+  };
+  profileCompleteness: number;
+  publicProfileUrl: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function Search() {
@@ -56,8 +100,8 @@ export default function Search() {
     const fetchFreelancers = async () => {
       try {
         setLoading(true);
-        const response = await usersService.getFreelancers({ limit: 8 });
-        setFreelancers(response.data || []);
+        const response = await freelancerAPI.getFreelancers({ limit: 8 });
+        setFreelancers((response.data as unknown) as Freelancer[] || []);
       } catch (err) {
         console.error('Error fetching freelancers:', err);
         setError('Failed to load freelancers');
@@ -77,8 +121,8 @@ export default function Search() {
       if (searchQuery) {
         filters.skills = searchQuery;
       }
-      const response = await usersService.getFreelancers(filters);
-      setFreelancers(response.data || []);
+      const response = await freelancerAPI.getFreelancers(filters);
+      setFreelancers((response.data as unknown) as Freelancer[] || []);
     } catch (err) {
       console.error('Error searching freelancers:', err);
       setError('Failed to search freelancers');
@@ -89,14 +133,14 @@ export default function Search() {
 
   // Get profile image URL
   const getProfileImage = (freelancer: Freelancer) => {
-    if (!freelancer || !freelancer.firstName || !freelancer.lastName) {
+    if (!freelancer || !freelancer.userId?.name) {
       return `https://ui-avatars.com/api/?name=User&background=10b981&color=fff&size=150`;
     }
 
-    if (freelancer.freelancerProfile?.portfolio?.[0]?.images?.[0]) {
-      return freelancer.freelancerProfile.portfolio[0].images[0];
+    if (freelancer.portfolio?.[0]?.imageUrl) {
+      return freelancer.portfolio[0].imageUrl;
     }
-    return `https://ui-avatars.com/api/?name=${freelancer.firstName}+${freelancer.lastName}&background=10b981&color=fff&size=150`;
+    return `https://ui-avatars.com/api/?name=${freelancer.userId.name}&background=10b981&color=fff&size=150`;
   };
 
   return (
@@ -208,73 +252,103 @@ export default function Search() {
           )}
           
           {!loading && !error && freelancers.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {freelancers.filter(freelancer => freelancer && freelancer._id).map((freelancer, index) => (
                 <motion.div
                   key={freelancer._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
-                  className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300"
+                  className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group"
                 >
-                  <div className="p-6">
-                    <div className="flex items-center mb-4">
-                      <img
-                        src={getProfileImage(freelancer)}
-                        alt={`${freelancer.firstName || 'User'} ${freelancer.lastName || ''}`}
-                        className="w-16 h-16 rounded-full object-cover mr-4"
-                      />
-                      <div>
-                        <h4 className="font-semibold text-lg text-gray-900">
-                          {freelancer.firstName || 'Unknown'} {freelancer.lastName || 'User'}
+                  {/* Header with gradient background */}
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 p-4">
+                    <div className="flex items-center">
+                      <div className="relative">
+                        <img
+                          src={'/user.jpg'}
+                          alt={`${freelancer.userId?.name || 'User'}`}
+                          className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-green-400 rounded-full p-1">
+                          <Star className="w-3 h-3 text-white fill-current" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h4 className="font-bold text-lg text-white leading-tight">
+                          {freelancer.userId?.name || 'Unknown User'}
                         </h4>
-                        <p className="text-green-600 font-medium">
-                          {freelancer.freelancerProfile?.title || 'Freelancer'}
+                        <p className="text-green-100 text-sm font-medium">
+                          {freelancer.professionalTitle || 'Freelancer'}
                         </p>
                       </div>
                     </div>
-                    
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {freelancer.freelancerProfile?.bio || 'No bio available'}
+                  </div>
+
+                  <div className="p-6">
+                    {/* Bio */}
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+                      {freelancer.description || 'No description available'}
                     </p>
-                    
+
+                    {/* Skills */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {freelancer.freelancerProfile?.skills?.slice(0, 3).map((skill, skillIndex) => (
+                      {freelancer.skills?.slice(0, 3).map((skill: string, skillIndex: number) => (
                         <span
                           key={skillIndex}
-                          className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"
+                          className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 text-xs px-3 py-1 rounded-full font-medium shadow-sm"
                         >
                           {skill}
                         </span>
                       ))}
-                      {freelancer.freelancerProfile?.skills && freelancer.freelancerProfile.skills.length > 3 && (
-                        <span className="text-gray-500 text-xs">
-                          +{freelancer.freelancerProfile.skills.length - 3} more
+                      {freelancer.skills && freelancer.skills.length > 3 && (
+                        <span className="text-gray-500 text-xs bg-gray-100 px-2 py-1 rounded-full">
+                          +{freelancer.skills.length - 3} more
                         </span>
                       )}
                     </div>
-                    
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500" />
-                        <span>4.8</span>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="font-semibold text-gray-900">4.8</span>
+                        </div>
+                        <p className="text-xs text-gray-600">Rating</p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{freelancer.freelancerProfile?.experience || 'Not specified'}</span>
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <Clock className="w-4 h-4 text-blue-500" />
+                          <span className="font-semibold text-gray-900 text-sm capitalize">
+                            {freelancer.experienceLevel || 'N/A'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">Experience</p>
                       </div>
                     </div>
-                    
+
+                    {/* Price and CTA */}
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">
-                          ${freelancer.freelancerProfile?.hourlyRate || 'N/A'}
-                        </p>
-                        <p className="text-sm text-gray-600">per hour</p>
+                      <div className="flex flex-col">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-2xl font-bold text-gray-900">
+                            ${freelancer.hourlyRate || 'N/A'}
+                          </span>
+                          <span className="text-sm text-gray-600">/hr</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Starting rate</p>
                       </div>
-                      <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300">
-                        View Profile
-                      </button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
+                      >
+                        <span>View Profile</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </motion.button>
                     </div>
                   </div>
                 </motion.div>
