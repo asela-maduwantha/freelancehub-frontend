@@ -30,6 +30,7 @@ import {
 import Link from 'next/link';
 import { clientsService } from '@/lib/api';
 import { IProject, IDashboardProposal, DashboardStats } from '@/lib/types';
+import { PaymentDashboard } from '@/components/payments';
 
 const ProjectCard: React.FC<{ project: IProject }> = ({ project }) => {
   const getStatusColor = (status: string) => {
@@ -482,6 +483,9 @@ export default function ClientDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Payment Dashboard */}
+      <PaymentDashboard userType="client" />
     </div>
   );
 }

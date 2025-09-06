@@ -7,6 +7,10 @@ import {
   IPaymentIntent,
   ICreatePaymentRequest,
   IPaymentConfirmation,
+  IStripeConnectAccount,
+  IWebhookEvent,
+  IWithdrawalRequest,
+  IRefundRequest,
   IApiResponse
 } from '../types';
 
@@ -138,10 +142,113 @@ export class PaymentsService {
   }
 
   /**
-   * Create Stripe payment intent (legacy)
+   * Create Stripe Connect account for freelancer
    */
-  async createPaymentIntent(data: CreatePaymentIntentRequest): Promise<PaymentIntent> {
-    return apiClient.post('/payments/create-intent', data);
+  async createStripeAccount(): Promise<IStripeConnectAccount> {
+    return apiClient.post('/payments/stripe-connect/create');
+  }
+
+  /**
+   * Get Stripe Connect account status
+   */
+  async getStripeAccountStatus(accountId: string): Promise<IStripeConnectAccount> {
+    return apiClient.get(`/payments/stripe-connect/status/${accountId}`);
+  }
+
+  /**
+   * Get Stripe Connect onboarding link
+   */
+  async getOnboardingLink(accountId: string): Promise<{ url: string }> {
+    return apiClient.get(`/payments/stripe-connect/onboarding-link/${accountId}`);
+  }
+
+  /**
+   * Process Stripe webhook
+   */
+  async processWebhook(signature: string, payload: any): Promise<IApiResponse<{ received: boolean }>> {
+    // Note: Webhook processing should be done server-side for security
+    // This is just for client-side webhook event retrieval
+    return apiClient.post('/payments/stripe/webhook', { signature, payload });
+  }
+
+  /**
+   * Create withdrawal request
+   */
+  async createWithdrawal(data: {
+    amount: number;
+    currency: string;
+    description?: string;
+  }): Promise<IWithdrawalRequest> {
+    return apiClient.post('/payments/withdraw', data);
+  }
+
+  /**
+   * Get withdrawal history
+   */
+  async getWithdrawalHistory(): Promise<IWithdrawalRequest[]> {
+    const response: any = await apiClient.get('/payments/withdrawals');
+    return response?.data || response || [];
+  }
+
+  /**
+   * Process auto-releases
+   */
+  async processAutoReleases(): Promise<IApiResponse<{ processed: number; errors: string[] }>> {
+    return apiClient.post('/payments/process-auto-releases');
+  }
+
+  /**
+   * Cleanup stuck payments
+   */
+  async cleanupStuckPayments(): Promise<IApiResponse<{ cleaned: number; errors: string[] }>> {
+    return apiClient.post('/payments/cleanup-stuck-payments');
+  }
+
+  /**
+   * Get enhanced payment statistics
+   */
+  async getEnhancedPaymentStats(): Promise<IPaymentStats> {
+    const response: any = await apiClient.get('/payments/enhanced-stats');
+    return response?.data || response;
+  }
+
+  /**
+   * Get payments with enhanced filtering
+   */
+  async getPaymentsWithFilters(params?: {
+    status?: string;
+    escrowStatus?: string;
+    projectId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<IPayment[]> {
+    const response: any = await apiClient.get('/payments', params);
+    return response?.data || response || [];
+  }
+
+  /**
+   * Request refund for payment
+   */
+  async requestRefund(paymentId: string, reason: string): Promise<IRefundRequest> {
+    return apiClient.post(`/payments/${paymentId}/refund`, { reason });
+  }
+
+  /**
+   * Get refund history
+   */
+  async getRefundHistory(): Promise<IRefundRequest[]> {
+    const response: any = await apiClient.get('/payments/refunds');
+    return response?.data || response || [];
+  }
+
+  /**
+   * Get webhook events
+   */
+  async getWebhookEvents(limit = 50): Promise<IWebhookEvent[]> {
+    const response: any = await apiClient.get('/payments/webhooks', { limit });
+    return response?.data || response || [];
   }
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
+import { StripeProvider } from "../components/providers/StripeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -52,7 +53,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${poppins.variable} font-inter antialiased`}
       >
-        {children}
+        <StripeProvider>
+          {children}
+        </StripeProvider>
       </body>
     </html>
   );

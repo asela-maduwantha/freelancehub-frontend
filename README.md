@@ -2,7 +2,26 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Environment Setup
+
+1. Copy the environment variables file:
+```bash
+cp .env.example .env.local
+```
+
+2. Update the environment variables in `.env.local`:
+   - `NEXT_PUBLIC_API_URL`: Your backend API URL (default: http://localhost:8000/api/v1)
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key for payments
+
+### Installation and Development
+
+First, install dependencies:
+
+```bash
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev

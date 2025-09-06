@@ -13,12 +13,12 @@ export interface IPayment {
   escrowStatus?: 'held' | 'released' | 'disputed';
   platformFee: number;
   netAmount: number;
+  description?: string;
   stripePaymentIntentId?: string;
-  paymentMethod?: 'stripe' | 'payhere' | 'wallet';
   createdAt: string | Date;
   completedAt?: string;
   releasedAt?: string;
-  refundedAt?: string;
+  autoReleaseDate?: string;
   contract?: {
     id: string;
     title: string;
@@ -157,14 +157,69 @@ export interface ICreateRecurringPaymentRequest {
   startDate?: string;
 }
 
-export interface IRecurringPaymentStats {
-  activeRecurringPayments: number;
-  totalMonthlyAmount: number;
-  nextPaymentDate: string;
-  upcomingPayments: Array<{
-    id: string;
-    contractTitle: string;
-    amount: number;
-    dueDate: string;
-  }>;
+export interface IStripeConnectAccount {
+  accountId: string;
+  status: 'pending' | 'complete' | 'error';
+  onboardingUrl?: string;
+  requirements?: {
+    currently_due: string[];
+    eventually_due: string[];
+    past_due: string[];
+  };
+  chargesEnabled: boolean;
+  detailsSubmitted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IWebhookEvent {
+  id: string;
+  type: string;
+  data: any;
+  created: number;
+  processed: boolean;
+  processedAt?: string;
+}
+
+export interface IAutoReleaseSettings {
+  enabled: boolean;
+  defaultDays: number;
+  minDays: number;
+  maxDays: number;
+}
+
+export interface IWithdrawalRequest {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  payoutId?: string;
+  description?: string;
+  createdAt: string;
+  completedAt?: string;
+  failedAt?: string;
+  failureReason?: string;
+}
+
+export interface IRefundRequest {
+  id: string;
+  paymentId: string;
+  amount: number;
+  reason: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  refundId?: string;
+  createdAt: string;
+  processedAt?: string;
+}
+
+export interface IDispute {
+  id: string;
+  paymentId: string;
+  amount: number;
+  reason: string;
+  status: 'open' | 'resolved' | 'escalated';
+  createdAt: string;
+  resolvedAt?: string;
+  resolution?: 'release' | 'refund';
+  adminNotes?: string;
 }

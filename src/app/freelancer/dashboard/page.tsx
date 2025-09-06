@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usersService, authService, projectsService, contractsService, freelancersService } from '@/lib/api';
+import { StripeConnectOnboarding, PaymentDashboard } from '@/components/payments';
 
 interface DashboardStats {
   totalProjects: number;
@@ -371,6 +372,24 @@ export default function FreelancerDashboard() {
           />
         </motion.div>
       )}
+
+      {/* Payment Setup Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <StripeConnectOnboarding />
+      </motion.div>
+
+      {/* Payment Dashboard */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <PaymentDashboard userType="freelancer" />
+      </motion.div>
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-3 gap-8">
