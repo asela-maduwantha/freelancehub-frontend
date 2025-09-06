@@ -423,17 +423,9 @@ export default function ClientProjectsPage() {
   const testApiConnection = async () => {
     try {
       console.log('Testing API connection...');
-      // Try a simple GET request to see if the API is reachable
-      const testResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/clients/projects`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-        }
-      });
-      console.log('Test API response status:', testResponse.status);
-      const testData = await testResponse.text();
-      console.log('Test API response data:', testData);
+      // Use the proper API service instead of direct fetch
+      const projects = await clientsService.getProjects();
+      console.log('Test API response:', projects);
     } catch (error) {
       console.error('Test API connection failed:', error);
     }

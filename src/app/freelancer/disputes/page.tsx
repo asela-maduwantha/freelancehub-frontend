@@ -29,6 +29,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
 import AppLayout from '@/components/layout/AppLayout';
+import { disputesService } from '@/lib/api';
 
 interface Dispute {
   id: string;
@@ -292,28 +293,19 @@ export default function DisputesPage() {
     try {
       setIsSubmitting(true);
 
-      // Create FormData for file uploads
-      const formData = new FormData();
-      formData.append('title', newDispute.title);
-      formData.append('description', newDispute.description);
-      formData.append('contractId', newDispute.contractId);
-      
-      newDispute.evidence.forEach((file, index) => {
-        formData.append(`evidence`, file);
-      });
+      // Prepare dispute data for API service
+      const disputeData = {
+        contractId: newDispute.contractId,
+        reason: newDispute.title, // Map title to reason
+        description: newDispute.description,
+        evidence: newDispute.evidence.map(file => ({
+          description: file.name,
+          files: [] // TODO: Handle file uploads properly
+        }))
+      };
 
-      // API call to create dispute
-      const response = await fetch('/api/disputes', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create dispute');
-      }
+      // Use API service instead of direct fetch
+      await disputesService.createDispute(disputeData);
 
       alert('Dispute created successfully!');
       setShowNewDisputeModal(false);

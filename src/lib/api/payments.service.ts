@@ -105,7 +105,7 @@ export class PaymentsService {
       // Handle API response structure: { data: [...], timestamp: "..." }
       return response?.data || response || [];
     } catch (error) {
-      console.error('Escrow endpoint error:', error);
+      console.warn('Escrow payments endpoint not available:', error);
       // Return empty array if endpoint is not implemented
       return [];
     }

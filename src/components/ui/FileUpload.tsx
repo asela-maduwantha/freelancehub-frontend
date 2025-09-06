@@ -220,10 +220,19 @@ export default function EnhancedFileUpload({
       if (file.url) {
         // If file has a direct URL, use it
         window.open(file.url, '_blank');
+      } else if (file.id) {
+        // Use storage service to download
+        const blob = await storageService.downloadFile(file.id);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.fileName || 'download';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
       } else {
-        // You'll need to implement a download method in your StorageService
-        console.warn('Download functionality not implemented in StorageService');
-        setError('Download functionality not available');
+        setError('File download not available');
       }
     } catch (err: any) {
       console.error('Failed to download file:', err);
@@ -235,8 +244,20 @@ export default function EnhancedFileUpload({
     try {
       if (file.url && file.mimeType.startsWith('image/')) {
         window.open(file.url, '_blank');
+      } else if (file.id) {
+        // Try to get preview URL from storage service
+        try {
+          const previewUrl = await storageService.getFilePreview(file.id);
+          window.open(previewUrl, '_blank');
+        } catch (previewError) {
+          console.warn('Preview not available, attempting download');
+          // Fallback to download if preview not available
+          const blob = await storageService.downloadFile(file.id);
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          window.URL.revokeObjectURL(url);
+        }
       } else {
-        console.warn('Preview functionality not implemented in StorageService');
         setError('Preview not available for this file type');
       }
     } catch (err: any) {
