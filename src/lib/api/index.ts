@@ -11,6 +11,8 @@ export { reviewsService, ReviewsService } from './reviews.service';
 export { disputesService, DisputesService } from './disputes.service';
 export { storageService, StorageService } from './storage.service';
 export { adminService, AdminService } from './admin.service';
+export { messagingService, MessagingService } from './messaging.service';
+
 export { freelancersService, FreelancersService } from './freelancers.service';
 
 // Alias exports for backward compatibility

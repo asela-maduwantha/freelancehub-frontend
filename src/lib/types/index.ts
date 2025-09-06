@@ -6,6 +6,7 @@ export * from './entities/payment.types';
 export * from './entities/review.types';
 export * from './entities/freelancer.types';
 export * from './entities/proposals.types';
+export * from './entities/messaging.types';
 
 // API
 export * from './api/common.types';

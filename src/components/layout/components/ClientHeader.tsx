@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Bell, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import NotificationsPanel from '@/components/messaging/NotificationsPanel';
 
 interface ClientHeaderProps {
   userProfile: any;
@@ -21,30 +21,6 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
 }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const mockNotifications = [
-    {
-      id: 1,
-      title: "New proposal received",
-      message: "John Doe submitted a proposal for your project",
-      time: "5 min ago",
-      unread: true
-    },
-    {
-      id: 2,
-      title: "Project milestone completed",
-      message: "Web Design project reached 75% completion",
-      time: "2 hours ago",
-      unread: true
-    },
-    {
-      id: 3,
-      title: "Payment processed",
-      message: "Payment of $500 has been processed successfully",
-      time: "1 day ago",
-      unread: false
-    }
-  ];
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm h-16 flex items-center px-4 sm:px-6 lg:px-8">
@@ -79,62 +55,15 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
               )}
             </Button>
 
-            {/* Notifications dropdown */}
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
-                >
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-                      <span className="text-sm text-green-600 cursor-pointer hover:underline">
-                        Mark all read
-                      </span>
-                    </div>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {mockNotifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
-                          notification.unread ? 'bg-green-50' : ''
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className={`w-2 h-2 rounded-full mt-2 ${
-                            notification.unread ? 'bg-green-500' : 'bg-gray-300'
-                          }`} />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">
-                              {notification.title}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-2">
-                              {notification.time}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-3 border-t border-gray-100">
-                    <Link
-                      href="/client/notifications"
-                      className="block text-center text-sm text-green-600 hover:underline"
-                      onClick={() => setShowNotifications(false)}
-                    >
-                      View all notifications
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <NotificationsPanel
+              isOpen={showNotifications}
+              onClose={() => setShowNotifications(false)}
+              onNotificationClick={(notification) => {
+                setShowNotifications(false);
+                // Handle notification click - could navigate to relevant page
+                console.log('Notification clicked:', notification);
+              }}
+            />
           </div>
 
           {/* Profile dropdown */}
@@ -155,50 +84,43 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
             </Button>
 
             {/* Profile dropdown menu */}
-            <AnimatePresence>
-              {showProfileDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
-                >
-                  <div className="py-2">
-                    <Link
-                      href="/client/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      onClick={() => setShowProfileDropdown(false)}
-                    >
-                      Company Profile
-                    </Link>
-                    <Link
-                      href="/client/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      onClick={() => setShowProfileDropdown(false)}
-                    >
-                      Settings
-                    </Link>
-                    <Link
-                      href="/client/billing"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      onClick={() => setShowProfileDropdown(false)}
-                    >
-                      Billing
-                    </Link>
-                    <hr className="my-1" />
-                    <button
-                      onClick={() => {
-                        setShowProfileDropdown(false);
-                        onLogout();
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showProfileDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="py-2">
+                  <Link
+                    href="/client/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    onClick={() => setShowProfileDropdown(false)}
+                  >
+                    Company Profile
+                  </Link>
+                  <Link
+                    href="/client/settings"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    onClick={() => setShowProfileDropdown(false)}
+                  >
+                    Settings
+                  </Link>
+                  <Link
+                    href="/client/billing"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    onClick={() => setShowProfileDropdown(false)}
+                  >
+                    Billing
+                  </Link>
+                  <hr className="my-1" />
+                  <button
+                    onClick={() => {
+                      setShowProfileDropdown(false);
+                      onLogout();
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
