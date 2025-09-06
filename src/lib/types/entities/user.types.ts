@@ -79,6 +79,8 @@ export interface IUser {
   following?: string[];
   status?: string;
   lastLogin?: string;
+  isActive?: boolean;
+  lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
 }

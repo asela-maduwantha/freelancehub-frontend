@@ -180,7 +180,7 @@ export default function ProjectDetailPage() {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
-                <p className="text-gray-600">Posted by {typeof project.clientId === 'object' ? `${project.clientId.firstName} ${project.clientId.lastName}` : 'Client'}</p>
+                <p className="text-gray-600">Posted by Client</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -222,9 +222,9 @@ export default function ProjectDetailPage() {
               <div className="mb-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-3">Required Skills</h3>
                 <div className="flex flex-wrap gap-2">
-                  {project.requiredSkills?.map((skillObj: { _id: string; skill: string; level: 'beginner' | 'intermediate' | 'expert' }) => (
+                  {project.requiredSkills?.map((skillObj: { skill: string; level: string }, index: number) => (
                     <span
-                      key={skillObj._id}
+                      key={index}
                       className={`px-3 py-1 text-sm font-medium rounded-full border ${
                         skillObj.level === 'expert' 
                           ? 'bg-red-50 text-red-700 border-red-200'
@@ -315,7 +315,7 @@ export default function ProjectDetailPage() {
                     <Calendar className="h-5 w-5 mr-2" />
                     <span>Posted Date</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{formatDate(project.postedAt || project.createdAt)}</span>
+                  <span className="font-semibold text-gray-900">{formatDate(project.createdAt)}</span>
                 </div>
 
                 {/* Proposals */}
@@ -368,12 +368,12 @@ export default function ProjectDetailPage() {
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                   <span className="text-lg font-medium text-gray-600">
-                    {typeof project.clientId === 'object' ? project.clientId.firstName.charAt(0).toUpperCase() : 'C'}
+                    C
                   </span>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900">
-                    {typeof project.clientId === 'object' ? `${project.clientId.firstName} ${project.clientId.lastName}` : 'Client'}
+                    Client
                   </h4>
                   <div className="flex items-center">
                     <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -385,7 +385,7 @@ export default function ProjectDetailPage() {
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex justify-between">
                   <span>Client ID:</span>
-                  <span className="font-medium">{typeof project.clientId === 'object' ? project.clientId._id : project.clientId}</span>
+                  <span className="font-medium">{project.clientId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Member Since:</span>

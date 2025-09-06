@@ -176,7 +176,7 @@ const ProjectCard: React.FC<{
         <div>
           <p className="text-xs text-gray-500 mb-1">Posted</p>
           <p className="text-sm text-gray-900">
-            {new Date(project.postedAt).toLocaleDateString()}
+            {new Date(project.createdAt).toLocaleDateString()}
           </p>
         </div>
         
@@ -328,23 +328,21 @@ export default function ClientProjectsPage() {
         const fallbackProjects: ClientProject[] = [
           {
             _id: 'test-1',
+            clientId: 'client-123',
             title: 'Test Project - Web Development',
             description: 'This is a test project to verify the UI is working correctly.',
             category: 'Web Development',
             status: 'open',
             requiredSkills: [
-              { skill: 'JavaScript', level: 'intermediate', _id: 'skill-1' },
-              { skill: 'React', level: 'intermediate', _id: 'skill-2' }
+              { skill: 'JavaScript', level: 'intermediate' },
+              { skill: 'React', level: 'intermediate' }
             ],
             budget: 1000,
             budgetType: 'fixed',
-            postedAt: new Date().toISOString(),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             proposals: [],
             analytics: { views: 10, applications: 2, saves: 1 },
-            clientId: 'test-client',
-            freelancerId: undefined,
             subcategory: '',
             duration: 'short-term',
             workType: ['remote'],
@@ -352,13 +350,7 @@ export default function ClientProjectsPage() {
             tags: [],
             attachments: [],
             visibility: 'public',
-            milestones: [],
-            payments: [],
-            messages: [],
-            reviews: [],
-            disputes: [],
-            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-            __v: 0
+            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
           }
         ];
         setProjects(fallbackProjects);
@@ -405,10 +397,10 @@ export default function ClientProjectsPage() {
     // Apply sorting
     switch (sortBy) {
       case 'newest':
-        filtered.sort((a, b) => new Date(b.postedAt || b.createdAt).getTime() - new Date(a.postedAt || a.createdAt).getTime());
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
       case 'oldest':
-        filtered.sort((a, b) => new Date(a.postedAt || a.createdAt).getTime() - new Date(b.postedAt || b.createdAt).getTime());
+        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         break;
       case 'budget_high':
         filtered.sort((a, b) => (b.budget || 0) - (a.budget || 0));

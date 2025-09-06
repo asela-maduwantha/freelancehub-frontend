@@ -45,7 +45,6 @@ interface Project {
   };
   createdAt: string;
   updatedAt: string;
-  postedAt: string;
   analytics: {
     views: number;
     applications: number;
@@ -488,7 +487,7 @@ export default function SubmitProposalPage() {
             </div>
             <div className="flex items-center text-gray-600">
               <Calendar className="h-5 w-5 mr-2" />
-              <span>Posted: {new Date(project!.postedAt).toLocaleDateString()}</span>
+              <span>Posted: {new Date(project!.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>

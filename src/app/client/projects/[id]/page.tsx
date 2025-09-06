@@ -214,7 +214,7 @@ const ProjectDetailPage = () => {
             <div className="flex flex-wrap gap-3">
               {project.requiredSkills?.map((skill, index) => (
                 <div
-                  key={skill._id || index}
+                  key={index}
                   className="flex items-center space-x-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg"
                 >
                   <Tag className="h-4 w-4" />
@@ -287,7 +287,7 @@ const ProjectDetailPage = () => {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Posted Date</p>
                   <p className="text-lg font-semibold text-gray-900">
-                    {new Date(project.postedAt).toLocaleDateString('en-US', {
+                    {new Date(project.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'

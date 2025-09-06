@@ -182,7 +182,7 @@ export default function ProjectsPage() {
                   }).filter(Boolean) || [],
                   proposalCount: Number(project.proposals?.length) || Math.floor(Math.random() * 20) + 1,
                   bookmarked: bookmarkedProjects.includes(project._id),
-                  postedDate: project.createdAt || project.postedAt || new Date().toISOString(),
+                  postedDate: project.createdAt || new Date().toISOString(),
                   experience: project.experienceLevel || 'intermediate',
                   category: project.category || 'Other',
                   duration: project.duration || 'Not specified',

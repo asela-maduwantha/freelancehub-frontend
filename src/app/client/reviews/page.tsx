@@ -82,7 +82,7 @@ function ClientReviewsPageContent() {
     try {
       setIsLoading(true);
       // Get completed contracts from the contracts service
-      const response = await contractsService.getContracts(user._id);
+      const response = await contractsService.getContracts();
       const contracts = response || [];
       
       // Filter for completed contracts and map to CompletedContract format
