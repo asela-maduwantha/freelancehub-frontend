@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bell, X, Check, Settings, MessageCircle, DollarSign, Star, AlertCircle } from 'lucide-react';
 import { Notification } from '@/lib/types';
 import { MessagingService } from '@/lib/api';
-import { webSocketService } from '@/lib/utils/websocket.service';
+import { getWebSocketService } from '@/lib/utils/websocket.service';
 import { Button } from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -52,13 +52,24 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
   useEffect(() => {
     if (isOpen) {
       loadNotifications();
-      setupWebSocketListeners();
+      connectWebSocket();
     }
 
     return () => {
-      webSocketService.off('notification');
+      const service = getWebSocketService();
+      service.off('notification');
     };
   }, [isOpen]);
+
+  const connectWebSocket = async () => {
+    try {
+      const service = getWebSocketService();
+      await service.connect();
+      setupWebSocketListeners(service);
+    } catch (error) {
+      console.error('Failed to connect WebSocket in NotificationsPanel:', error);
+    }
+  };
 
   const loadNotifications = async () => {
     try {
@@ -73,8 +84,8 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
     }
   };
 
-  const setupWebSocketListeners = () => {
-    webSocketService.on('notification', (data) => {
+  const setupWebSocketListeners = (service: any) => {
+    service.on('notification', (data: any) => {
       setNotifications(prev => [data.notification, ...prev]);
       setUnreadCount(prev => prev + 1);
     });

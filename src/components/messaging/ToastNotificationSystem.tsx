@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, MessageCircle, Bell, CheckCircle } from 'lucide-react';
-import { webSocketService } from '@/lib/utils/websocket.service';
+import { getWebSocketService } from '@/lib/utils/websocket.service';
 
 interface ToastNotification {
   id: string;
@@ -44,16 +44,27 @@ export default function ToastNotificationSystem() {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
 
   useEffect(() => {
-    setupWebSocketListeners();
+    connectWebSocket();
 
     return () => {
-      webSocketService.off('new_message');
-      webSocketService.off('notification');
+      const service = getWebSocketService();
+      service.off('new_message');
+      service.off('notification');
     };
   }, []);
 
-  const setupWebSocketListeners = () => {
-    webSocketService.on('new_message', (data) => {
+  const connectWebSocket = async () => {
+    try {
+      const service = getWebSocketService();
+      await service.connect();
+      setupWebSocketListeners(service);
+    } catch (error) {
+      console.error('Failed to connect WebSocket in ToastNotificationSystem:', error);
+    }
+  };
+
+  const setupWebSocketListeners = (service: any) => {
+    service.on('new_message', (data: any) => {
       addToast({
         id: `message-${Date.now()}`,
         type: 'message',
@@ -63,7 +74,7 @@ export default function ToastNotificationSystem() {
       });
     });
 
-    webSocketService.on('notification', (data) => {
+    service.on('notification', (data: any) => {
       addToast({
         id: `notification-${Date.now()}`,
         type: 'notification',

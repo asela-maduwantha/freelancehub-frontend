@@ -38,14 +38,14 @@ export interface UpdateProfileRequest {
 export interface CreateProjectRequest {
   title: string;
   description: string;
-  category?: string;
-  subcategory?: string;
+  category: string;
+  subcategory: string;
   requiredSkills: string[];
-  type: string;
+  type: 'fixed' | 'hourly';
   budget: {
     amount: number;
     currency: string;
-    type: string;
+    type: 'fixed' | 'hourly';
   };
   timeline: {
     deadline: string;
@@ -53,6 +53,15 @@ export interface CreateProjectRequest {
     isUrgent: boolean;
     isFlexible: boolean;
   };
+  requirements: {
+    experienceLevel: 'entry' | 'intermediate' | 'expert';
+    minimumRating: number;
+    minimumCompletedProjects: number;
+    preferredLanguages: string[];
+    preferredCountries: string[];
+  };
+  visibility: 'public' | 'private';
+  tags: string[];
 }
 
 export interface CreateContractRequest {

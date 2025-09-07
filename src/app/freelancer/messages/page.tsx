@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { Search, MessageCircle, User, Clock, MoreVertical } from 'lucide-react';
 import { Conversation } from '@/lib/types';
 import { messagingService, MessagingService } from '@/lib/api';
-import { webSocketService } from '@/lib/utils/websocket.service';
+import { getWebSocketService } from '@/lib/utils/websocket.service';
 import { Button } from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
 import ChatInterface from '@/components/messaging/ChatInterface';
 import NewConversationModal from '@/components/messaging/NewConversationModal';
+import ToastNotificationSystem from '@/components/messaging/ToastNotificationSystem';
 
 export default function FreelancerMessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -17,17 +18,33 @@ export default function FreelancerMessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
+  const [webSocketService, setWebSocketService] = useState<any>(null);
 
   useEffect(() => {
     loadConversations();
-    setupWebSocketListeners();
+    connectWebSocket();
 
     return () => {
-      webSocketService.off('new_message');
-      webSocketService.off('user_online');
-      webSocketService.off('user_offline');
+      if (webSocketService) {
+        webSocketService.off('new_message');
+        webSocketService.off('user_online');
+        webSocketService.off('user_offline');
+        // Disconnect WebSocket when leaving messages page
+        webSocketService.disconnect();
+      }
     };
-  }, []);
+  }, [webSocketService]);
+
+  const connectWebSocket = async () => {
+    try {
+      const service = getWebSocketService();
+      setWebSocketService(service);
+      await service.connect();
+      setupWebSocketListeners(service);
+    } catch (error) {
+      console.error('Failed to connect to WebSocket:', error);
+    }
+  };
 
   const loadConversations = async () => {
     try {
@@ -41,8 +58,8 @@ export default function FreelancerMessagesPage() {
     }
   };
 
-  const setupWebSocketListeners = () => {
-    webSocketService.on('new_message', (data) => {
+  const setupWebSocketListeners = (service: any) => {
+    service.on('new_message', (data: any) => {
       // Update conversation with new message
       setConversations(prev =>
         prev.map(conv =>
@@ -53,7 +70,7 @@ export default function FreelancerMessagesPage() {
       );
     });
 
-    webSocketService.on('user_online', (data) => {
+    service.on('user_online', (data: any) => {
       setConversations(prev =>
         prev.map(conv =>
           conv.participants.some(p => p.id === data.userId)
@@ -68,7 +85,7 @@ export default function FreelancerMessagesPage() {
       );
     });
 
-    webSocketService.on('user_offline', (data) => {
+    service.on('user_offline', (data: any) => {
       setConversations(prev =>
         prev.map(conv =>
           conv.participants.some(p => p.id === data.userId)
@@ -261,6 +278,7 @@ export default function FreelancerMessagesPage() {
         onClose={() => setShowNewConversationModal(false)}
         onConversationCreated={handleConversationCreated}
       />
+      <ToastNotificationSystem />
     </div>
   );
 }

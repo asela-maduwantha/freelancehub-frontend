@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { IProject, IPaginationOptions, IDashboardProposal } from '../types';
 import { ProjectsResponse, ClientDashboardResponse } from '../types/api/responses.types';
+import { CreateProjectRequest } from '../types/api/requests.types';
 
 export interface ClientProject extends IProject {
   freelancer?: {
@@ -37,6 +38,16 @@ export interface ClientDashboardProject {
 
 export class ClientsService {
   /**
+   * Calculate deadline based on number of days from today
+   */
+  private calculateDeadline(days: number): string {
+    const today = new Date();
+    const deadline = new Date(today);
+    deadline.setDate(today.getDate() + days);
+    return deadline.toISOString();
+  }
+
+  /**
    * Get client projects
    */
   async getProjects(params?: IPaginationOptions & { status?: string }): Promise<ProjectsResponse> {
@@ -53,15 +64,15 @@ export class ClientsService {
   /**
    * Create a new project
    */
-  async createProject(projectData: {
-    title: string;
-    description: string;
-    budget: number;
-    deadline: string;
-    category?: string;
-    skills?: string[];
-  }): Promise<ClientProject> {
-    return apiClient.post('/clients/projects', projectData);
+  async createProject(projectData: CreateProjectRequest): Promise<ClientProject> {
+    // If deadline is not provided but duration is, calculate the deadline
+    const dataToSend = { ...projectData };
+    
+    if (!dataToSend.timeline.deadline && dataToSend.timeline.duration > 0) {
+      dataToSend.timeline.deadline = this.calculateDeadline(dataToSend.timeline.duration);
+    }
+
+    return apiClient.post('/projects', dataToSend);
   }
 
   /**

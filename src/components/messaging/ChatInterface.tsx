@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Send, Paperclip, Smile, Phone, Video, MoreVertical, ArrowLeft } from 'lucide-react';
 import { Message, Conversation } from '@/lib/types';
 import { MessagingService } from '@/lib/api';
-import { webSocketService } from '@/lib/utils/websocket.service';
+import { getWebSocketService } from '@/lib/utils/websocket.service';
 import { EncryptionService } from '@/lib/utils/encryption.service';
 import { Button } from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -32,10 +32,11 @@ export default function ChatInterface({ conversationId, onBack, isMobile = false
     loadEncryptionKey();
 
     return () => {
-      webSocketService.off('new_message');
-      webSocketService.off('message_sent');
-      webSocketService.off('typing_start');
-      webSocketService.off('typing_stop');
+      const service = getWebSocketService();
+      service.off('new_message');
+      service.off('message_sent');
+      service.off('typing_start');
+      service.off('typing_stop');
     };
   }, [conversationId]);
 
@@ -79,10 +80,22 @@ export default function ChatInterface({ conversationId, onBack, isMobile = false
     }
   };
 
-  const setupWebSocket = () => {
-    webSocketService.joinConversation(conversationId);
+  const setupWebSocket = async () => {
+    const service = getWebSocketService();
+    
+    // Ensure WebSocket is connected before joining conversation
+    if (!service.isConnected()) {
+      try {
+        await service.connect();
+      } catch (error) {
+        console.error('Failed to connect WebSocket in ChatInterface:', error);
+        return;
+      }
+    }
 
-    webSocketService.on('new_message', async (data) => {
+    service.joinConversation(conversationId);
+
+    service.on('new_message', async (data: any) => {
       if (data.conversationId === conversationId) {
         // Decrypt message if we have the key
         let decryptedContent = data.message.content;
@@ -103,7 +116,7 @@ export default function ChatInterface({ conversationId, onBack, isMobile = false
       }
     });
 
-    webSocketService.on('message_sent', (data) => {
+    service.on('message_sent', (data: any) => {
       // Update message status
       setMessages(prev =>
         prev.map(msg =>

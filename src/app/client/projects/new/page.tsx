@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { clientsService } from '@/lib/api';
+import { CreateProjectRequest } from '@/lib/types/api/requests.types';
 
 interface ProjectData {
   title: string;
@@ -48,7 +49,7 @@ export default function NewProjectPage() {
     title: '',
     description: '',
     category: 'technology',
-    subcategory: '',
+    subcategory: 'web-development',
     requiredSkills: [],
     type: 'fixed',
     budget: {
@@ -64,7 +65,7 @@ export default function NewProjectPage() {
     },
     requirements: {
       experienceLevel: 'intermediate',
-      minimumRating: 4.0,
+      minimumRating: 4.5,
       minimumCompletedProjects: 5,
       preferredLanguages: ['English'],
       preferredCountries: []
@@ -78,12 +79,12 @@ export default function NewProjectPage() {
   const [newTag, setNewTag] = useState('');
 
   const categories = [
-    { value: 'technology', label: 'Technology' },
-    { value: 'design', label: 'Design' },
-    { value: 'writing', label: 'Writing' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'business', label: 'Business' },
-    { value: 'other', label: 'Other' }
+    { value: 'technology', label: 'Technology', subcategories: ['web-development', 'mobile-development', 'software-development', 'data-science', 'ai-ml', 'devops'] },
+    { value: 'design', label: 'Design', subcategories: ['ui-ux', 'graphic-design', 'branding', 'web-design', 'mobile-design'] },
+    { value: 'writing', label: 'Writing', subcategories: ['content-writing', 'copywriting', 'technical-writing', 'blog-writing', 'creative-writing'] },
+    { value: 'marketing', label: 'Marketing', subcategories: ['digital-marketing', 'seo', 'social-media', 'content-marketing', 'email-marketing'] },
+    { value: 'business', label: 'Business', subcategories: ['consulting', 'project-management', 'business-analysis', 'strategy'] },
+    { value: 'other', label: 'Other', subcategories: ['other'] }
   ];
 
   const popularSkills = [
@@ -100,6 +101,35 @@ export default function NewProjectPage() {
       router.push('/login');
     }
   }, [router]);
+
+  // Update subcategory when category changes
+  useEffect(() => {
+    const categoryData = categories.find(cat => cat.value === formData.category);
+    if (categoryData && categoryData.subcategories.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        subcategory: prev.subcategory || categoryData.subcategories[0]
+      }));
+    }
+  }, [formData.category]);
+
+  // Auto-calculate deadline when duration changes
+  useEffect(() => {
+    if (formData.timeline.duration > 0) {
+      const today = new Date();
+      const deadline = new Date(today);
+      deadline.setDate(today.getDate() + formData.timeline.duration);
+      const deadlineString = deadline.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      
+      setFormData(prev => ({
+        ...prev,
+        timeline: {
+          ...prev.timeline,
+          deadline: deadlineString
+        }
+      }));
+    }
+  }, [formData.timeline.duration]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -124,8 +154,8 @@ export default function NewProjectPage() {
       newErrors.budget = 'Budget should be at least $50';
     }
 
-    if (!formData.timeline.deadline.trim()) {
-      newErrors.deadline = 'Project deadline is required';
+    if (formData.timeline.duration <= 0) {
+      newErrors.duration = 'Project duration should be at least 1 day';
     }
 
     setErrors(newErrors);
@@ -202,13 +232,33 @@ export default function NewProjectPage() {
     setIsLoading(true);
 
     try {
-      const apiProjectData = {
+      const apiProjectData: CreateProjectRequest = {
         title: formData.title,
         description: formData.description,
-        budget: formData.budget.amount,
-        deadline: formData.timeline.deadline,
         category: formData.category,
-        skills: formData.requiredSkills,
+        subcategory: formData.subcategory,
+        requiredSkills: formData.requiredSkills,
+        type: formData.type,
+        budget: {
+          amount: formData.budget.amount,
+          currency: formData.budget.currency,
+          type: formData.budget.type
+        },
+        timeline: {
+          deadline: formData.timeline.deadline,
+          duration: formData.timeline.duration,
+          isUrgent: formData.timeline.isUrgent,
+          isFlexible: formData.timeline.isFlexible
+        },
+        requirements: {
+          experienceLevel: formData.requirements.experienceLevel,
+          minimumRating: formData.requirements.minimumRating,
+          minimumCompletedProjects: formData.requirements.minimumCompletedProjects,
+          preferredLanguages: formData.requirements.preferredLanguages,
+          preferredCountries: formData.requirements.preferredCountries
+        },
+        visibility: formData.visibility,
+        tags: formData.tags
       };
 
       await clientsService.createProject(apiProjectData);
@@ -232,24 +282,6 @@ export default function NewProjectPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="FreelanceHub" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-gray-900 font-poppins">FreelanceHub</span>
-            </Link>
-            <Link
-              href="/client/dashboard"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -307,6 +339,25 @@ export default function NewProjectPage() {
                     {categories.map((category) => (
                       <option key={category.value} value={category.value}>
                         {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory */}
+                <div className="mb-6">
+                  <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 mb-2">
+                    Subcategory *
+                  </label>
+                  <select
+                    id="subcategory"
+                    value={formData.subcategory}
+                    onChange={(e) => handleInputChange('subcategory', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                  >
+                    {categories.find(cat => cat.value === formData.category)?.subcategories.map((sub) => (
+                      <option key={sub} value={sub}>
+                        {sub.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </option>
                     ))}
                   </select>
@@ -401,6 +452,76 @@ export default function NewProjectPage() {
                 </div>
               </div>
 
+              {/* Tags */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Tags</h3>
+                
+                <div className="flex space-x-2 mb-4">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    placeholder="Type a tag and press Enter"
+                  />
+                  <Button
+                    type="button"
+                    onClick={addTag}
+                    variant="outline"
+                    className="px-4"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Selected Tags */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {formData.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(index)}
+                        className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-200"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+
+                {/* Popular Tags */}
+                <div>
+                  <p className="text-sm text-gray-600 mb-3">Popular tags:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['ecommerce', 'react', 'nodejs', 'mongodb', 'responsive', 'seo', 'api', 'database', 'frontend', 'backend']
+                      .filter(tag => !formData.tags.includes(tag))
+                      .slice(0, 8)
+                      .map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            if (!formData.tags.includes(tag)) {
+                              setFormData(prev => ({
+                                ...prev,
+                                tags: [...prev.tags, tag]
+                              }));
+                            }
+                          }}
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:border-blue-500 hover:text-blue-600 transition-colors font-inter"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Budget & Timeline */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Budget & Timeline</h3>
@@ -418,7 +539,10 @@ export default function NewProjectPage() {
                           name="type"
                           value="fixed"
                           checked={formData.type === 'fixed'}
-                          onChange={(e) => handleInputChange('type', e.target.value)}
+                          onChange={(e) => {
+                            handleInputChange('type', e.target.value);
+                            handleInputChange('budget.type', e.target.value);
+                          }}
                           className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
                         />
                         <div className="ml-3">
@@ -432,7 +556,10 @@ export default function NewProjectPage() {
                           name="type"
                           value="hourly"
                           checked={formData.type === 'hourly'}
-                          onChange={(e) => handleInputChange('type', e.target.value)}
+                          onChange={(e) => {
+                            handleInputChange('type', e.target.value);
+                            handleInputChange('budget.type', e.target.value);
+                          }}
                           className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
                         />
                         <div className="ml-3">
@@ -465,21 +592,205 @@ export default function NewProjectPage() {
                   </div>
                 </div>
 
+                {/* Timeline Details */}
+                <div className="mt-6 grid md:grid-cols-3 gap-6">
+                  {/* Duration */}
+                  <div>
+                    <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration (days) *
+                    </label>
+                    <input
+                      type="number"
+                      id="duration"
+                      min="1"
+                      value={formData.timeline.duration}
+                      onChange={(e) => handleInputChange('timeline.duration', parseInt(e.target.value) || 30)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    />
+                  </div>
+
+                  {/* Is Urgent */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Is Urgent?
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="isUrgent"
+                        checked={formData.timeline.isUrgent}
+                        onChange={(e) => handleInputChange('timeline.isUrgent', e.target.checked)}
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isUrgent" className="ml-2 text-sm text-gray-700">
+                        Yes, this is urgent
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Is Flexible */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Is Flexible?
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="isFlexible"
+                        checked={formData.timeline.isFlexible}
+                        onChange={(e) => handleInputChange('timeline.isFlexible', e.target.checked)}
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isFlexible" className="ml-2 text-sm text-gray-700">
+                        Flexible deadline
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Deadline */}
                 <div className="mt-6">
                   <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
-                    Project Deadline *
+                    Project Deadline (Auto-calculated from duration)
                   </label>
                   <input
                     type="date"
                     id="deadline"
                     value={formData.timeline.deadline}
-                    onChange={(e) => handleInputChange('timeline.deadline', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                      errors.deadline ? 'border-red-500' : 'border-gray-300'
-                    } font-inter`}
+                    readOnly
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed font-inter"
                   />
-                  {errors.deadline && <p className="mt-1 text-sm text-red-500">{errors.deadline}</p>}
+                  <p className="mt-1 text-sm text-gray-500">
+                    Deadline is automatically calculated when you set the duration above
+                  </p>
+                </div>
+              </div>
+
+              {/* Requirements */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">Requirements</h3>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Experience Level */}
+                  <div>
+                    <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-700 mb-2">
+                      Experience Level *
+                    </label>
+                    <select
+                      id="experienceLevel"
+                      value={formData.requirements.experienceLevel}
+                      onChange={(e) => handleInputChange('requirements.experienceLevel', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    >
+                      <option value="entry">Entry Level</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="expert">Expert</option>
+                    </select>
+                  </div>
+
+                  {/* Minimum Rating */}
+                  <div>
+                    <label htmlFor="minimumRating" className="block text-sm font-medium text-gray-700 mb-2">
+                      Minimum Rating *
+                    </label>
+                    <input
+                      type="number"
+                      id="minimumRating"
+                      min="1"
+                      max="5"
+                      step="0.1"
+                      value={formData.requirements.minimumRating}
+                      onChange={(e) => handleInputChange('requirements.minimumRating', parseFloat(e.target.value) || 4.0)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    />
+                  </div>
+
+                  {/* Minimum Completed Projects */}
+                  <div>
+                    <label htmlFor="minimumCompletedProjects" className="block text-sm font-medium text-gray-700 mb-2">
+                      Minimum Completed Projects *
+                    </label>
+                    <input
+                      type="number"
+                      id="minimumCompletedProjects"
+                      min="0"
+                      value={formData.requirements.minimumCompletedProjects}
+                      onChange={(e) => handleInputChange('requirements.minimumCompletedProjects', parseInt(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    />
+                  </div>
+
+                  {/* Visibility */}
+                  <div>
+                    <label htmlFor="visibility" className="block text-sm font-medium text-gray-700 mb-2">
+                      Visibility *
+                    </label>
+                    <select
+                      id="visibility"
+                      value={formData.visibility}
+                      onChange={(e) => handleInputChange('visibility', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
+                    >
+                      <option value="public">Public</option>
+                      <option value="private">Private</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Preferred Languages */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Preferred Languages
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Arabic', 'Hindi']
+                      .map((language) => (
+                        <label key={language} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.requirements.preferredLanguages.includes(language)}
+                            onChange={(e) => {
+                              const current = formData.requirements.preferredLanguages;
+                              if (e.target.checked) {
+                                handleInputChange('requirements.preferredLanguages', [...current, language]);
+                              } else {
+                                handleInputChange('requirements.preferredLanguages', current.filter(l => l !== language));
+                              }
+                            }}
+                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{language}</span>
+                        </label>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Preferred Countries */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Preferred Countries
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Australia', 'India', 'Brazil']
+                      .map((country) => (
+                        <label key={country} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.requirements.preferredCountries.includes(country)}
+                            onChange={(e) => {
+                              const current = formData.requirements.preferredCountries;
+                              if (e.target.checked) {
+                                handleInputChange('requirements.preferredCountries', [...current, country]);
+                              } else {
+                                handleInputChange('requirements.preferredCountries', current.filter(c => c !== country));
+                              }
+                            }}
+                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{country}</span>
+                        </label>
+                      ))}
+                  </div>
                 </div>
               </div>
 

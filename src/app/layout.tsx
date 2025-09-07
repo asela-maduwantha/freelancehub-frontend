@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { StripeProvider } from "../components/providers/StripeProvider";
-import ToastNotificationSystem from "../components/messaging/ToastNotificationSystem";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,7 +55,6 @@ export default function RootLayout({
       >
         <StripeProvider>
           {children}
-          <ToastNotificationSystem />
         </StripeProvider>
       </body>
     </html>

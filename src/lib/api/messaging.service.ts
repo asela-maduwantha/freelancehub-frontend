@@ -8,7 +8,6 @@ import {
 } from '../types';
 
 export class MessagingService {
-  // Conversations
   static async getConversations(): Promise<Conversation[]> {
     return apiClient.get<Conversation[]>('/messaging/conversations');
   }

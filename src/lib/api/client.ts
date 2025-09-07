@@ -116,8 +116,15 @@ export class ApiClient {
             return Promise.reject(error);
           }
 
-          // Handle token refresh
-          if (error.response?.status === 401 && !(originalRequest as any)._retry) {
+          // Skip token refresh for authentication endpoints
+          const isAuthEndpoint = originalRequest.url?.includes('/auth/') ||
+                                originalRequest.url?.includes('/login') ||
+                                originalRequest.url?.includes('/register') ||
+                                originalRequest.url?.includes('/verify-otp') ||
+                                originalRequest.url?.includes('/refresh');
+
+          // Handle token refresh - only for non-auth endpoints and when we have tokens
+          if (error.response?.status === 401 && !(originalRequest as any)._retry && !isAuthEndpoint && this.refreshToken) {
             // Prevent infinite retry loops
             if ((originalRequest as any)._retryCount >= 3) {
               console.error('Max retry attempts reached for request:', originalRequest.url);
