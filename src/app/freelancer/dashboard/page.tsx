@@ -96,7 +96,7 @@ interface UserProfile {
 
 export default function FreelancerDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activeProjects, setActiveProjects] = useState<Project[]>([]);
   const [newOpportunities, setNewOpportunities] = useState<Opportunity[]>([]);
@@ -295,7 +295,7 @@ export default function FreelancerDashboard() {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-gray-900 font-poppins">
-            Good morning, {user?.firstName}! 👋
+            Good morning, {user?.name}! 👋
           </h1>
           <p className="text-lg text-gray-600 font-inter">
             Ready to take on new challenges today?

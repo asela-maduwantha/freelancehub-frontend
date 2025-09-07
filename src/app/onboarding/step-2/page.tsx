@@ -10,9 +10,15 @@ import Link from 'next/link';
 import { usersService } from '@/lib/api';
 
 interface SkillsData {
-  primarySkills: string[];
-  secondarySkills: string[];
-  certifications: string[];
+  skills: string[];
+  certifications: {
+    name: string;
+    issuer: string;
+    issueDate: string;
+    expiryDate?: string;
+    credentialId?: string;
+    credentialUrl?: string;
+  }[];
 }
 
 interface FormErrors {
@@ -23,14 +29,12 @@ export default function OnboardingStep2() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [formData, setFormData] = useState<SkillsData>({
-    primarySkills: [],
-    secondarySkills: [],
+    skills: [],
     certifications: []
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [newSkill, setNewSkill] = useState('');
-  const [newSecondarySkill, setNewSecondarySkill] = useState('');
   const [newCertification, setNewCertification] = useState('');
 
   // Popular skills suggestions
@@ -60,54 +64,62 @@ export default function OnboardingStep2() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (formData.primarySkills.length < 3) {
-      newErrors.primarySkills = 'Please add at least 3 primary skills';
-    } else if (formData.primarySkills.length > 10) {
-      newErrors.primarySkills = 'Maximum 10 primary skills allowed';
+    if (formData.skills.length < 3) {
+      newErrors.skills = 'Please add at least 3 skills';
+    } else if (formData.skills.length > 15) {
+      newErrors.skills = 'Maximum 15 skills allowed';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const addSkill = (type: 'primary' | 'secondary' | 'certification') => {
-    const skillInput = type === 'primary' ? newSkill : 
-                      type === 'secondary' ? newSecondarySkill : newCertification;
+  const addSkill = (type: 'skill' | 'certification') => {
+    const skillInput = type === 'skill' ? newSkill : newCertification;
     
     if (!skillInput.trim()) return;
 
-    const currentSkills = formData[type === 'primary' ? 'primarySkills' : 
-                               type === 'secondary' ? 'secondarySkills' : 'certifications'];
-    
-    if (!currentSkills.includes(skillInput.trim())) {
+    if (type === 'skill') {
+      if (!formData.skills.includes(skillInput.trim())) {
+        setFormData(prev => ({
+          ...prev,
+          skills: [...prev.skills, skillInput.trim()]
+        }));
+      }
+      setNewSkill('');
+    } else {
+      // For certifications, we'll handle this differently
       setFormData(prev => ({
         ...prev,
-        [type === 'primary' ? 'primarySkills' : 
-         type === 'secondary' ? 'secondarySkills' : 'certifications']: 
-          [...currentSkills, skillInput.trim()]
+        certifications: [...prev.certifications, {
+          name: skillInput.trim(),
+          issuer: '',
+          issueDate: new Date().toISOString().split('T')[0]
+        }]
       }));
+      setNewCertification('');
     }
-
-    if (type === 'primary') setNewSkill('');
-    else if (type === 'secondary') setNewSecondarySkill('');
-    else setNewCertification('');
   };
 
-  const removeSkill = (type: 'primary' | 'secondary' | 'certification', index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      [type === 'primary' ? 'primarySkills' : 
-       type === 'secondary' ? 'secondarySkills' : 'certifications']: 
-        prev[type === 'primary' ? 'primarySkills' : 
-            type === 'secondary' ? 'secondarySkills' : 'certifications'].filter((_, i) => i !== index)
-    }));
+  const removeSkill = (type: 'skill' | 'certification', index: number) => {
+    if (type === 'skill') {
+      setFormData(prev => ({
+        ...prev,
+        skills: prev.skills.filter((_, i) => i !== index)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        certifications: prev.certifications.filter((_, i) => i !== index)
+      }));
+    }
   };
 
   const addPopularSkill = (skill: string) => {
-    if (!formData.primarySkills.includes(skill) && formData.primarySkills.length < 10) {
+    if (!formData.skills.includes(skill) && formData.skills.length < 15) {
       setFormData(prev => ({
         ...prev,
-        primarySkills: [...prev.primarySkills, skill]
+        skills: [...prev.skills, skill]
       }));
     }
   };
@@ -154,8 +166,8 @@ export default function OnboardingStep2() {
             <div className="flex items-center space-x-4">
               <ProgressIndicator
                 currentStep={2}
-                totalSteps={4}
-                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+                totalSteps={5}
+                steps={['Profile', 'Skills', 'Portfolio', 'Education', 'Complete']}
               />
             </div>
           </div>
@@ -217,13 +229,13 @@ export default function OnboardingStep2() {
                     type="text"
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addSkill('primary')}
+                    onKeyPress={(e) => e.key === 'Enter' && addSkill('skill')}
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
                     placeholder="Type a skill and press Enter"
                   />
                   <Button
                     type="button"
-                    onClick={() => addSkill('primary')}
+                    onClick={() => addSkill('skill')}
                     variant="outline"
                     className="px-4"
                   >
@@ -233,14 +245,14 @@ export default function OnboardingStep2() {
 
                 {/* Selected Skills */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {formData.primarySkills.map((skill, index) => (
+                  {formData.skills.map((skill, index) => (
                     <span
                       key={index}
                       className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
                     >
                       {skill}
                       <button
-                        onClick={() => removeSkill('primary', index)}
+                        onClick={() => removeSkill('skill', index)}
                         className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-green-200"
                       >
                         <X className="h-3 w-3" />
@@ -249,8 +261,8 @@ export default function OnboardingStep2() {
                   ))}
                 </div>
 
-                {errors.primarySkills && (
-                  <p className="text-sm text-red-500 mb-4">{errors.primarySkills}</p>
+                {errors.skills && (
+                  <p className="text-sm text-red-500 mb-4">{errors.skills}</p>
                 )}
 
                 {/* Popular Skills */}
@@ -258,14 +270,14 @@ export default function OnboardingStep2() {
                   <p className="text-sm text-gray-600 mb-3 font-inter">Popular skills:</p>
                   <div className="flex flex-wrap gap-2">
                     {popularSkills
-                      .filter(skill => !formData.primarySkills.includes(skill))
+                      .filter(skill => !formData.skills.includes(skill))
                       .slice(0, 12)
                       .map((skill) => (
                         <button
                           key={skill}
                           onClick={() => addPopularSkill(skill)}
                           className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:border-green-500 hover:text-green-600 transition-colors font-inter"
-                          disabled={formData.primarySkills.length >= 10}
+                          disabled={formData.skills.length >= 15}
                         >
                           {skill}
                         </button>
@@ -273,51 +285,8 @@ export default function OnboardingStep2() {
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-gray-500">
-                  {formData.primarySkills.length}/10 skills selected
+                  {formData.skills.length}/15 skills selected
                 </p>
-              </div>
-
-              {/* Secondary Skills */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4 font-poppins">
-                  Secondary Skills (Optional)
-                </label>
-                
-                <div className="flex space-x-2 mb-4">
-                  <input
-                    type="text"
-                    value={newSecondarySkill}
-                    onChange={(e) => setNewSecondarySkill(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addSkill('secondary')}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-inter"
-                    placeholder="Additional skills you have"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => addSkill('secondary')}
-                    variant="outline"
-                    className="px-4"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {formData.secondarySkills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
-                    >
-                      {skill}
-                      <button
-                        onClick={() => removeSkill('secondary', index)}
-                        className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-green-200"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
               </div>
 
               {/* Certifications */}
@@ -352,7 +321,7 @@ export default function OnboardingStep2() {
                       className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800"
                     >
                       <Award className="h-3 w-3 mr-1" />
-                      {cert}
+                      {cert.name}
                       <button
                         onClick={() => removeSkill('certification', index)}
                         className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-purple-200"
@@ -382,7 +351,7 @@ export default function OnboardingStep2() {
                 )}
                 <Button
                   onClick={handleContinue}
-                  disabled={isLoading || formData.primarySkills.length < 3}
+                  disabled={isLoading || formData.skills.length < 3}
                   variant="premium"
                   size="lg"
                   className="font-poppins"

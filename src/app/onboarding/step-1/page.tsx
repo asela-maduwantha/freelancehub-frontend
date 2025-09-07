@@ -18,9 +18,22 @@ import { usersService } from "@/lib/api";
 interface ProfessionalData {
   title: string;
   bio: string;
-  experience: "entry" | "intermediate" | "expert";
+  experienceLevel: "entry" | "intermediate" | "expert";
   hourlyRate: number;
-  availability: "AVAILABLE" | "PART_TIME" | "BUSY" | "UNAVAILABLE";
+  categories: string[];
+  availability: {
+    status: "available" | "part_time" | "busy" | "unavailable";
+    hoursPerWeek?: number;
+    workingHours?: {
+      timezone: string;
+      schedule: {
+        [key: string]: {
+          start: string;
+          end: string;
+        };
+      };
+    };
+  };
 }
 
 interface FormErrors {
@@ -33,9 +46,25 @@ export default function OnboardingStep1() {
   const [formData, setFormData] = useState<ProfessionalData>({
     title: "",
     bio: "",
-    experience: "intermediate",
+    experienceLevel: "intermediate",
     hourlyRate: 25,
-    availability: "AVAILABLE",
+    categories: [],
+    availability: {
+      status: "available",
+      hoursPerWeek: 40,
+      workingHours: {
+        timezone: "UTC-5",
+        schedule: {
+          Monday: { start: "09:00", end: "17:00" },
+          Tuesday: { start: "09:00", end: "17:00" },
+          Wednesday: { start: "09:00", end: "17:00" },
+          Thursday: { start: "09:00", end: "17:00" },
+          Friday: { start: "09:00", end: "17:00" },
+          Saturday: { start: "10:00", end: "16:00" },
+          Sunday: { start: "10:00", end: "16:00" }
+        }
+      }
+    }
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +80,32 @@ export default function OnboardingStep1() {
   }, [router]);
 
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === 'experienceLevel') {
+      setFormData((prev) => ({ ...prev, experienceLevel: value as "entry" | "intermediate" | "expert" }));
+    } else if (field === 'availability.status') {
+      setFormData((prev) => ({
+        ...prev,
+        availability: { ...prev.availability, status: value as "available" | "part_time" | "busy" | "unavailable" }
+      }));
+    } else if (field === 'availability.hoursPerWeek') {
+      setFormData((prev) => ({
+        ...prev,
+        availability: { ...prev.availability, hoursPerWeek: value as number }
+      }));
+    } else if (field === 'availability.timezone') {
+      setFormData((prev) => ({
+        ...prev,
+        availability: {
+          ...prev.availability,
+          workingHours: {
+            ...prev.availability.workingHours!,
+            timezone: value as string
+          }
+        }
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
@@ -74,6 +128,10 @@ export default function OnboardingStep1() {
       newErrors.bio = 'Bio must be at least 50 characters long';
     } else if (formData.bio.length > 500) {
       newErrors.bio = 'Bio must be less than 500 characters';
+    }
+
+    if (formData.categories.length === 0) {
+      newErrors.categories = 'Please select at least one service category';
     }
 
     if (formData.hourlyRate < 5) {
@@ -129,18 +187,18 @@ export default function OnboardingStep1() {
 
   const availabilityOptions = [
     {
-      value: "AVAILABLE",
+      value: "available",
       label: "Available",
       description: "Ready to take on new projects",
     },
     {
-      value: "PART_TIME",
+      value: "part_time",
       label: "Part-time",
       description: "Limited availability for new projects",
     },
-    { value: "BUSY", label: "Busy", description: "Limited availability" },
+    { value: "busy", label: "Busy", description: "Limited availability" },
     {
-      value: "UNAVAILABLE",
+      value: "unavailable",
       label: "Unavailable",
       description: "Not taking new projects",
     },
@@ -169,8 +227,8 @@ export default function OnboardingStep1() {
             <div className="flex items-center space-x-4">
               <ProgressIndicator
                 currentStep={1}
-                totalSteps={4}
-                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+                totalSteps={5}
+                steps={['Profile', 'Skills', 'Portfolio', 'Education', 'Complete']}
               />
             </div>
           </div>
@@ -295,6 +353,64 @@ export default function OnboardingStep1() {
                   </div>
                 </div>
 
+                {/* Categories */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-4 font-poppins">
+                    Service Categories *
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      "Web Development",
+                      "Mobile Apps",
+                      "E-commerce",
+                      "UI/UX Design",
+                      "Graphic Design",
+                      "Content Writing",
+                      "Digital Marketing",
+                      "SEO",
+                      "Data Analysis",
+                      "Video Editing",
+                      "Photography",
+                      "Translation"
+                    ].map((category) => (
+                      <label
+                        key={category}
+                        className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                          formData.categories.includes(category)
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : 'border-gray-300 hover:border-green-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData(prev => ({
+                                ...prev,
+                                categories: [...prev.categories, category]
+                              }));
+                            } else {
+                              setFormData(prev => ({
+                                ...prev,
+                                categories: prev.categories.filter(c => c !== category)
+                              }));
+                            }
+                          }}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm font-inter">{category}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {errors.categories && (
+                    <p className="mt-2 text-sm text-red-600">{errors.categories}</p>
+                  )}
+                  <p className="mt-2 text-sm text-gray-500">
+                    Select all categories that match your services ({formData.categories.length} selected)
+                  </p>
+                </div>
+
                 {/* Experience Level */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-4 font-poppins">
@@ -310,9 +426,9 @@ export default function OnboardingStep1() {
                           type="radio"
                           name="experience"
                           value={option.value}
-                          checked={formData.experience === option.value}
+                          checked={formData.experienceLevel === option.value}
                           onChange={(e) =>
-                            handleInputChange("experience", e.target.value)
+                            handleInputChange("experienceLevel", e.target.value)
                           }
                           className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
                         />
@@ -380,7 +496,7 @@ export default function OnboardingStep1() {
                             type="radio"
                             name="availability"
                             value={option.value}
-                            checked={formData.availability === option.value}
+                            checked={formData.availability.status === option.value}
                             onChange={(e) =>
                               handleInputChange("availability", e.target.value)
                             }

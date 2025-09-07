@@ -249,8 +249,8 @@ export default function OnboardingStep3() {
             <div className="flex items-center space-x-4">
               <ProgressIndicator
                 currentStep={3}
-                totalSteps={4}
-                steps={['Profile', 'Skills', 'Portfolio', 'Complete']}
+                totalSteps={5}
+                steps={['Profile', 'Skills', 'Portfolio', 'Education', 'Complete']}
               />
             </div>
           </div>

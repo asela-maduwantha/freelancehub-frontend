@@ -17,9 +17,9 @@ export class MessagingService {
     return apiClient.get<Conversation>(`/messaging/conversations/${conversationId}`);
   }
 
-  static async createConversation(participantIds: string[], projectId?: string): Promise<Conversation> {
+  static async createConversation(participant2Id: string, projectId?: string): Promise<Conversation> {
     return apiClient.post<Conversation>('/messaging/conversations', {
-      participantIds,
+      participant2Id,
       projectId
     });
   }

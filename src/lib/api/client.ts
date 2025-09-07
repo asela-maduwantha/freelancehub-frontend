@@ -110,8 +110,14 @@ export class ApiClient {
         try {
           const originalRequest = error.config;
 
+          // Handle cases where error.config is undefined (network errors, etc.)
+          if (!originalRequest) {
+            console.error('Request config is undefined:', error.message);
+            return Promise.reject(error);
+          }
+
           // Handle token refresh
-          if (error.response?.status === 401 && originalRequest && !(originalRequest as any)._retry) {
+          if (error.response?.status === 401 && !(originalRequest as any)._retry) {
             // Prevent infinite retry loops
             if ((originalRequest as any)._retryCount >= 3) {
               console.error('Max retry attempts reached for request:', originalRequest.url);
@@ -168,10 +174,10 @@ export class ApiClient {
 
           // Log errors in development
           if (process.env.NODE_ENV === 'development') {
-            console.error(`API Error for ${error.config?.url}:`, {
+            console.error(`API Error for ${originalRequest?.url || 'unknown endpoint'}:`, {
               status: error.response?.status,
-              message: error.message,
-              endpoint: error.config?.url,
+              message: error.message || 'Unknown error',
+              endpoint: originalRequest?.url,
               data: error.response?.data
             });
           }
@@ -182,8 +188,9 @@ export class ApiClient {
         } catch (interceptorError) {
           // Handle any errors that occur within the interceptor itself
           console.error('Response interceptor error:', interceptorError);
-          // Return the original error if interceptor fails
-          return Promise.reject(error || interceptorError);
+          // Return the original error if interceptor fails, or create a generic error
+          const errorToReject = error || new Error('An unexpected error occurred in the API client');
+          return Promise.reject(errorToReject);
         }
       }
     );

@@ -57,7 +57,7 @@ export default function NewConversationModal({
 
     try {
       setCreating(true);
-      const conversation = await MessagingService.createConversation([selectedUser.id]);
+      const conversation = await MessagingService.createConversation(selectedUser.id);
       onConversationCreated?.(conversation.id);
       onClose();
       setSearchQuery('');

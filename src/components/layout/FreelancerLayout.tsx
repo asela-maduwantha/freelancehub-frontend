@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, createContext, useContext } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -24,6 +24,8 @@ import {
 import { Button } from '@/components/ui/Button';
 import { ToastProvider } from '@/components/ui/Toast';
 import { authService } from '@/lib/api';
+import { useFreelancerAuth } from './hooks/useFreelancerAuth';
+import { useFreelancerLayoutState } from './hooks/useFreelancerLayoutState';
 
 interface FreelancerLayoutProps {
   children: React.ReactNode;
@@ -207,14 +209,14 @@ const FreelancerSidebar: React.FC<{
             <div className="relative">
               <img
                 src={userProfile.avatar || '/user.jpg'}
-                alt={`${userProfile.firstName} ${userProfile.lastName}` || 'User'}
+                alt={`${userProfile.name}` || 'User'}
                 className="h-10 w-10 rounded-full object-cover ring-2 ring-green-500"
               />
               <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {`${userProfile.firstName} ${userProfile.lastName}` || 'Freelancer'}
+                {`${userProfile.name}` || 'Freelancer'}
               </p>
               <p className="text-xs text-gray-500 truncate">
                 {userProfile.title || 'Professional Freelancer'}
@@ -393,11 +395,11 @@ const FreelancerHeader: React.FC<{
             >
               <img
                 src={userProfile?.avatar || '/user.jpg'}
-                alt={`${userProfile?.firstName} ${userProfile?.lastName}` || 'User'}
+                alt={`${userProfile.name}` || 'User'}
                 className="h-8 w-8 rounded-full object-cover ring-2 ring-gray-200"
               />
               <span className="hidden md:block text-sm font-medium text-gray-700">
-                {`${userProfile?.firstName} ${userProfile?.lastName}` || 'Freelancer'}
+                {`${userProfile.name}` || 'Freelancer'}
               </span>
             </Button>
 
@@ -460,76 +462,27 @@ const FreelancerHeader: React.FC<{
 export default function FreelancerLayout({ children }: FreelancerLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [notifications, setNotifications] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        console.log('FreelancerLayout: Checking authentication...');
-        const userData = localStorage.getItem('user');
-        const token = localStorage.getItem('accessToken'); // Changed from 'access_token' to 'accessToken'
-        
-        console.log('FreelancerLayout: userData exists:', !!userData);
-        console.log('FreelancerLayout: token exists:', !!token);
-        
-        if (userData && token) {
-          try {
-            const parsedUser = JSON.parse(userData);
-            console.log('FreelancerLayout: User authenticated:', parsedUser.firstName || 'Unknown');
-            
-            // Verify the user has freelancer role
-            if (parsedUser.role && parsedUser.role.includes('freelancer')) {
-              setUser(parsedUser);
-              setNotifications(3); // Mock data
-            } else {
-              console.log('FreelancerLayout: User does not have freelancer role');
-              router.push('/login');
-              return;
-            }
-          } catch (parseError) {
-            console.error('FreelancerLayout: Failed to parse user data:', parseError);
-            // Clear corrupted data
-            localStorage.removeItem('user');
-            localStorage.removeItem('accessToken'); // Changed from 'access_token' to 'accessToken'
-            router.push('/login');
-            return;
-          }
-        } else {
-          console.log('FreelancerLayout: No valid authentication found, redirecting to login');
-          router.push('/login');
-          return;
-        }
-      } catch (error) {
-        console.error('FreelancerLayout: Authentication check failed:', error);
-        router.push('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, [router]); // Removed pathname from dependencies
+  const { user, isLoading } = useFreelancerAuth();
+  const {
+    sidebarCollapsed,
+    isMobileMenuOpen,
+    notifications,
+    setMobileMenuOpen,
+    toggleSidebar
+  } = useFreelancerLayoutState();
 
   const handleLogout = async () => {
     try {
       await authService.logout();
       localStorage.removeItem('user');
-      localStorage.removeItem('accessToken'); // Changed from 'access_token' to 'accessToken'
-      localStorage.removeItem('refreshToken'); // Changed from 'refresh_token' to 'refreshToken'
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
       localStorage.clear();
       router.push('/login');
     }
-  };
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   // Loading state
