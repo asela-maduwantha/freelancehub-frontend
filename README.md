@@ -13,6 +13,22 @@ cp .env.example .env.local
    - `NEXT_PUBLIC_API_URL`: Your backend API URL (default: http://localhost:8000/api/v1)
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key for payments
 
+### Content Security Policy (CSP) Configuration
+
+This project includes a comprehensive CSP configuration in `src/middleware.ts` that is specifically designed to work with Stripe Elements and hCaptcha. The CSP:
+
+- ✅ Allows Stripe payment processing
+- ✅ Supports hCaptcha verification
+- ✅ Automatically allows your configured API URL (`NEXT_PUBLIC_API_URL`)
+- ✅ Maintains security best practices
+- ✅ Is relaxed in development, strict in production
+
+**Important Notes:**
+- The CSP allows `'unsafe-inline'` and `'unsafe-eval'` for Stripe Elements compatibility
+- All Stripe domains are whitelisted for scripts, styles, images, and connections
+- The API URL from your environment variables is automatically added to allowed domains
+- The configuration automatically adjusts based on `NODE_ENV`
+
 ### Installation and Development
 
 First, install dependencies:
