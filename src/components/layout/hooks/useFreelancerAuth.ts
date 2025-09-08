@@ -9,23 +9,17 @@ export const useFreelancerAuth = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        console.log('FreelancerLayout: Checking authentication...');
         const userData = localStorage.getItem('user');
         const token = localStorage.getItem('accessToken');
-
-        console.log('FreelancerLayout: userData exists:', !!userData);
-        console.log('FreelancerLayout: token exists:', !!token);
 
         if (userData && token) {
           try {
             const parsedUser = JSON.parse(userData);
-            console.log('FreelancerLayout: User authenticated:', parsedUser.firstName || 'Unknown');
 
             // Verify the user has freelancer role
             if (parsedUser.role && parsedUser.role.includes('freelancer')) {
               setUser(parsedUser);
             } else {
-              console.log('FreelancerLayout: User does not have freelancer role');
               router.push('/login');
               return;
             }
@@ -38,7 +32,6 @@ export const useFreelancerAuth = () => {
             return;
           }
         } else {
-          console.log('FreelancerLayout: No valid authentication found, redirecting to login');
           router.push('/login');
           return;
         }

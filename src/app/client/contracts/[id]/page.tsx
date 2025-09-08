@@ -86,60 +86,6 @@ export default function ClientContractDetailPage() {
     }
   };
 
-  const handleApproveMilestone = async (milestoneId: string) => {
-    try {
-      await contractsService.approveMilestone(contractId, milestoneId);
-      // Update local state
-      setContract(prev => prev ? {
-        ...prev,
-        milestones: prev.milestones.map(milestone =>
-          milestone._id === milestoneId
-            ? { ...milestone, status: 'approved' as const }
-            : milestone
-        )
-      } : null);
-      showToast({
-        type: 'success',
-        title: 'Success',
-        message: 'Milestone approved successfully'
-      });
-    } catch (error) {
-      console.error('Failed to approve milestone:', error);
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to approve milestone. Please try again.'
-      });
-    }
-  };
-
-  const handleRejectMilestone = async (milestoneId: string) => {
-    try {
-      await contractsService.rejectMilestone(contractId, milestoneId, 'Work does not meet requirements');
-      // Update local state
-      setContract(prev => prev ? {
-        ...prev,
-        milestones: prev.milestones.map(milestone =>
-          milestone._id === milestoneId
-            ? { ...milestone, status: 'rejected' as const }
-            : milestone
-        )
-      } : null);
-      showToast({
-        type: 'error',
-        title: 'Milestone Rejected',
-        message: 'Milestone has been rejected'
-      });
-    } catch (error) {
-      console.error('Failed to reject milestone:', error);
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to reject milestone. Please try again.'
-      });
-    }
-  };
-
   const handlePaymentSuccess = (paymentId: string) => {
     setShowPaymentForm(false);
     setSelectedMilestone(null);
@@ -156,6 +102,16 @@ export default function ClientContractDetailPage() {
     try {
       const pdfBlob = await contractsService.downloadContractPdf(contractId);
 
+      // Check if we have a valid Blob
+      if (!(pdfBlob instanceof Blob)) {
+        throw new Error('Invalid response: Expected Blob, received ' + typeof pdfBlob);
+      }
+
+      // Check if blob has content
+      if (pdfBlob.size === 0) {
+        throw new Error('Downloaded file is empty');
+      }
+
       // Create a blob URL for the PDF
       const blobUrl = URL.createObjectURL(pdfBlob);
 
@@ -163,11 +119,12 @@ export default function ClientContractDetailPage() {
       const link = document.createElement('a');
       link.href = blobUrl;
       link.download = `contract-${contractId}.pdf`;
+      link.style.display = 'none'; // Hide the link
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
 
-      // Clean up the blob URL
+      // Clean up
+      document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
 
       showToast({
@@ -175,17 +132,30 @@ export default function ClientContractDetailPage() {
         title: 'Success',
         message: 'Contract PDF downloaded successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to download contract:', error);
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to download contract. Please try again.'
-      });
-    }
-  };
 
-  const formatDate = (dateString: string) => {
+      // Fallback: Try to open in new tab if download fails
+      try {
+        const fallbackUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/contracts/${contractId}/download-pdf`;
+        window.open(fallbackUrl, '_blank');
+
+        showToast({
+          type: 'info',
+          title: 'Opening PDF',
+          message: 'PDF opened in new tab due to download issue'
+        });
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        const errorMessage = error?.message || 'Failed to download contract. Please try again.';
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: errorMessage
+        });
+      }
+    }
+  };  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -231,7 +201,6 @@ export default function ClientContractDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header backLink="/client/contracts" backText="Back to Contracts" />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Contract Header */}
@@ -389,25 +358,6 @@ export default function ClientContractDetailPage() {
                 </div>
 
                 <div className="flex justify-end space-x-3">
-                  {milestone.status === 'pending' && contract.status === 'active' && (
-                    <>
-                      <Button
-                        onClick={() => handleApproveMilestone(milestone._id)}
-                        className="bg-green-600 hover:bg-green-700 px-6 py-2"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve Milestone
-                      </Button>
-                      <Button
-                        onClick={() => handleRejectMilestone(milestone._id)}
-                        variant="outline"
-                        className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-2"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject
-                      </Button>
-                    </>
-                  )}
                   {milestone.status === 'in-progress' && (
                     <div className="flex items-center text-blue-600 font-medium px-4 py-2 bg-blue-100 rounded-lg">
                       <Clock className="h-4 w-4 mr-2" />

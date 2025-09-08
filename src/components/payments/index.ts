@@ -7,3 +7,4 @@ export { WithdrawalManager } from './WithdrawalManager';
 export { RefundRequestModal } from './RefundRequestModal';
 export { AdminCleanupTools } from './AdminCleanupTools';
 export { PaymentErrorBoundary } from './PaymentErrorBoundary';
+export { SubmittedMilestones } from './SubmittedMilestones';

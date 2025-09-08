@@ -63,7 +63,7 @@ export const clientNavItems: NavItem[] = [
     label: 'Payments',
     href: '/client/payments',
     icon: CreditCard,
-    description: 'Billing & invoices'
+    description: 'Billing, invoices & milestone approvals'
   },
   {
     id: 'profile',

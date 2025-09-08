@@ -1,6 +1,6 @@
 import { apiClient } from './client';
 import { IProject, IPaginationOptions, IDashboardProposal } from '../types';
-import { ProjectsResponse, ClientDashboardResponse } from '../types/api/responses.types';
+import { ProjectsResponse, ClientDashboardResponse, SubmittedMilestonesResponse, ProjectSubmittedMilestones } from '../types/api/responses.types';
 import { CreateProjectRequest } from '../types/api/requests.types';
 
 export interface ClientProject extends IProject {
@@ -117,6 +117,28 @@ export class ClientsService {
   async getDashboard(): Promise<ClientDashboard> {
     const response: ClientDashboardResponse = await apiClient.get('/clients/dashboard');
     return response;
+  }
+
+  /**
+   * Get submitted milestones for client approval
+   */
+  async getSubmittedMilestones(): Promise<ProjectSubmittedMilestones[]> {
+    const response = await apiClient.get('/clients/submitted-milestones');
+    return Array.isArray(response) ? response : [];
+  }
+
+  /**
+   * Approve a submitted milestone and release payment
+   */
+  async approveMilestone(milestoneId: string): Promise<any> {
+    return apiClient.post(`/clients/milestones/${milestoneId}/approve`);
+  }
+
+  /**
+   * Reject a submitted milestone
+   */
+  async rejectMilestone(milestoneId: string, reason?: string): Promise<any> {
+    return apiClient.post(`/clients/milestones/${milestoneId}/reject`, { reason });
   }
 }
 

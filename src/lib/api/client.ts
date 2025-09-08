@@ -100,10 +100,6 @@ export class ApiClient {
   private setupResponseInterceptor() {
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
-        // Log successful responses in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`API Success for ${response.config.url}:`, response.data);
-        }
         return response.data;
       },
       async (error: AxiosError) => {
@@ -319,7 +315,6 @@ export class ApiClient {
   // Public GET request (without auth)
   async getPublic<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const response = await axios.get(`${this.baseURL}${endpoint}`, { params });
-    console.log('Public API response:', response);
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       return response.data.data;
     }
@@ -398,9 +393,30 @@ export class ApiClient {
 
   // Download file
   async downloadFile(endpoint: string): Promise<Blob> {
-    const response = await this.axiosInstance.get(endpoint, {
+    // Create a separate axios instance for file downloads to avoid response interceptor
+    const downloadInstance = axios.create({
+      baseURL: this.baseURL,
+      timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Add request interceptor for auth token
+    downloadInstance.interceptors.request.use(
+      (config) => {
+        if (this.token && config.headers) {
+          config.headers.Authorization = `Bearer ${this.token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    const response = await downloadInstance.get(endpoint, {
       responseType: 'blob',
     });
+
     return response.data;
   }
 

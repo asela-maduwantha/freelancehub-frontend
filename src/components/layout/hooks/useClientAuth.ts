@@ -18,10 +18,8 @@ export const useClientAuth = () => {
 
             // Verify the user has client role
             if (parsedUser.role && parsedUser.role.includes('client')) {
-              console.log('ClientLayout: User authenticated as client:', parsedUser);
               setUser(parsedUser);
             } else {
-              console.log('ClientLayout: User does not have client role');
               router.push('/login');
               return;
             }
@@ -34,7 +32,6 @@ export const useClientAuth = () => {
             return;
           }
         } else {
-          console.log('ClientLayout: No valid authentication found, redirecting to login');
           router.push('/login');
           return;
         }

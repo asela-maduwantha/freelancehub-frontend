@@ -245,7 +245,6 @@ export class FreelancersService {
    * Submit proposal for a project
    */
   async submitProposal(projectId: string, data: ICreateProposalRequest): Promise<IApiResponse> {
-    console.log(data)
     return apiClient.post(`/projects/${projectId}/proposals`, data);
   }
 

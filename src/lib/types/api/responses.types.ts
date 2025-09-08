@@ -98,3 +98,27 @@ export interface ClientDashboardResponse {
     recentProjects: import('../entities/project.types').IProject[];
     latestProposals: import('../entities/proposals.types').IDashboardProposal[];
   }
+
+export interface SubmittedMilestone {
+  _id: string;
+  title: string;
+  description: string;
+  amount: number;
+  deadline: string;
+  status: 'submitted';
+  deliverables: any[];
+  createdAt: string;
+  contractId: string;
+  contractTitle: string;
+}
+
+export interface ProjectSubmittedMilestones {
+  projectId: string;
+  projectTitle: string;
+  submittedMilestones: SubmittedMilestone[];
+}
+
+export interface SubmittedMilestonesResponse {
+  data: ProjectSubmittedMilestones[];
+  timestamp: string;
+}
