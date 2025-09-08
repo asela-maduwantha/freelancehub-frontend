@@ -12,6 +12,7 @@ interface NotificationsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onNotificationClick?: (notification: Notification) => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
 const getNotificationIcon = (type: Notification['type']) => {
@@ -44,7 +45,7 @@ const getNotificationColor = (type: Notification['type']) => {
   }
 };
 
-export default function NotificationsPanel({ isOpen, onClose, onNotificationClick }: NotificationsPanelProps) {
+export default function NotificationsPanel({ isOpen, onClose, onNotificationClick, onUnreadCountChange }: NotificationsPanelProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -75,10 +76,19 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
     try {
       setLoading(true);
       const data = await MessagingService.getNotifications();
-      setNotifications(data);
-      setUnreadCount(data.filter(n => !n.isRead).length);
+
+      // Ensure data is an array
+      const notificationsArray = Array.isArray(data) ? data : [];
+      setNotifications(notificationsArray);
+      const unreadCount = notificationsArray.filter(n => !n.isRead).length;
+      setUnreadCount(unreadCount);
+      onUnreadCountChange?.(unreadCount);
     } catch (error) {
       console.error('Failed to load notifications:', error);
+      // Set empty array on error to prevent crashes
+      setNotifications([]);
+      setUnreadCount(0);
+      onUnreadCountChange?.(0);
     } finally {
       setLoading(false);
     }
@@ -86,8 +96,15 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
 
   const setupWebSocketListeners = (service: any) => {
     service.on('notification', (data: any) => {
-      setNotifications(prev => [data.notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
+      // Ensure we have valid notification data
+      if (data && data.notification) {
+        setNotifications(prev => [data.notification, ...prev]);
+        setUnreadCount(prev => {
+          const newCount = prev + 1;
+          onUnreadCountChange?.(newCount);
+          return newCount;
+        });
+      }
     });
   };
 
@@ -99,7 +116,11 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
           n.id === notificationId ? { ...n, isRead: true } : n
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount(prev => {
+        const newCount = Math.max(0, prev - 1);
+        onUnreadCountChange?.(newCount);
+        return newCount;
+      });
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -110,6 +131,7 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
       await MessagingService.markAllNotificationsAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
+      onUnreadCountChange?.(0);
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
@@ -172,7 +194,7 @@ export default function NotificationsPanel({ isOpen, onClose, onNotificationClic
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {notifications.map((notification) => {
+            {(notifications || []).map((notification) => {
               const Icon = getNotificationIcon(notification.type);
               const iconColor = getNotificationColor(notification.type);
 

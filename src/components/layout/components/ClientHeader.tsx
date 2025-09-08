@@ -11,13 +11,15 @@ interface ClientHeaderProps {
   notifications: number;
   onLogout: () => void;
   onMobileMenuToggle: () => void;
+  onNotificationsCountChange?: (count: number) => void;
 }
 
 export const ClientHeader: React.FC<ClientHeaderProps> = ({
   userProfile,
   notifications,
   onLogout,
-  onMobileMenuToggle
+  onMobileMenuToggle,
+  onNotificationsCountChange
 }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -63,6 +65,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
                 // Handle notification click - could navigate to relevant page
                 console.log('Notification clicked:', notification);
               }}
+              onUnreadCountChange={onNotificationsCountChange}
             />
           </div>
 

@@ -27,7 +27,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     isMobileMenuOpen,
     notifications,
     setMobileMenuOpen,
-    toggleSidebar
+    toggleSidebar,
+    setNotifications
   } = useClientLayoutState();
 
   const handleLogout = async () => {
@@ -116,6 +117,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               notifications={notifications}
               onLogout={handleLogout}
               onMobileMenuToggle={() => setMobileMenuOpen(true)}
+              onNotificationsCountChange={setNotifications}
             />
 
             {/* Page Content */}

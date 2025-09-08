@@ -56,10 +56,24 @@ export class MessagingService {
 
   // Notifications
   static async getNotifications(page = 1, limit = 20): Promise<Notification[]> {
-    return apiClient.get<Notification[]>('/notifications', {
+    const response = await apiClient.get('/notifications', {
       page,
       limit
     });
+
+    // Handle both wrapped and direct responses
+    if (response && typeof response === 'object' && 'data' in response) {
+      const data = response.data;
+      return Array.isArray(data) ? data : [];
+    }
+
+    // If response is already an array, return it
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    // Fallback to empty array
+    return [];
   }
 
   static async markNotificationAsRead(notificationId: string): Promise<void> {
