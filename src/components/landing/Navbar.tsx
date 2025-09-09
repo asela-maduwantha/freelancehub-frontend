@@ -38,7 +38,7 @@ export default function Navbar() {
                 Sign In
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/role-selection">
               <Button variant="premium" className="font-poppins">
                 Get Started
               </Button>
