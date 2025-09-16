@@ -2,42 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-### Environment Setup
-
-1. Copy the environment variables file:
-```bash
-cp .env.example .env.local
-```
-
-2. Update the environment variables in `.env.local`:
-   - `NEXT_PUBLIC_API_URL`: Your backend API URL (default: http://localhost:8000/api/v1)
-   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key for payments
-
-### Content Security Policy (CSP) Configuration
-
-This project includes a comprehensive CSP configuration in `src/middleware.ts` that is specifically designed to work with Stripe Elements and hCaptcha. The CSP:
-
-- ✅ Allows Stripe payment processing
-- ✅ Supports hCaptcha verification
-- ✅ Automatically allows your configured API URL (`NEXT_PUBLIC_API_URL`)
-- ✅ Maintains security best practices
-- ✅ Is relaxed in development, strict in production
-
-**Important Notes:**
-- The CSP allows `'unsafe-inline'` and `'unsafe-eval'` for Stripe Elements compatibility
-- All Stripe domains are whitelisted for scripts, styles, images, and connections
-- The API URL from your environment variables is automatically added to allowed domains
-- The configuration automatically adjusts based on `NODE_ENV`
-
-### Installation and Development
-
-First, install dependencies:
-
-```bash
-npm install
-```
-
-Then, run the development server:
+First, run the development server:
 
 ```bash
 npm run dev
@@ -69,5 +34,3 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-# freelancehub-frontend

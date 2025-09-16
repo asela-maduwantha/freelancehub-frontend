@@ -1,27 +1,26 @@
-import Hero from "@/components/landing/Hero";
-import Search from "@/components/landing/Search";
-import Navbar from "@/components/landing/Navbar";
-import Features from "@/components/landing/Features";
-import HowItWorks from "@/components/landing/HowItWorks";
-import Testimonials from "@/components/landing/Testimonials";
-//import FAQ from "@/components/landing/FAQ";
-import CTA from "@/components/landing/CTA";
-import Footer from "@/components/landing/Footer";
+"use client";
 
-export default function Home() {
+import React from 'react';
+import {
+  Hero,
+  Features,
+  HowItWorks,
+  Testimonials,
+  FAQ,
+  CTA
+} from '../components/features/landing';
+
+const App: React.FC = () => {
   return (
-    <div>
-      <Navbar />
-      <main className="min-h-screen">
-        <Hero />
-        <Search />
-        <Features />
-        <HowItWorks />
-        <Testimonials />
-        {/* <FAQ /> */}
-        <CTA />
-        <Footer />
-      </main>
+    <div className="min-h-screen">
+      <Hero />
+      <Features />
+      <HowItWorks />
+      <Testimonials />
+      <FAQ />
+      <CTA />
     </div>
   );
-}
+};
+
+export default App;
