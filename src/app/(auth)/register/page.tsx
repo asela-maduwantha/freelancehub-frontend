@@ -8,6 +8,7 @@ import { Input, PasswordInput } from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Feedback';
 import { authService } from '../../../lib/api/auth';
+import { UserPlus, CheckCircle, ArrowRight, Shield, Star, Users } from 'lucide-react';
 
 type UserRole = 'client' | 'freelancer';
 
@@ -94,12 +95,12 @@ export default function RegisterPage() {
         phone: formData.phone || undefined,
       });
 
-      setSuccessMessage('Registration successful! Please check your email for verification.');
+      setSuccessMessage('Registration successful! Redirecting to email verification...');
 
-      // Redirect to email verification page after a delay
+      // Redirect to email verification page with email parameter
       setTimeout(() => {
-        router.push('/verify-email');
-      }, 3000);
+        router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      }, 2000);
 
     } catch (error: any) {
       setError(error.message || 'Registration failed. Please try again.');
@@ -110,58 +111,94 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout
-      title="Create Your Account"
-      subtitle="Join our freelance community today"
+      title="Join Our Community"
+      subtitle="Create your account and start your freelance journey"
     >
-      <div className="space-y-6">
-        {/* Role Toggle Switcher */}
-        <div className="text-center">
-          <div className="inline-flex rounded-lg bg-gray-100 p-1">
-            <button
-              type="button"
-              onClick={() => handleRoleChange('freelancer')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                formData.role === 'freelancer'
-                  ? 'bg-orange-500 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              disabled={isLoading}
-            >
-              I'm a Freelancer
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRoleChange('client')}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                formData.role === 'client'
-                  ? 'bg-orange-500 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              disabled={isLoading}
-            >
-              I'm a Client
-            </button>
+      <div className="max-w-md mx-auto">
+        {/* Benefits Section */}
+        <div className="mb-8 text-center">
+          <div className="flex justify-center space-x-6 mb-4">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
+                <Shield className="w-6 h-6 text-orange-600" />
+              </div>
+              <span className="text-xs text-gray-600">Secure</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="text-xs text-gray-600">Community</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                <Star className="w-6 h-6 text-green-600" />
+              </div>
+              <span className="text-xs text-gray-600">Trusted</span>
+            </div>
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            Select your role to get started
+        </div>
+
+        {/* Role Selection */}
+        <div className="mb-8">
+          <div className="bg-gray-50 rounded-xl p-1">
+            <div className="grid grid-cols-2 gap-1">
+              <button
+                type="button"
+                onClick={() => handleRoleChange('freelancer')}
+                className={`py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  formData.role === 'freelancer'
+                    ? 'bg-white text-orange-600 shadow-sm border border-orange-200'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                disabled={isLoading}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <UserPlus className="w-4 h-4" />
+                  <span>I'm a Freelancer</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleChange('client')}
+                className={`py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  formData.role === 'client'
+                    ? 'bg-white text-orange-600 shadow-sm border border-orange-200'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                disabled={isLoading}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>I'm a Client</span>
+                </div>
+              </button>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-center text-gray-500">
+            Choose your role to get started
           </p>
         </div>
 
         {/* Success Message */}
         {successMessage && (
-          <Alert type="success" message={successMessage} />
+          <div className="mb-6">
+            <Alert type="success" message={successMessage} />
+          </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <Alert type="error" message={error} />
+          <div className="mb-6">
+            <Alert type="error" message={error} />
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                 First Name
               </label>
               <Input
@@ -173,10 +210,11 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
                 autoComplete="given-name"
+                className="h-11"
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                 Last Name
               </label>
               <Input
@@ -188,13 +226,14 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
                 autoComplete="family-name"
+                className="h-11"
               />
             </div>
           </div>
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <Input
@@ -206,13 +245,14 @@ export default function RegisterPage() {
               required
               disabled={isLoading}
               autoComplete="email"
+              className="h-11"
             />
           </div>
 
           {/* Phone (Optional) */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number <span className="text-gray-400">(Optional)</span>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
             </label>
             <Input
               id="phone"
@@ -222,12 +262,13 @@ export default function RegisterPage() {
               onChange={handleInputChange('phone')}
               disabled={isLoading}
               autoComplete="tel"
+              className="h-11"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
             <PasswordInput
@@ -237,15 +278,23 @@ export default function RegisterPage() {
               onChange={handleInputChange('password')}
               required
               disabled={isLoading}
+              className="h-11"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Must be at least 8 characters with uppercase, lowercase, number, and special character
-            </p>
+            <div className="mt-2 text-xs text-gray-500 space-y-1">
+              <p>Password must contain:</p>
+              <ul className="list-disc list-inside ml-2 space-y-0.5">
+                <li>At least 8 characters</li>
+                <li>One uppercase letter</li>
+                <li>One lowercase letter</li>
+                <li>One number</li>
+                <li>One special character</li>
+              </ul>
+            </div>
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
               Confirm Password
             </label>
             <PasswordInput
@@ -255,31 +304,30 @@ export default function RegisterPage() {
               onChange={handleInputChange('confirmPassword')}
               required
               disabled={isLoading}
+              className="h-11"
             />
           </div>
 
           {/* Terms and Conditions */}
-          <div className="flex items-start">
-            <div className="flex items-center h-5">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                checked={formData.termsAccepted}
-                onChange={handleInputChange('termsAccepted')}
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                disabled={isLoading}
-                required
-              />
-            </div>
-            <div className="ml-3 text-sm">
+          <div className="flex items-start space-x-3">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              checked={formData.termsAccepted}
+              onChange={handleInputChange('termsAccepted')}
+              className="mt-1 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+              disabled={isLoading}
+              required
+            />
+            <div className="text-sm">
               <label htmlFor="terms" className="text-gray-700">
                 I agree to the{' '}
-                <Link href="/terms" className="text-orange-600 hover:text-orange-500 font-medium">
+                <Link href="/terms" className="text-orange-600 hover:text-orange-500 font-medium underline">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-orange-600 hover:text-orange-500 font-medium">
+                <Link href="/privacy" className="text-orange-600 hover:text-orange-500 font-medium underline">
                   Privacy Policy
                 </Link>
               </label>
@@ -291,19 +339,30 @@ export default function RegisterPage() {
             type="submit"
             variant="primary"
             size="lg"
-            className="w-full"
+            className="w-full h-12 text-base font-semibold"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {isLoading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Creating Account...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <UserPlus className="w-5 h-5" />
+                <span>Create Account</span>
+                <ArrowRight className="w-5 h-5" />
+              </div>
+            )}
           </Button>
         </form>
 
         {/* Sign In Link */}
-        <div className="text-center">
+        <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <Link href="/login" className="font-medium text-orange-600 hover:text-orange-500">
-              Sign in
+            <Link href="/login" className="font-semibold text-orange-600 hover:text-orange-500 transition-colors">
+              Sign in here
             </Link>
           </p>
         </div>

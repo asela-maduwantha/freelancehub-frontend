@@ -10,10 +10,9 @@ import Loader from '../../../components/ui/Feedback/Loader';
 import { Alert } from '../../../components/ui/Feedback';
 import { authService } from '../../../lib/api/auth';
 import { store } from '../../../store';
-import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Mail, ArrowLeft, RefreshCw, CheckCircle, Clock, Shield } from 'lucide-react';
 
 interface VerifyEmailFormData {
-  email: string;
   otp: string;
 }
 
@@ -26,10 +25,18 @@ function VerifyEmailForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  const email = searchParams.get('email') || '';
+
   const [formData, setFormData] = useState<VerifyEmailFormData>({
-    email: searchParams.get('email') || '',
     otp: '',
   });
+
+  // Redirect if no email provided
+  useEffect(() => {
+    if (!email) {
+      router.push('/register');
+    }
+  }, [email, router]);
 
   // Countdown timer for resend cooldown
   useEffect(() => {
@@ -61,13 +68,13 @@ function VerifyEmailForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.otp) {
-      setError('Please fill in all fields');
+    if (!formData.otp) {
+      setError('Please enter the verification code');
       return;
     }
 
     if (formData.otp.length !== 6) {
-      setError('OTP must be 6 digits');
+      setError('Verification code must be 6 digits');
       return;
     }
 
@@ -76,7 +83,7 @@ function VerifyEmailForm() {
 
     try {
       await authService.verifyEmail({
-        email: formData.email,
+        email: email,
         otp: formData.otp,
       });
 
@@ -112,7 +119,7 @@ function VerifyEmailForm() {
 
     try {
       await authService.resendVerification({
-        email: formData.email,
+        email: email,
       });
 
       setSuccessMessage('Verification code sent successfully!');
@@ -131,65 +138,72 @@ function VerifyEmailForm() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Don't render if no email
+  if (!email) {
+    return null;
+  }
+
   return (
     <AuthLayout>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full">
           {/* Header */}
-          <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-orange-100 rounded-full flex items-center justify-center">
-              <Mail className="h-8 w-8 text-orange-600" />
+          <div className="text-center mb-8">
+            <div className="mx-auto h-20 w-20 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+              <Mail className="h-10 w-10 text-white" />
             </div>
-            <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
               Verify Your Email
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              We've sent a 6-digit verification code to your email address.
-              Please enter it below to verify your account.
+            <p className="text-gray-600 mb-4">
+              We've sent a 6-digit verification code to:
             </p>
+            <div className="bg-gray-50 rounded-lg p-4 border">
+              <p className="font-medium text-gray-900">{email}</p>
+            </div>
+          </div>
+
+          {/* Security Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-blue-900">Secure Verification</h3>
+                <p className="text-xs text-blue-700 mt-1">
+                  Your verification code is valid for 10 minutes and can only be used once.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Form */}
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              {/* Email Input */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={formData.email}
-                  onChange={handleInputChange('email')}
-                  required
-                  disabled={isLoading}
-                  className="w-full"
-                />
-              </div>
-
-              {/* OTP Input */}
-              <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
-                  Verification Code
-                </label>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* OTP Input */}
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-3">
+                Enter Verification Code
+              </label>
+              <div className="relative">
                 <Input
                   id="otp"
                   name="otp"
                   type="text"
-                  placeholder="Enter 6-digit code"
+                  placeholder="000000"
                   value={formData.otp}
                   onChange={handleInputChange('otp')}
                   required
                   disabled={isLoading}
-                  className="w-full text-center text-2xl tracking-widest"
+                  className="text-center text-2xl tracking-[0.5em] h-14 font-mono bg-gray-50 border-2 focus:border-orange-500 focus:bg-white"
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  Enter the 6-digit code sent to your email
-                </p>
+                {formData.otp.length === 6 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  </div>
+                )}
               </div>
+              <p className="mt-2 text-xs text-gray-500 text-center">
+                Enter the 6-digit code sent to your email
+              </p>
             </div>
 
             {/* Error Alert */}
@@ -207,38 +221,47 @@ function VerifyEmailForm() {
               type="submit"
               variant="primary"
               size="lg"
-              className="w-full"
-              disabled={isLoading || !formData.email || !formData.otp}
+              className="w-full h-12 text-base font-semibold"
+              disabled={isLoading || formData.otp.length !== 6}
             >
               {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <Loader size="sm" className="mr-2" />
-                  Verifying...
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Verifying...</span>
                 </div>
               ) : (
-                'Verify Email'
+                <div className="flex items-center justify-center space-x-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Verify Email</span>
+                </div>
               )}
             </Button>
 
-            {/* Resend Verification */}
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">
-                Didn't receive the code?
-              </p>
+            {/* Resend Section */}
+            <div className="text-center space-y-3">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">Didn't receive the code?</span>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={handleResendVerification}
-                disabled={isResending || resendCooldown > 0 || !formData.email}
-                className="inline-flex items-center text-sm font-medium text-orange-600 hover:text-orange-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+                disabled={isResending || resendCooldown > 0}
+                className="inline-flex items-center text-sm font-medium text-orange-600 hover:text-orange-500 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {isResending ? (
                   <>
-                    <Loader size="sm" className="mr-2" />
+                    <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin mr-2"></div>
                     Sending...
                   </>
                 ) : resendCooldown > 0 ? (
                   <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <Clock className="mr-2 h-4 w-4" />
                     Resend in {formatTime(resendCooldown)}
                   </>
                 ) : (
@@ -250,26 +273,32 @@ function VerifyEmailForm() {
               </button>
             </div>
 
-            {/* Back to Login */}
+            {/* Back to Register */}
             <div className="text-center">
               <Link
-                href="/login"
-                className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
+                href="/register"
+                className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Login
+                Wrong email? Go back to register
               </Link>
             </div>
           </form>
 
-          {/* Help Text */}
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Having trouble? Check your spam folder or contact{' '}
-              <Link href="/contact" className="text-orange-600 hover:text-orange-500">
-                support
+          {/* Help Section */}
+          <div className="mt-8 text-center">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Need Help?</h3>
+              <p className="text-xs text-gray-600 mb-3">
+                Check your spam folder or contact our support team.
+              </p>
+              <Link
+                href="/contact"
+                className="text-xs text-orange-600 hover:text-orange-500 font-medium"
+              >
+                Contact Support →
               </Link>
-            </p>
+            </div>
           </div>
         </div>
       </div>
@@ -281,8 +310,14 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
       <AuthLayout>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <Loader size="lg" />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-white" />
+            </div>
+            <Loader size="lg" />
+            <p className="text-gray-600">Loading verification page...</p>
+          </div>
         </div>
       </AuthLayout>
     }>
