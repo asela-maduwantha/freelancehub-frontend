@@ -8,14 +8,13 @@ import { Input, TextArea } from '../../../../../../components/ui/Input';
 import Button from '../../../../../../components/ui/Button';
 import { Alert } from '../../../../../../components/ui/Feedback';
 import Loader from '../../../../../../components/ui/Feedback/Loader';
+import { proposalService, CreateProposalRequest } from '../../../../../../lib/api/proposals';
+import { jobService } from '../../../../../../lib/api/jobs';
 import { 
   Briefcase, 
   DollarSign, 
   Clock, 
-  FileText, 
   ArrowLeft,
-  Upload,
-  X,
   Calendar
 } from 'lucide-react';
 
@@ -27,7 +26,7 @@ interface JobDetails {
     type: 'fixed' | 'hourly' | 'range';
     min: number;
     max?: number;
-    currency: string;
+    currency?: string;
   };
   duration?: {
     type: string;
@@ -44,15 +43,15 @@ interface JobDetails {
 
 interface ProposalFormData {
   coverLetter: string;
-  proposedBudget: string;
-  timeline: string;
-  milestones: Array<{
-    title: string;
-    description: string;
+  proposedRate: {
     amount: string;
-    dueDate: string;
-  }>;
-  attachments: File[];
+    type: 'fixed' | 'hourly';
+    currency: string;
+  };
+  estimatedDuration: {
+    value: string;
+    unit: 'days' | 'weeks' | 'months';
+  };
 }
 
 export default function CreateProposalPage() {
@@ -67,17 +66,15 @@ export default function CreateProposalPage() {
 
   const [formData, setFormData] = useState<ProposalFormData>({
     coverLetter: '',
-    proposedBudget: '',
-    timeline: '',
-    milestones: [
-      {
-        title: '',
-        description: '',
-        amount: '',
-        dueDate: ''
-      }
-    ],
-    attachments: []
+    proposedRate: {
+      amount: '',
+      type: 'fixed',
+      currency: 'USD'
+    },
+    estimatedDuration: {
+      value: '',
+      unit: 'days'
+    }
   });
 
   useEffect(() => {
@@ -85,36 +82,28 @@ export default function CreateProposalPage() {
     const fetchJobDetails = async () => {
       try {
         setIsLoading(true);
-        // In a real app, you would fetch from API
-        // const job = await jobService.getJobById(jobId);
+        const job = await jobService.getJob(jobId);
         
-        // Mock data for now
-        const mockJob: JobDetails = {
-          id: jobId,
-          title: 'Full-Stack Web Developer for E-commerce Platform',
-          description: 'We are looking for an experienced full-stack developer to build a modern e-commerce platform...',
-          budget: {
-            type: 'range',
-            min: 3000,
-            max: 5000,
-            currency: 'USD'
-          },
-          duration: {
-            type: '1-3-months',
-            estimatedHours: 120
-          },
-          skills: ['React', 'Node.js', 'MongoDB', 'TypeScript'],
+        // Map API response to our JobDetails interface
+        const mappedJob: JobDetails = {
+          id: job.id,
+          title: job.title,
+          description: job.description,
+          budget: job.budget,
+          duration: job.duration,
+          skills: job.skills,
           client: {
-            name: 'TechCorp Inc.',
-            location: 'New York, USA',
-            rating: 4.8
+            name: job.client.fullName,
+            location: 'Unknown', // Add location if available in API
+            rating: 4.5 // Add rating if available in API
           },
-          deadline: '2025-12-15'
+          deadline: job.expiresAt
         };
         
-        setJobDetails(mockJob);
+        setJobDetails(mappedJob);
       } catch (err) {
         setError('Failed to load job details');
+        console.error('Error fetching job:', err);
       } finally {
         setIsLoading(false);
       }
@@ -132,51 +121,27 @@ export default function CreateProposalPage() {
     }));
   };
 
-  const handleMilestoneChange = (index: number, field: string, value: string) => {
+  const handleProposedRateChange = (field: 'amount' | 'type' | 'currency') => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData(prev => ({
       ...prev,
-      milestones: prev.milestones.map((milestone, i) => 
-        i === index ? { ...milestone, [field]: value } : milestone
-      )
+      proposedRate: {
+        ...prev.proposedRate,
+        [field]: e.target.value
+      }
     }));
   };
 
-  const addMilestone = () => {
+  const handleDurationChange = (field: 'value' | 'unit') => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData(prev => ({
       ...prev,
-      milestones: [
-        ...prev.milestones,
-        {
-          title: '',
-          description: '',
-          amount: '',
-          dueDate: ''
-        }
-      ]
-    }));
-  };
-
-  const removeMilestone = (index: number) => {
-    if (formData.milestones.length > 1) {
-      setFormData(prev => ({
-        ...prev,
-        milestones: prev.milestones.filter((_, i) => i !== index)
-      }));
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...files]
-    }));
-  };
-
-  const removeAttachment = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index)
+      estimatedDuration: {
+        ...prev.estimatedDuration,
+        [field]: e.target.value
+      }
     }));
   };
 
@@ -189,27 +154,38 @@ export default function CreateProposalPage() {
       setError('Cover letter is required');
       return;
     }
-    if (!formData.proposedBudget.trim()) {
+    if (!formData.proposedRate.amount.trim()) {
       setError('Proposed budget is required');
       return;
     }
-    if (!formData.timeline.trim()) {
-      setError('Timeline is required');
+    if (!formData.estimatedDuration.value.trim()) {
+      setError('Estimated duration is required');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // In a real app, submit to API
-      // await proposalService.createProposal(jobId, formData);
+      // Prepare the request data
+      const requestData: CreateProposalRequest = {
+        jobId,
+        coverLetter: formData.coverLetter,
+        proposedRate: {
+          amount: parseFloat(formData.proposedRate.amount),
+          type: formData.proposedRate.type,
+          currency: formData.proposedRate.currency
+        },
+        estimatedDuration: {
+          value: parseInt(formData.estimatedDuration.value),
+          unit: formData.estimatedDuration.unit
+        }
+      };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await proposalService.createProposal(requestData);
       
       router.push('/freelancer/proposals?status=submitted');
-    } catch (err) {
-      setError('Failed to submit proposal. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit proposal. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -308,14 +284,18 @@ export default function CreateProposalPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Cover Letter
             </h3>
-            <TextArea
-              label="Tell the client why you're the best fit for this project"
-              placeholder="Describe your relevant experience, approach to the project, and why you should be hired..."
-              value={formData.coverLetter}
-              onChange={handleInputChange('coverLetter')}
-              rows={6}
-              required
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tell the client why you're the best fit for this project
+              </label>
+              <TextArea
+                placeholder="Describe your relevant experience, approach to the project, and why you should be hired..."
+                value={formData.coverLetter}
+                onChange={handleInputChange('coverLetter')}
+                rows={6}
+                required
+              />
+            </div>
             <p className="text-sm text-gray-500 mt-2">
               Tip: Be specific about your experience and include relevant examples from your portfolio.
             </p>
@@ -327,152 +307,45 @@ export default function CreateProposalPage() {
               Budget & Timeline
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Proposed Budget (USD)"
-                type="number"
-                placeholder="Enter your proposed budget"
-                value={formData.proposedBudget}
-                onChange={handleInputChange('proposedBudget')}
-                required
-                icon={DollarSign}
-              />
-              <Input
-                label="Estimated Timeline"
-                placeholder="e.g., 2-3 weeks"
-                value={formData.timeline}
-                onChange={handleInputChange('timeline')}
-                required
-                icon={Calendar}
-              />
-            </div>
-          </div>
-
-          {/* Milestones */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Project Milestones
-              </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addMilestone}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Milestone
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              {formData.milestones.map((milestone, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-900">
-                      Milestone {index + 1}
-                    </h4>
-                    {formData.milestones.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeMilestone(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Milestone Title"
-                      placeholder="e.g., Project Setup & Planning"
-                      value={milestone.title}
-                      onChange={(e) => handleMilestoneChange(index, 'title', e.target.value)}
-                    />
-                    <Input
-                      label="Amount (USD)"
-                      type="number"
-                      placeholder="0"
-                      value={milestone.amount}
-                      onChange={(e) => handleMilestoneChange(index, 'amount', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="mt-4">
-                    <TextArea
-                      label="Description"
-                      placeholder="Describe what will be delivered in this milestone..."
-                      value={milestone.description}
-                      onChange={(e) => handleMilestoneChange(index, 'description', e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div className="mt-4">
-                    <Input
-                      label="Due Date"
-                      type="date"
-                      value={milestone.dueDate}
-                      onChange={(e) => handleMilestoneChange(index, 'dueDate', e.target.value)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Attachments */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Attachments (Optional)
-            </h3>
-            
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <input
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer flex flex-col items-center"
-              >
-                <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-600">
-                  Click to upload files or drag and drop
-                </span>
-                <span className="text-xs text-gray-500 mt-1">
-                  PDF, DOC, DOCX, JPG, PNG (max 10MB each)
-                </span>
-              </label>
-            </div>
-
-            {/* Uploaded Files */}
-            {formData.attachments.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {formData.attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <FileText className="h-4 w-4 text-gray-500 mr-2" />
-                      <span className="text-sm text-gray-700">{file.name}</span>
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeAttachment(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <DollarSign className="inline h-4 w-4 mr-1" />
+                  Proposed Budget (USD)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter your proposed budget"
+                  value={formData.proposedRate.amount}
+                  onChange={handleProposedRateChange('amount')}
+                  required
+                />
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="inline h-4 w-4 mr-1" />
+                  Estimated Duration
+                </label>
+                <div className="flex space-x-2">
+                  <Input
+                    type="number"
+                    placeholder="Duration"
+                    value={formData.estimatedDuration.value}
+                    onChange={handleDurationChange('value')}
+                    required
+                    className="flex-1"
+                  />
+                  <select
+                    value={formData.estimatedDuration.unit}
+                    onChange={handleDurationChange('unit')}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                    <option value="months">Months</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Error Message */}
