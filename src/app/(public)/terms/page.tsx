@@ -1,4 +1,4 @@
-import MainLayout from '../../layouts/MainLayout';
+import MainLayout from '../../../components/layouts/MainLayout';
 
 export default function TermsPage() {
   return (

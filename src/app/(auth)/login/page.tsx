@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import AuthLayout from '../../layouts/AuthLayout';
+import AuthLayout from '../../../components/layouts/AuthLayout';
 import { Input, PasswordInput } from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Feedback';
@@ -71,11 +71,11 @@ export default function LoginPage() {
       // Get user role from Redux store and redirect to appropriate dashboard
       const user = store.getState().auth.user;
       if (user?.role === 'client') {
-        router.push('/dashboard/client');
+        router.push('/client/dashboard');
       } else if (user?.role === 'freelancer') {
-        router.push('/dashboard/freelancer');
+        router.push('/freelancer/dashboard');
       } else if (user?.role === 'admin') {
-        router.push('/dashboard/admin');
+        router.push('/admin/dashboard');
       }
 
     } catch (error: any) {

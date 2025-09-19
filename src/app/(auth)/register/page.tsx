@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import AuthLayout from '../../layouts/AuthLayout';
+import AuthLayout from '../../../components/layouts/AuthLayout';
 import { Input, PasswordInput } from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Feedback';

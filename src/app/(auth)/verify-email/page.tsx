@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import AuthLayout from '../../layouts/AuthLayout';
+import AuthLayout from '../../../components/layouts/AuthLayout';
 import Input from '../../../components/ui/Input/Input';
 import Button from '../../../components/ui/Button/Button';
 import Loader from '../../../components/ui/Feedback/Loader';
@@ -93,14 +93,14 @@ function VerifyEmailForm() {
       const user = store.getState().auth.user;
       setTimeout(() => {
         if (user?.role === 'client') {
-          router.push('/dashboard/client');
+          router.push('/client/dashboard');
         } else if (user?.role === 'freelancer') {
-          router.push('/dashboard/freelancer');
+          router.push('/freelancer/dashboard');
         } else if (user?.role === 'admin') {
-          router.push('/dashboard/admin');
+          router.push('/admin/dashboard');
         } else {
           // Fallback to generic dashboard
-          router.push('/dashboard');
+          router.push('/');
         }
       }, 2000);
 

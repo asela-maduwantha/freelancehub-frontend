@@ -64,19 +64,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         id: 'messages',
         label: 'Messages',
         icon: <MessageSquare size={20} />,
-        href: '/messages',
+        href: `/${userRole}/messages`,
       },
       {
         id: 'profile',
         label: 'Profile',
         icon: <User size={20} />,
-        href: '/profile',
+        href: userRole === 'freelancer' ? '/freelancer/profile' : '/shared/settings/profile',
       },
       {
         id: 'settings',
         label: 'Settings',
         icon: <Settings size={20} />,
-        href: '/settings',
+        href: '/shared/settings',
       }
     ];
 
@@ -87,31 +87,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           id: 'create-job',
           label: 'Post a Job',
           icon: <Plus size={20} />,
-          href: '/jobs/create',
+          href: '/client/jobs/create',
         },
         {
           id: 'jobs',
           label: 'My Jobs',
           icon: <Briefcase size={20} />,
-          href: '/jobs/my-jobs',
+          href: '/client/jobs',
         },
         {
           id: 'contracts',
           label: 'Contracts',
           icon: <FileText size={20} />,
-          href: '/contracts',
+          href: '/client/contracts',
         },
         {
           id: 'proposals',
           label: 'Proposals',
           icon: <FileText size={20} />,
-          href: '/proposals',
+          href: '/client/jobs', // Proposals are viewed within job details
         },
         {
           id: 'payments',
           label: 'Payments',
           icon: <CreditCard size={20} />,
-          href: '/payments',
+          href: '/client/payments',
         },
         ...baseItems.slice(1)
       ];
@@ -123,25 +123,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           id: 'browse-jobs',
           label: 'Browse Projects',
           icon: <Search size={20} />,
-          href: '/browse-projects',
+          href: '/freelancer/jobs',
         },
         {
           id: 'proposals',
           label: 'My Proposals',
           icon: <FileText size={20} />,
-          href: '/proposals',
+          href: '/freelancer/proposals',
         },
         {
           id: 'contracts',
           label: 'Contracts',
           icon: <FileText size={20} />,
-          href: '/contracts',
+          href: '/freelancer/contracts',
         },
         {
           id: 'earnings',
           label: 'Earnings',
           icon: <TrendingUp size={20} />,
-          href: '/payments/earnings',
+          href: '/freelancer/payments',
         },
         ...baseItems.slice(1)
       ];
@@ -176,14 +176,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             {/* Quick Actions */}
             <div className="hidden md:flex items-center space-x-2">
               {userRole === 'client' ? (
-                <Link href="/jobs/create">
+                <Link href="/client/jobs/create">
                   <Button variant="primary" size="sm">
                     <Plus size={16} className="mr-2" />
                     Post Job
                   </Button>
                 </Link>
               ) : (
-                <Link href="/browse-projects">
+                <Link href="/freelancer/jobs">
                   <Button variant="primary" size="sm">
                     <Search size={16} className="mr-2" />
                     Find Work
