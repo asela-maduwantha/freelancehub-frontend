@@ -7,7 +7,7 @@ import HeroIllustration from '../../ui/Media/Image';
 
 const HeroSection: React.FC = () => {
   return (
-    <section className="min-h-screen bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-900 relative overflow-hidden">
+    <section className="min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(to bottom right, var(--color-primary), var(--color-primary-hover), var(--color-primary-active))' }}>
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-32 h-32 border-2 border-white rounded-full animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-48 h-48 border-2 border-white rounded-full animate-pulse delay-1000"></div>
@@ -27,12 +27,12 @@ const HeroSection: React.FC = () => {
               <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight animate-slide-in-left">
                 Your Vision,
                 <br />
-                <span className="text-orange-400 animate-pulse">Our Network</span>
+                <span className="animate-pulse" style={{ color: 'var(--color-accent)' }}>Our Network</span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-emerald-100 max-w-lg mx-auto lg:mx-0 animate-fade-in-up delay-300">
+              <p className="text-lg lg:text-xl max-w-lg mx-auto lg:mx-0 animate-fade-in-up delay-300" style={{ color: 'var(--color-primary-light)' }}>
                 Connect with top-tier freelance professionals for your next big idea.
-                <span className="block mt-2 text-orange-300 font-semibold animate-pulse">Trusted by 10,000+ businesses worldwide • 4.9★ average rating</span>
+                <span className="block mt-2 font-semibold animate-pulse" style={{ color: 'var(--color-accent)' }}>Trusted by 10,000+ businesses worldwide • 4.9★ average rating</span>
               </p>
             </div>
 
@@ -53,7 +53,7 @@ const HeroSection: React.FC = () => {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="transform hover:scale-105 transition-all duration-300 hover:bg-white hover:text-emerald-800"
+                    className="transform hover:scale-105 transition-all duration-300"
                   >
                     Find Work
                   </Button>
@@ -63,7 +63,7 @@ const HeroSection: React.FC = () => {
           </div>
 
           <div className="relative animate-fade-in-right delay-700">
-            <div className="absolute -inset-4 bg-gradient-to-r from-orange-400 to-emerald-400 rounded-2xl blur-lg opacity-30 animate-pulse"></div>
+            <div className="absolute -inset-4 rounded-2xl blur-lg opacity-30 animate-pulse" style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-primary))' }}></div>
             <div className="relative">
               <HeroIllustration />
             </div>

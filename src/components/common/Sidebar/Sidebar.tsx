@@ -24,15 +24,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`bg-green-800 border-r border-green-700 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}>
+    <div className={`bg-[#2E7D32] border-r border-[#256628] transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-green-700">
+      <div className="flex items-center justify-between p-4 border-b border-[#256628]">
         {!isCollapsed && (
           <h2 className="text-lg font-semibold text-white">Menu</h2>
         )}
         <button
           onClick={onToggle}
-          className="p-1 rounded-md hover:bg-green-700 transition-colors text-white"
+          className="p-1 rounded-md bg-[#256628] hover:bg-[#1B4B1D] text-white transition-colors duration-200"
         >
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -45,10 +45,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             <li key={item.id}>
               <button
                 onClick={item.onClick}
-                className={`w-full flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
                   item.isActive
-                    ? 'bg-orange-100 text-orange-700 border-r-2 border-orange-500'
-                    : 'text-green-100 hover:bg-green-700 hover:text-white'
+                    ? 'text-white bg-[#256628] font-medium'
+                    : 'text-white hover:text-[#F5E5C6] hover:bg-[#1B4B1D]'
                 } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
               >
                 {item.icon && (

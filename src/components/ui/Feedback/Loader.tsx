@@ -15,7 +15,7 @@ const Loader: React.FC<LoaderProps> = ({ size = 'md', className = '' }) => {
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <div
-        className={`${sizeClasses[size]} border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin`}
+        className={`${sizeClasses[size]} border-4 border-[var(--color-secondary)] border-t-[var(--color-accent)] rounded-full animate-spin`}
       />
     </div>
   );

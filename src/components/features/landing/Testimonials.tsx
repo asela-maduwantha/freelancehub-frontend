@@ -9,8 +9,7 @@ const Testimonials: React.FC = () => {
       company: 'TechCorp',
       content: 'Frevo helped us find an amazing designer who completely transformed our brand identity. The quality of work and communication was outstanding.',
       rating: 5,
-      avatar: 'SJ',
-      color: 'from-blue-500 to-purple-500'
+      avatar: 'SJ'
     },
     {
       name: 'Michael Chen',
@@ -18,8 +17,7 @@ const Testimonials: React.FC = () => {
       company: 'InnovateLab',
       content: 'As a startup, we needed reliable developers quickly. Frevo delivered exactly what we needed - skilled professionals who understood our vision.',
       rating: 5,
-      avatar: 'MC',
-      color: 'from-green-500 to-teal-500'
+      avatar: 'MC'
     },
     {
       name: 'Emily Rodriguez',
@@ -27,19 +25,18 @@ const Testimonials: React.FC = () => {
       company: 'DataFlow Inc',
       content: 'The platform made it so easy to manage our freelance projects. The escrow system gave us peace of mind, and the results exceeded our expectations.',
       rating: 5,
-      avatar: 'ER',
-      color: 'from-orange-500 to-red-500'
+      avatar: 'ER'
     }
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-primary">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             What Our Users Say
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Don't just take our word for it. Here's what clients and freelancers have to say about their experience on Frevo.
           </p>
         </div>
@@ -51,35 +48,35 @@ const Testimonials: React.FC = () => {
               className="animate-fade-in-up"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <Card className="p-6 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border-0 relative overflow-hidden group">
+              <Card className="p-6 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border-0 relative overflow-hidden group card-default">
                 {/* Animated gradient border */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${testimonial.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-lg`}></div>
-                <div className={`absolute inset-0 bg-gradient-to-br ${testimonial.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-lg blur-sm`}></div>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-lg" style={{ background: 'linear-gradient(to bottom right, var(--color-primary), var(--color-accent))' }}></div>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-lg blur-sm" style={{ background: 'linear-gradient(to bottom right, var(--color-primary), var(--color-accent))' }}></div>
 
                 <div className="relative z-10">
                   <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <span
                         key={i}
-                        className="text-yellow-400 text-lg transform group-hover:scale-110 transition-transform duration-300"
-                        style={{ animationDelay: `${i * 0.1}s` }}
+                        className="text-lg transform group-hover:scale-110 transition-transform duration-300"
+                        style={{ color: 'var(--color-accent)', animationDelay: `${i * 0.1}s` }}
                       >
                         ★
                       </span>
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-6 italic leading-relaxed group-hover:text-gray-800 transition-colors">
+                  <p className="text-secondary mb-6 italic leading-relaxed group-hover:text-primary transition-colors">
                     "{testimonial.content}"
                   </p>
                   <div className="flex items-center transform group-hover:scale-105 transition-transform duration-300">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${testimonial.color} text-white rounded-full flex items-center justify-center font-semibold mr-4 shadow-lg`}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold mr-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, var(--color-primary), var(--color-accent))', color: 'var(--color-text-white)' }}>
                       {testimonial.avatar}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 group-hover:text-gray-800 transition-colors">
+                      <h4 className="font-semibold text-primary group-hover:text-primary transition-colors">
                         {testimonial.name}
                       </h4>
-                      <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">
+                      <p className="text-sm text-secondary group-hover:text-primary transition-colors">
                         {testimonial.role} at {testimonial.company}
                       </p>
                     </div>

@@ -23,7 +23,7 @@ const Header: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <div className="w-5 h-5 bg-emerald-700 rounded-sm transform rotate-45"></div>
+            <div className="w-5 h-5 bg-[#2E7D32] rounded-sm transform rotate-45"></div>
           </div>
           <span className="text-2xl font-bold text-white">Frevo</span>
         </div>
@@ -34,7 +34,7 @@ const Header: React.FC = () => {
             <a
               key={item.label}
               href={item.href}
-              className="text-white hover:text-orange-200 transition-colors duration-200 font-medium"
+              className="text-white hover:text-[#F5E5C6] transition-colors duration-200 font-medium"
             >
               {item.label}
             </a>
@@ -44,7 +44,7 @@ const Header: React.FC = () => {
         {/* Desktop CTA */}
         <div className="hidden lg:flex items-center space-x-4">
           <Link href="/login">
-            <Button variant="outline" size="md">
+            <Button variant="secondary" size="md">
               Login
             </Button>
           </Link>
@@ -57,7 +57,7 @@ const Header: React.FC = () => {
 
         {/* Mobile menu button */}
         <button
-          className="lg:hidden text-white hover:text-orange-200 transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+          className="lg:hidden text-white hover:text-[#F5E5C6] transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E5C6]/50"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-menu"
@@ -69,7 +69,7 @@ const Header: React.FC = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div
-            className="absolute top-full left-0 right-0 bg-emerald-800 lg:hidden shadow-xl"
+            className="absolute top-full left-0 right-0 bg-[#2E7D32] lg:hidden shadow-xl"
             id="mobile-menu"
             role="menu"
             aria-label="Mobile navigation menu"
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="block text-white hover:text-orange-200 transition-colors duration-200 font-medium py-2"
+                  className="block text-white hover:text-[#F5E5C6] transition-colors duration-200 font-medium py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
@@ -88,7 +88,7 @@ const Header: React.FC = () => {
         {/* Mobile CTA */}
         <div className="lg:hidden flex flex-col space-y-3 pt-4">
           <Link href="/login" className="w-full">
-            <Button variant="outline" size="md" className="w-full">
+            <Button variant="secondary" size="md" className="w-full">
               Login
             </Button>
           </Link>

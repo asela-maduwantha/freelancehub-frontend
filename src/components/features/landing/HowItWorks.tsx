@@ -25,13 +25,13 @@ const HowItWorks: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-secondary">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             How It Works
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Getting started is simple. Follow these four easy steps to find and hire top freelance talent.
           </p>
         </div>
@@ -40,17 +40,17 @@ const HowItWorks: React.FC = () => {
           {steps.map((step, index) => (
             <div key={index} className="text-center">
               <div className="relative">
-                <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-text-white)' }}>
                   {step.step}
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-emerald-200 transform -translate-x-8"></div>
+                  <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 transform -translate-x-8" style={{ backgroundColor: 'var(--color-primary-light)' }}></div>
                 )}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              <h3 className="text-xl font-semibold text-primary mb-3">
                 {step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-secondary">
                 {step.description}
               </p>
             </div>

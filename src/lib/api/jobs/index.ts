@@ -93,22 +93,12 @@ export interface JobListResponse {
 }
 
 export interface JobFilters {
+  status?: 'draft' | 'open' | 'in-progress' | 'completed' | 'cancelled';
   category?: string;
-  subcategory?: string;
-  skills?: string[];
-  budget?: {
-    min?: number;
-    max?: number;
-  };
-  experienceLevel?: 'beginner' | 'intermediate' | 'expert';
-  location?: 'remote' | 'onsite' | 'hybrid';
-  status?: string;
+  clientId?: string;
   search?: string;
-  sortBy?: 'postedAt' | 'budget' | 'deadline';
-  sortOrder?: 'asc' | 'desc';
 }
 
-// Job API service class
 class JobService {
   // Create a new job
   async createJob(data: CreateJobRequest): Promise<JobResponse> {
@@ -138,16 +128,10 @@ class JobService {
       params.append('limit', limit.toString());
 
       if (filters) {
-        if (filters.category) params.append('category', filters.category);
-        if (filters.subcategory) params.append('subcategory', filters.subcategory);
-        if (filters.skills) filters.skills.forEach(skill => params.append('skills', skill));
-        if (filters.budget?.min) params.append('budgetMin', filters.budget.min.toString());
-        if (filters.budget?.max) params.append('budgetMax', filters.budget.max.toString());
-        if (filters.experienceLevel) params.append('experienceLevel', filters.experienceLevel);
-        if (filters.location) params.append('location', filters.location);
         if (filters.status) params.append('status', filters.status);
-        if (filters.sortBy) params.append('sortBy', filters.sortBy);
-        if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.clientId) params.append('clientId', filters.clientId);
+        if (filters.search) params.append('search', filters.search);
       }
 
       const response = await apiClient.get(`${API_ENDPOINTS.JOBS.LIST}?${params}`);

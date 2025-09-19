@@ -19,7 +19,7 @@ const TextArea: React.FC<TextAreaProps> = ({
   required = false,
   rows = 4
 }) => {
-  const baseStyles = 'w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-all duration-200 resize-vertical';
+  const baseStyles = 'input-default w-full px-4 py-3 rounded-lg transition-all duration-200 resize-vertical focus:outline-none disabled:cursor-not-allowed';
 
   return (
     <textarea
@@ -29,7 +29,7 @@ const TextArea: React.FC<TextAreaProps> = ({
       disabled={disabled}
       required={required}
       rows={rows}
-      className={`${baseStyles} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`${baseStyles} ${className}`}
     />
   );
 };

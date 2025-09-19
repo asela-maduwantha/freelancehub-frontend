@@ -149,27 +149,27 @@ function VerifyEmailForm() {
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="mx-auto h-20 w-20 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+            <div className="mx-auto h-20 w-20 rounded-full flex items-center justify-center mb-6 shadow-lg" style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-accent-hover))' }}>
               <Mail className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-3xl font-bold text-primary mb-2">
               Verify Your Email
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-secondary mb-4">
               We've sent a 6-digit verification code to:
             </p>
-            <div className="bg-gray-50 rounded-lg p-4 border">
-              <p className="font-medium text-gray-900">{email}</p>
+            <div className="bg-secondary rounded-lg p-4 border border-light">
+              <p className="font-medium text-primary">{email}</p>
             </div>
           </div>
 
           {/* Security Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="alert-info mb-6">
             <div className="flex items-start space-x-3">
-              <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+              <Shield className="h-5 w-5 mt-0.5" style={{ color: 'var(--color-info)' }} />
               <div>
-                <h3 className="text-sm font-medium text-blue-900">Secure Verification</h3>
-                <p className="text-xs text-blue-700 mt-1">
+                <h3 className="text-sm font-medium" style={{ color: '#1E40AF' }}>Secure Verification</h3>
+                <p className="text-xs mt-1" style={{ color: '#1E40AF', opacity: 0.8 }}>
                   Your verification code is valid for 10 minutes and can only be used once.
                 </p>
               </div>
@@ -180,7 +180,7 @@ function VerifyEmailForm() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* OTP Input */}
             <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-3">
+              <label htmlFor="otp" className="block text-sm font-medium text-primary mb-3">
                 Enter Verification Code
               </label>
               <div className="relative">
@@ -193,15 +193,15 @@ function VerifyEmailForm() {
                   onChange={handleInputChange('otp')}
                   required
                   disabled={isLoading}
-                  className="text-center text-2xl tracking-[0.5em] h-14 font-mono bg-gray-50 border-2 focus:border-orange-500 focus:bg-white"
+                  className="text-center text-2xl tracking-[0.5em] h-14 font-mono bg-secondary border-2 focus:bg-primary"
                 />
                 {formData.otp.length === 6 && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-5 w-5" style={{ color: 'var(--color-success)' }} />
                   </div>
                 )}
               </div>
-              <p className="mt-2 text-xs text-gray-500 text-center">
+              <p className="mt-2 text-xs text-muted text-center">
                 Enter the 6-digit code sent to your email
               </p>
             </div>
@@ -252,11 +252,11 @@ function VerifyEmailForm() {
                 type="button"
                 onClick={handleResendVerification}
                 disabled={isResending || resendCooldown > 0}
-                className="inline-flex items-center text-sm font-medium text-orange-600 hover:text-orange-500 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center text-sm font-medium disabled:text-muted disabled:cursor-not-allowed transition-colors link-default"
               >
                 {isResending ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <div className="w-4 h-4 border-2 rounded-full animate-spin mr-2" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}></div>
                     Sending...
                   </>
                 ) : resendCooldown > 0 ? (
@@ -277,7 +277,7 @@ function VerifyEmailForm() {
             <div className="text-center">
               <Link
                 href="/register"
-                className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="inline-flex items-center text-sm font-medium text-secondary hover:text-primary transition-colors"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Wrong email? Go back to register
@@ -287,14 +287,14 @@ function VerifyEmailForm() {
 
           {/* Help Section */}
           <div className="mt-8 text-center">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Need Help?</h3>
-              <p className="text-xs text-gray-600 mb-3">
+            <div className="bg-secondary rounded-lg p-4">
+              <h3 className="text-sm font-medium text-primary mb-2">Need Help?</h3>
+              <p className="text-xs text-secondary mb-3">
                 Check your spam folder or contact our support team.
               </p>
               <Link
                 href="/contact"
-                className="text-xs text-orange-600 hover:text-orange-500 font-medium"
+                className="text-xs link-default font-medium"
               >
                 Contact Support →
               </Link>
@@ -310,13 +310,13 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
       <AuthLayout>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50">
+        <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, var(--color-info), var(--color-bg-primary), var(--color-accent))' }}>
           <div className="flex flex-col items-center space-y-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-accent-hover))' }}>
               <Mail className="h-8 w-8 text-white" />
             </div>
-            <Loader size="lg" />
-            <p className="text-gray-600">Loading verification page...</p>
+            <div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}></div>
+            <p className="text-secondary">Loading verification page...</p>
           </div>
         </div>
       </AuthLayout>

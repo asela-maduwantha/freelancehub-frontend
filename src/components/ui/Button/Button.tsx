@@ -2,7 +2,7 @@ import React from 'react';
 
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'accent' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
   className?: string;
@@ -19,18 +19,19 @@ const Button: React.FC<ButtonProps> = ({
   type = 'button',
   disabled = false
 }) => {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 hover:transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
+  const baseStyles = 'font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed';
 
   const variants = {
-    primary: 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl',
-    secondary: 'bg-orange-400 hover:bg-orange-500 text-white shadow-lg hover:shadow-xl',
-    outline: 'border-2 border-white text-white hover:bg-white hover:text-emerald-800'
+    primary: 'btn-primary focus:ring-[var(--color-primary)]/50',
+    secondary: 'btn-secondary focus:ring-[var(--color-primary)]/50',
+    accent: 'btn-accent focus:ring-[var(--color-accent)]/50',
+    outline: 'border-2 border-[var(--color-text-white)] text-[var(--color-text-white)] hover:bg-[var(--color-text-white)] hover:text-[var(--color-primary)] disabled:border-[var(--color-disabled-bg)] disabled:text-[var(--color-disabled-bg)] focus:ring-[var(--color-text-white)]/50'
   };
 
   const sizes = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg'
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-6 py-2.5 text-base',
+    lg: 'px-8 py-3 text-lg'
   };
 
   return (

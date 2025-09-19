@@ -22,7 +22,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
-  const baseStyles = 'w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-all duration-200 pr-12';
+  const baseStyles = 'input-default w-full px-4 py-3 rounded-lg transition-all duration-200 pr-12 focus:outline-none disabled:cursor-not-allowed';
 
   return (
     <div className="relative">
@@ -34,12 +34,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         onChange={onChange}
         disabled={disabled}
         required={required}
-        className={`${baseStyles} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`${baseStyles} ${className}`}
       />
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-secondary)] hover:text-[var(--color-text-body)] focus:outline-none disabled:text-[var(--color-text-secondary)]"
         disabled={disabled}
       >
         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

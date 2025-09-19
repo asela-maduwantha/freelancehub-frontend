@@ -151,14 +151,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const sidebarItems = getSidebarItems();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F5F5]">
       {/* Top Navigation Bar */}
-      <header className="bg-green-800 border-b border-green-700 px-6 py-4">
+      <header className="bg-[#2E7D32] border-b border-[#256628] px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and role indicator */}
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#256628] rounded-lg flex items-center justify-center">
                 <div className="w-5 h-5 bg-white rounded-sm transform rotate-45"></div>
               </div>
               <span className="text-xl font-bold text-white">Frevo</span>

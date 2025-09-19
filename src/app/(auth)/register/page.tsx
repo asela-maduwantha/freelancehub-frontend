@@ -119,37 +119,37 @@ export default function RegisterPage() {
         <div className="mb-8 text-center">
           <div className="flex justify-center space-x-6 mb-4">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
-                <Shield className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'var(--color-accent-light)' }}>
+                <Shield className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
               </div>
-              <span className="text-xs text-gray-600">Secure</span>
+              <span className="text-xs text-secondary">Secure</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'var(--color-info)', opacity: 0.1 }}>
+                <Users className="w-6 h-6" style={{ color: 'var(--color-info)' }} />
               </div>
-              <span className="text-xs text-gray-600">Community</span>
+              <span className="text-xs text-secondary">Community</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                <Star className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'var(--color-success)', opacity: 0.1 }}>
+                <Star className="w-6 h-6" style={{ color: 'var(--color-success)' }} />
               </div>
-              <span className="text-xs text-gray-600">Trusted</span>
+              <span className="text-xs text-secondary">Trusted</span>
             </div>
           </div>
         </div>
 
         {/* Role Selection */}
         <div className="mb-8">
-          <div className="bg-gray-50 rounded-xl p-1">
+          <div className="bg-secondary rounded-xl p-1">
             <div className="grid grid-cols-2 gap-1">
               <button
                 type="button"
                 onClick={() => handleRoleChange('freelancer')}
                 className={`py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
                   formData.role === 'freelancer'
-                    ? 'bg-white text-orange-600 shadow-sm border border-orange-200'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-primary text-accent shadow-sm border border-accent'
+                    : 'text-secondary hover:text-primary'
                 }`}
                 disabled={isLoading}
               >
@@ -163,8 +163,8 @@ export default function RegisterPage() {
                 onClick={() => handleRoleChange('client')}
                 className={`py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
                   formData.role === 'client'
-                    ? 'bg-white text-orange-600 shadow-sm border border-orange-200'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-primary text-accent shadow-sm border border-accent'
+                    : 'text-secondary hover:text-primary'
                 }`}
                 disabled={isLoading}
               >
@@ -175,7 +175,7 @@ export default function RegisterPage() {
               </button>
             </div>
           </div>
-          <p className="mt-3 text-xs text-center text-gray-500">
+          <p className="mt-3 text-xs text-center text-muted">
             Choose your role to get started
           </p>
         </div>
@@ -198,7 +198,7 @@ export default function RegisterPage() {
           {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="firstName" className="block text-sm font-medium text-primary mb-2">
                 First Name
               </label>
               <Input
@@ -214,7 +214,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="lastName" className="block text-sm font-medium text-primary mb-2">
                 Last Name
               </label>
               <Input
@@ -233,7 +233,7 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
               Email Address
             </label>
             <Input
@@ -251,8 +251,8 @@ export default function RegisterPage() {
 
           {/* Phone (Optional) */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
+            <label htmlFor="phone" className="block text-sm font-medium text-primary mb-2">
+              Phone Number <span className="text-muted text-xs">(Optional)</span>
             </label>
             <Input
               id="phone"
@@ -268,7 +268,7 @@ export default function RegisterPage() {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-primary mb-2">
               Password
             </label>
             <PasswordInput
@@ -280,7 +280,7 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="h-11"
             />
-            <div className="mt-2 text-xs text-gray-500 space-y-1">
+            <div className="mt-2 text-xs text-muted space-y-1">
               <p>Password must contain:</p>
               <ul className="list-disc list-inside ml-2 space-y-0.5">
                 <li>At least 8 characters</li>
@@ -294,7 +294,7 @@ export default function RegisterPage() {
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary mb-2">
               Confirm Password
             </label>
             <PasswordInput
@@ -316,18 +316,22 @@ export default function RegisterPage() {
               type="checkbox"
               checked={formData.termsAccepted}
               onChange={handleInputChange('termsAccepted')}
-              className="mt-1 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+              className="mt-1 h-4 w-4 focus:ring-primary border-default rounded"
+              style={{ 
+                color: 'var(--color-accent)',
+                '--tw-ring-color': 'var(--color-primary)'
+              } as React.CSSProperties}
               disabled={isLoading}
               required
             />
             <div className="text-sm">
-              <label htmlFor="terms" className="text-gray-700">
+              <label htmlFor="terms" className="text-primary">
                 I agree to the{' '}
-                <Link href="/terms" className="text-orange-600 hover:text-orange-500 font-medium underline">
+                <Link href="/terms" className="link-default font-medium">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-orange-600 hover:text-orange-500 font-medium underline">
+                <Link href="/privacy" className="link-default font-medium">
                   Privacy Policy
                 </Link>
               </label>
@@ -359,9 +363,9 @@ export default function RegisterPage() {
 
         {/* Sign In Link */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-secondary">
             Already have an account?{' '}
-            <Link href="/login" className="font-semibold text-orange-600 hover:text-orange-500 transition-colors">
+            <Link href="/login" className="font-semibold link-default">
               Sign in here
             </Link>
           </p>

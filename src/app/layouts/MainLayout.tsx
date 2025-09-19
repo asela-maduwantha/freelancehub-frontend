@@ -12,7 +12,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children, showSidebar = true }: MainLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F5F5]">
       <Header />
       <div className="flex">
         {showSidebar && <Sidebar items={[]} />}

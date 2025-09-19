@@ -35,34 +35,34 @@ const FAQ: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-primary">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-secondary">
             Got questions? We've got answers. If you don't see what you're looking for, feel free to contact our support team.
           </p>
         </div>
 
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg">
+            <div key={index} className="border rounded-lg" style={{ borderColor: 'var(--color-border-light)' }}>
               <button
-                className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
+                className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-secondary focus:bg-secondary"
                 onClick={() => toggleFAQ(index)}
               >
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="text-lg font-semibold text-primary">
                   {faq.question}
                 </span>
-                <span className="text-2xl text-gray-500">
+                <span className="text-2xl text-muted">
                   {openIndex === index ? '−' : '+'}
                 </span>
               </button>
               {openIndex === index && (
                 <div className="px-6 pb-4">
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-secondary leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

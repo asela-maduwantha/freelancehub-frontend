@@ -22,6 +22,14 @@ import {
   Eye
 } from 'lucide-react';
 
+const JOB_STATUSES = [
+  { value: 'open', label: 'Open' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'draft', label: 'Draft' }
+];
+
 const JOB_CATEGORIES = [
   'Web Development',
   'Mobile Development',
@@ -35,18 +43,14 @@ const JOB_CATEGORIES = [
   'Other'
 ];
 
-const EXPERIENCE_LEVELS = [
-  { value: 'beginner', label: 'Beginner (0-2 years)' },
-  { value: 'intermediate', label: 'Intermediate (2-5 years)' },
-  { value: 'expert', label: 'Expert (5+ years)' }
-];
-
 const BrowseProjectsPage: React.FC = () => {
   const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<JobFilters>({});
+  const [filters, setFilters] = useState<JobFilters>({
+    status: 'open' // Default to open jobs for freelancers
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -58,12 +62,12 @@ const BrowseProjectsPage: React.FC = () => {
       setError(null);
       
       const queryFilters: JobFilters = {
-        ...activeFilters,
-        status: 'open' // Only show open jobs for freelancers
+        ...activeFilters
       };
 
       const response = await jobService.getJobs(queryFilters, page, 12);
       setJobs(response.jobs);
+      console.log(response);
       setTotalPages(response.totalPages);
       setTotal(response.total);
       setCurrentPage(page);
@@ -90,9 +94,11 @@ const BrowseProjectsPage: React.FC = () => {
   };
 
   const handleFilterChange = (key: keyof JobFilters, value: any) => {
-    const newFilters = { ...filters, [key]: value };
-    if (!value || value === '') {
+    const newFilters = { ...filters };
+    if (value === '' || value === null || value === undefined) {
       delete newFilters[key];
+    } else {
+      (newFilters as any)[key] = value;
     }
     setFilters(newFilters);
     fetchJobs(1, searchTerm, newFilters);
@@ -192,6 +198,22 @@ const BrowseProjectsPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={filters.status || ''}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      >
+                        <option value="">All Statuses</option>
+                        {JOB_STATUSES.map(status => (
+                          <option key={status.value} value={status.value}>{status.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Category
                       </label>
                       <select
@@ -208,34 +230,15 @@ const BrowseProjectsPage: React.FC = () => {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Experience Level
+                        Client ID (Optional)
                       </label>
-                      <select
-                        value={filters.experienceLevel || ''}
-                        onChange={(e) => handleFilterChange('experienceLevel', e.target.value)}
+                      <input
+                        type="text"
+                        placeholder="Filter by client ID"
+                        value={filters.clientId || ''}
+                        onChange={(e) => handleFilterChange('clientId', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      >
-                        <option value="">All Levels</option>
-                        {EXPERIENCE_LEVELS.map(level => (
-                          <option key={level.value} value={level.value}>{level.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Location
-                      </label>
-                      <select
-                        value={filters.location || ''}
-                        onChange={(e) => handleFilterChange('location', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      >
-                        <option value="">All Locations</option>
-                        <option value="remote">Remote</option>
-                        <option value="onsite">On-site</option>
-                        <option value="hybrid">Hybrid</option>
-                      </select>
+                      />
                     </div>
                   </div>
                 </div>

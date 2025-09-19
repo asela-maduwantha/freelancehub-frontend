@@ -3,15 +3,30 @@ import React from 'react';
 interface CardProps {
   children: React.ReactNode;
   className?: string;
+  variant?: 'default' | 'elevated' | 'flat' | 'interactive';
   onClick?: () => void;
 }
 
-const Card: React.FC<CardProps> = ({ children, className = '', onClick }) => {
-  const baseStyles = 'bg-white rounded-lg shadow-lg border border-gray-200 transition-all duration-200 hover:shadow-xl';
+const Card: React.FC<CardProps> = ({
+  children,
+  className = '',
+  variant = 'default',
+  onClick
+}) => {
+  const variantClasses = {
+    default: 'card-default',
+    elevated: 'card-elevated',
+    flat: 'card-flat',
+    interactive: 'card-interactive'
+  };
+
+  const cardClass = variant === 'interactive' && onClick
+    ? variantClasses.interactive
+    : variantClasses[variant];
 
   return (
     <div
-      className={`${baseStyles} ${className} ${onClick ? 'cursor-pointer hover:transform hover:scale-[1.02]' : ''}`}
+      className={`${cardClass} ${className} ${onClick && variant !== 'interactive' ? 'cursor-pointer hover:transform hover:scale-[1.01]' : ''}`}
       onClick={onClick}
     >
       {children}

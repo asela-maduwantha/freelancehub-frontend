@@ -95,22 +95,22 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <div className="flex justify-center space-x-6 mb-4">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
-                <Shield className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'var(--color-primary-light)' }}>
+                <Shield className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
               </div>
-              <span className="text-xs text-gray-600">Secure</span>
+              <span className="text-xs text-secondary">Secure</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'var(--color-info)', opacity: 0.1 }}>
+                <Users className="w-6 h-6" style={{ color: 'var(--color-info)' }} />
               </div>
-              <span className="text-xs text-gray-600">Community</span>
+              <span className="text-xs text-secondary">Community</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
-                <Star className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: 'var(--color-accent-light)' }}>
+                <Star className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
               </div>
-              <span className="text-xs text-gray-600">Trusted</span>
+              <span className="text-xs text-secondary">Trusted</span>
             </div>
           </div>
         </div>
@@ -125,12 +125,12 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-5 w-5 text-placeholder" />
               </div>
               <Input
                 id="email"
@@ -148,12 +148,12 @@ export default function LoginPage() {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-primary mb-2">
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5 text-placeholder" />
               </div>
               <PasswordInput
                 id="password"
@@ -171,9 +171,9 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <EyeOff className="h-5 w-5 text-placeholder hover:text-secondary" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <Eye className="h-5 w-5 text-placeholder hover:text-secondary" />
                 )}
               </button>
             </div>
@@ -188,10 +188,14 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={formData.rememberMe}
                 onChange={handleInputChange('rememberMe')}
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                className="h-4 w-4 focus:ring-primary border-default rounded"
+                style={{ 
+                  color: 'var(--color-accent)',
+                  '--tw-ring-color': 'var(--color-primary)'
+                } as React.CSSProperties}
                 disabled={isLoading}
               />
-              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-primary">
                 Remember me
               </label>
             </div>
@@ -199,7 +203,7 @@ export default function LoginPage() {
             <div className="text-sm">
               <Link
                 href="/forgot-password"
-                className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
+                className="font-medium link-default"
               >
                 Forgot password?
               </Link>
@@ -232,10 +236,10 @@ export default function LoginPage() {
         <div className="mt-8 mb-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-default" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">New to our platform?</span>
+              <span className="px-2 bg-primary text-secondary">New to our platform?</span>
             </div>
           </div>
         </div>
@@ -246,7 +250,7 @@ export default function LoginPage() {
             <Button
               variant="outline"
               size="lg"
-              className="w-full h-12 text-orange-500 font-semibold border-2 bg-orange-50 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
+              className="w-full h-12 font-semibold"
             >
               <div className="flex items-center justify-center space-x-2">
                 <Users className="w-5 h-5" />
@@ -258,12 +262,12 @@ export default function LoginPage() {
 
         {/* Additional Info */}
         <div className="mt-6 text-center">
-          <div className="bg-gradient-to-r from-emerald-50 to-orange-50 rounded-lg p-4 border border-emerald-100">
+          <div className="alert-success">
             <div className="flex items-center justify-center space-x-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-800">Secure & Trusted</span>
+              <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-primary-active)' }}>Secure & Trusted</span>
             </div>
-            <p className="text-xs text-emerald-700">
+            <p className="text-xs" style={{ color: 'var(--color-primary-active)' }}>
               Your data is protected with enterprise-grade security. Join thousands of professionals already using our platform.
             </p>
           </div>

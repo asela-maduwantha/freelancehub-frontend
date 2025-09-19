@@ -7,7 +7,7 @@ interface CardBodyProps {
 
 const CardBody: React.FC<CardBodyProps> = ({ children, className = '' }) => {
   return (
-    <div className={`px-6 py-4 ${className}`}>
+    <div className={`card-body ${className}`}>
       {children}
     </div>
   );
