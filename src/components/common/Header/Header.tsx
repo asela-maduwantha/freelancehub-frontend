@@ -18,14 +18,14 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header className="relative z-50" role="banner">
+    <header className="relative z-50 nav-emerald" role="banner">
       <nav className="flex items-center justify-between p-6 lg:px-8" role="navigation" aria-label="Main navigation">
         {/* Logo */}
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <div className="w-5 h-5 bg-[#2E7D32] rounded-sm transform rotate-45"></div>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-5 h-5 bg-text-white rounded-sm transform rotate-45"></div>
           </div>
-          <span className="text-2xl font-bold text-white">Frevo</span>
+          <span className="text-2xl font-bold text-text-white">Frevo</span>
         </div>
 
         {/* Desktop Navigation */}
@@ -34,7 +34,7 @@ const Header: React.FC = () => {
             <a
               key={item.label}
               href={item.href}
-              className="text-white hover:text-[#F5E5C6] transition-colors duration-200 font-medium"
+              className="nav-link text-text-white hover:text-accent"
             >
               {item.label}
             </a>
@@ -57,7 +57,7 @@ const Header: React.FC = () => {
 
         {/* Mobile menu button */}
         <button
-          className="lg:hidden text-white hover:text-[#F5E5C6] transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E5C6]/50"
+          className="lg:hidden text-text-white hover:text-accent transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-menu"
@@ -69,7 +69,7 @@ const Header: React.FC = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div
-            className="absolute top-full left-0 right-0 bg-[#2E7D32] lg:hidden shadow-xl"
+            className="absolute top-full left-0 right-0 bg-primary lg:hidden shadow-lg"
             id="mobile-menu"
             role="menu"
             aria-label="Mobile navigation menu"
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="block text-white hover:text-[#F5E5C6] transition-colors duration-200 font-medium py-2"
+                  className="block text-text-white hover:text-accent transition-colors duration-200 font-medium py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}

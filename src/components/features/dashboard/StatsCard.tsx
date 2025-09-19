@@ -12,13 +12,13 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, changeType 
   const isPositive = changeType === 'increase';
 
   return (
-    <div className="bg-green-50 rounded-lg shadow-sm p-6 border border-green-200">
+    <div className="card-emerald p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-secondary">{title}</p>
+          <p className="text-2xl font-bold text-primary">{value}</p>
         </div>
-        <div className={`flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`flex items-center ${isPositive ? 'text-emerald' : 'text-error'}`}>
           {isPositive ? (
             <TrendingUp className="h-4 w-4" />
           ) : (

@@ -19,8 +19,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 }) => {
   const baseStyles = 'flex items-center w-full px-3 py-2 rounded-md transition-colors text-sm font-medium';
   const activeStyles = isActive
-    ? 'bg-orange-100 text-orange-700 border-r-2 border-orange-500'
-    : 'text-gray-700 hover:bg-gray-100';
+    ? 'bg-primary-lighter text-primary border-r-2 border-primary'
+    : 'text-secondary hover:bg-primary-lighter hover:text-primary';
 
   const content = (
     <>

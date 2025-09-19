@@ -34,6 +34,7 @@ export const API_ENDPOINTS = {
 
   PROPOSALS: {
     LIST: '/proposals',
+    MY_PROPOSALS: '/proposals/my',
     CREATE: '/proposals',
     DETAIL: (id: string) => `/proposals/${id}`,
     UPDATE: (id: string) => `/proposals/${id}`,

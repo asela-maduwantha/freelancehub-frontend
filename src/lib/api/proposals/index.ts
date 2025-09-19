@@ -32,7 +32,7 @@ export interface CreateProposalRequest {
   jobId: string;
   coverLetter: string;
   proposedRate: ProposedRate;
-  estimatedDuration?: EstimatedDuration;
+  estimatedDuration: EstimatedDuration;
   proposedMilestones?: ProposalMilestone[];
   attachments?: ProposalAttachment[];
 }
@@ -105,6 +105,25 @@ class ProposalService {
       return response;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch proposals');
+    }
+  }
+
+  // Get user's own proposals
+  async getMyProposals(filters?: ProposalFilters): Promise<ProposalListResponse> {
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters) {
+        if (filters.page) params.append('page', filters.page.toString());
+        if (filters.limit) params.append('limit', filters.limit.toString());
+        if (filters.status) params.append('status', filters.status);
+        if (filters.jobId) params.append('jobId', filters.jobId);
+      }
+
+      const response = await apiClient.get(`${API_ENDPOINTS.PROPOSALS.MY_PROPOSALS}?${params}`);
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch your proposals');
     }
   }
 

@@ -151,21 +151,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const sidebarItems = getSidebarItems();
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
+    <div className="min-h-screen bg-secondary">
       {/* Top Navigation Bar */}
-      <header className="bg-[#2E7D32] border-b border-[#256628] px-6 py-4">
+      <header className="nav-emerald border-b border-emerald px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and role indicator */}
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-[#256628] rounded-lg flex items-center justify-center">
-                <div className="w-5 h-5 bg-white rounded-sm transform rotate-45"></div>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <div className="w-5 h-5 bg-text-white rounded-sm transform rotate-45"></div>
               </div>
-              <span className="text-xl font-bold text-white">Frevo</span>
+              <span className="text-xl font-bold text-text-white">Frevo</span>
             </Link>
             <div className="hidden md:flex items-center space-x-2">
-              <span className="text-sm text-green-200">|</span>
-              <span className="text-sm font-medium text-green-100 capitalize">
+              <span className="text-sm text-secondary">|</span>
+              <span className="text-sm font-medium text-secondary capitalize">
                 {userRole} Dashboard
               </span>
             </div>
@@ -193,7 +193,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
 
             {/* Notifications */}
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+            <button className="p-2 text-muted hover:text-primary rounded-lg hover:bg-primary-lighter">
               <Bell size={20} />
             </button>
 
@@ -207,22 +207,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+                  <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                    <span className="text-text-white text-sm font-medium">
                       {userName.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-white">{userName}</p>
-                  <p className="text-xs text-green-200 capitalize">{userRole}</p>
+                  <p className="text-sm font-medium text-text-white">{userName}</p>
+                  <p className="text-xs text-secondary capitalize">{userRole}</p>
                 </div>
               </div>
 
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="p-2 text-green-200 hover:text-white rounded-lg hover:bg-green-700"
+                className="p-2 text-secondary hover:text-text-white rounded-lg hover:bg-primary-hover"
                 title="Logout"
               >
                 <LogOut size={20} />
