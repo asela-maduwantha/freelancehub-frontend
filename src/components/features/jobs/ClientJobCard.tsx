@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { JobResponse } from '../../../lib/api/jobs';
 import { Card, CardHeader, CardBody, CardFooter } from '../../ui/Card';
 import Button from '../../ui/Button';
@@ -6,15 +7,14 @@ import { Badge } from '../../ui/Display';
 
 interface ClientJobCardProps {
   job: JobResponse;
-  onViewProposals?: (jobId: string) => void;
   isLoading?: boolean;
 }
 
 const ClientJobCard: React.FC<ClientJobCardProps> = ({ 
   job, 
-  onViewProposals, 
   isLoading = false 
 }) => {
+  const router = useRouter();
   const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -194,7 +194,7 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
             <Button
               variant="primary"
               size="sm"
-              onClick={() => onViewProposals?.(job.id)}
+              onClick={() => router.push(`/client/jobs/${job.id}/proposals`)}
               disabled={isLoading}
               className="ml-4"
             >

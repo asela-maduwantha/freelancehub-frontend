@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { JobResponse, JobListResponse, jobService } from '../../../../lib/api/jobs';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import ClientJobCard from '../../../../components/features/jobs/ClientJobCard';
-import ProposalsModal from '../../../../components/features/jobs/ProposalsModal';
 import { Spinner } from '../../../../components/ui/Feedback';
 import Button from '../../../../components/ui/Button';
 
@@ -15,11 +14,6 @@ export default function ClientJobsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  
-  // Proposals modal state
-  const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState<string>('');
-  const [selectedJobTitle, setSelectedJobTitle] = useState<string>('');
 
   const fetchJobs = async () => {
     setIsLoading(true);
@@ -41,14 +35,7 @@ export default function ClientJobsPage() {
     fetchJobs();
   }, [page]);
 
-  const handleViewProposals = (jobId: string) => {
-    const job = jobs.find(j => j.id === jobId);
-    if (job) {
-      setSelectedJobId(jobId);
-      setSelectedJobTitle(job.title);
-      setIsProposalsModalOpen(true);
-    }
-  };
+
 
   const handleRefresh = () => {
     setPage(1);
@@ -161,7 +148,6 @@ export default function ClientJobsPage() {
                 <ClientJobCard
                   key={job.id}
                   job={job}
-                  onViewProposals={handleViewProposals}
                   isLoading={isLoading}
                 />
               ))}
@@ -197,13 +183,7 @@ export default function ClientJobsPage() {
           </>
         )}
 
-        {/* Proposals Modal */}
-        <ProposalsModal
-          isOpen={isProposalsModalOpen}
-          onClose={() => setIsProposalsModalOpen(false)}
-          jobId={selectedJobId}
-          jobTitle={selectedJobTitle}
-        />
+
       </div>
     </DashboardLayout>
   );
