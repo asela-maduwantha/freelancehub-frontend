@@ -36,10 +36,13 @@ export const API_ENDPOINTS = {
   PROPOSALS: {
     LIST: '/proposals',
     MY_PROPOSALS: '/proposals/my',
+    BY_JOB: (jobId: string) => `/proposals/job/${jobId}`,
     CREATE: '/proposals',
     DETAIL: (id: string) => `/proposals/${id}`,
     UPDATE: (id: string) => `/proposals/${id}`,
     WITHDRAW: (id: string) => `/proposals/${id}/withdraw`,
+    ACCEPT: (id: string) => `/proposals/${id}/accept`,
+    REJECT: (id: string) => `/proposals/${id}/reject`,
   },
 
   CONTRACTS: {

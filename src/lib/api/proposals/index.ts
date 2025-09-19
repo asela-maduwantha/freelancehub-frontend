@@ -127,6 +127,20 @@ class ProposalService {
     }
   }
 
+  // Get proposals for a specific job
+  async getProposalsByJob(jobId: string, page = 1, limit = 10): Promise<ProposalListResponse> {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+
+      const response = await apiClient.get(`${API_ENDPOINTS.PROPOSALS.BY_JOB(jobId)}?${params}`);
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch job proposals');
+    }
+  }
+
   // Update proposal
   async updateProposal(id: string, data: Partial<CreateProposalRequest>): Promise<ProposalResponse> {
     try {
@@ -143,6 +157,26 @@ class ProposalService {
       await apiClient.post(API_ENDPOINTS.PROPOSALS.WITHDRAW(id));
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to withdraw proposal');
+    }
+  }
+
+  // Accept proposal (for clients)
+  async acceptProposal(id: string): Promise<ProposalResponse> {
+    try {
+      const response = await apiClient.put(API_ENDPOINTS.PROPOSALS.ACCEPT(id));
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to accept proposal');
+    }
+  }
+
+  // Reject proposal (for clients)
+  async rejectProposal(id: string): Promise<ProposalResponse> {
+    try {
+      const response = await apiClient.put(API_ENDPOINTS.PROPOSALS.REJECT(id));
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to reject proposal');
     }
   }
 }
