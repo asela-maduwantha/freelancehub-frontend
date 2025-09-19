@@ -141,6 +141,26 @@ class JobService {
     }
   }
 
+  // Get my jobs (client's jobs)
+  async getMyJobs(filters?: JobFilters, page = 1, limit = 10): Promise<JobListResponse> {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+
+      if (filters) {
+        if (filters.status) params.append('status', filters.status);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.search) params.append('search', filters.search);
+      }
+
+      const response = await apiClient.get(`${API_ENDPOINTS.JOBS.MY_JOBS}?${params}`);
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch my jobs');
+    }
+  }
+
   // Update job
   async updateJob(id: string, data: Partial<CreateJobRequest>): Promise<JobResponse> {
     try {
@@ -148,6 +168,16 @@ class JobService {
       return response;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update job');
+    }
+  }
+
+  // Open job for proposals (change status from draft to open)
+  async openJob(id: string): Promise<JobResponse> {
+    try {
+      const response = await apiClient.put(API_ENDPOINTS.JOBS.UPDATE(id), { status: 'open' });
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to open job');
     }
   }
 
