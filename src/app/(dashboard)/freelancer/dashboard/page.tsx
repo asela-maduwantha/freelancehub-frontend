@@ -12,85 +12,45 @@ import {
   CheckCircle,
   Search,
   MessageSquare,
-  Award
+  Award,
+  AlertCircle
 } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import StatsCard from '../../../../components/features/dashboard/StatsCard';
-
-interface FreelancerStats {
-  totalProposals: number;
-  activeContracts: number;
-  completedProjects: number;
-  totalEarnings: number;
-  averageRating: number;
-  successRate: number;
-}
-
-interface RecentProposal {
-  id: string;
-  jobTitle: string;
-  clientName: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  submittedAt: string;
-  budget: number;
-}
+import { dashboardApi, type FreelancerStats, type FreelancerProposal, type ActiveContract } from '../../../../lib/api/dashboard';
 
 export default function FreelancerDashboard() {
   const [stats, setStats] = useState<FreelancerStats>({
     totalProposals: 0,
+    activeProposals: 0,
     activeContracts: 0,
     completedProjects: 0,
     totalEarnings: 0,
+    monthlyEarnings: 0,
     averageRating: 0,
-    successRate: 0
+    totalReviews: 0
   });
 
-  const [recentProposals, setRecentProposals] = useState<RecentProposal[]>([]);
+  const [recentProposals, setRecentProposals] = useState<FreelancerProposal[]>([]);
+  const [activeContracts, setActiveContracts] = useState<ActiveContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading dashboard data
+    // Load dashboard data from API
     const loadDashboardData = async () => {
       try {
-        // In a real app, this would fetch from your API
-        // For now, we'll use mock data
-        setStats({
-          totalProposals: 28,
-          activeContracts: 2,
-          completedProjects: 15,
-          totalEarnings: 8750,
-          averageRating: 4.8,
-          successRate: 92
-        });
-
-        setRecentProposals([
-          {
-            id: '1',
-            jobTitle: 'React Developer for E-commerce Platform',
-            clientName: 'TechCorp Inc.',
-            status: 'pending',
-            submittedAt: '2025-09-12',
-            budget: 2500
-          },
-          {
-            id: '2',
-            jobTitle: 'UI/UX Designer for Mobile App',
-            clientName: 'StartupXYZ',
-            status: 'accepted',
-            submittedAt: '2025-09-10',
-            budget: 1800
-          },
-          {
-            id: '3',
-            jobTitle: 'Backend API Development',
-            clientName: 'DataFlow Ltd.',
-            status: 'rejected',
-            submittedAt: '2025-09-08',
-            budget: 3200
-          }
-        ]);
+        setLoading(true);
+        setError(null);
+        
+        const dashboardData = await dashboardApi.getFreelancerDashboard();
+        
+        setStats(dashboardData.stats);
+        setRecentProposals(dashboardData.recentProposals);
+        setActiveContracts(dashboardData.activeContracts);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -104,6 +64,9 @@ export default function FreelancerDashboard() {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'accepted': return 'text-green-600 bg-green-100';
       case 'rejected': return 'text-red-600 bg-red-100';
+      case 'active': return 'text-blue-600 bg-blue-100';
+      case 'completed': return 'text-gray-600 bg-gray-100';
+      case 'cancelled': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -112,7 +75,10 @@ export default function FreelancerDashboard() {
     switch (status) {
       case 'pending': return <Clock size={16} />;
       case 'accepted': return <CheckCircle size={16} />;
-      case 'rejected': return <Clock size={16} />;
+      case 'rejected': return <AlertCircle size={16} />;
+      case 'active': return <Clock size={16} />;
+      case 'completed': return <CheckCircle size={16} />;
+      case 'cancelled': return <AlertCircle size={16} />;
       default: return <Clock size={16} />;
     }
   };
@@ -122,6 +88,25 @@ export default function FreelancerDashboard() {
       <DashboardLayout userRole="freelancer">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout userRole="freelancer">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -141,37 +126,43 @@ export default function FreelancerDashboard() {
           <StatsCard
             title="Total Proposals"
             value={stats.totalProposals.toString()}
-            change="+5 this week"
+            change="Submitted overall"
+            changeType="increase"
+          />
+          <StatsCard
+            title="Active Proposals"
+            value={stats.activeProposals.toString()}
+            change="Awaiting response"
             changeType="increase"
           />
           <StatsCard
             title="Active Contracts"
             value={stats.activeContracts.toString()}
-            change="2 in progress"
+            change="Currently working"
             changeType="increase"
           />
           <StatsCard
             title="Completed Projects"
             value={stats.completedProjects.toString()}
-            change="3 this month"
+            change="Successfully finished"
             changeType="increase"
           />
           <StatsCard
             title="Total Earnings"
             value={`$${stats.totalEarnings.toLocaleString()}`}
-            change="+$1,200 this month"
+            change="Lifetime earnings"
+            changeType="increase"
+          />
+          <StatsCard
+            title="Monthly Earnings"
+            value={`$${stats.monthlyEarnings.toLocaleString()}`}
+            change="This month"
             changeType="increase"
           />
           <StatsCard
             title="Average Rating"
-            value={stats.averageRating.toString()}
-            change="4.8/5.0"
-            changeType="increase"
-          />
-          <StatsCard
-            title="Success Rate"
-            value={`${stats.successRate}%`}
-            change="Top 8% of freelancers"
+            value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
+            change={`${stats.totalReviews} reviews`}
             changeType="increase"
           />
         </div>
@@ -230,7 +221,7 @@ export default function FreelancerDashboard() {
                       <span>Submitted {new Date(proposal.submittedAt).toLocaleDateString()}</span>
                       <span className="flex items-center">
                         <DollarSign size={16} className="mr-1" />
-                        ${proposal.budget.toLocaleString()}
+                        ${proposal.proposedAmount.toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -250,6 +241,75 @@ export default function FreelancerDashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Active Contracts */}
+        <div className="card-default">
+          <div className="card-header">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-primary">Active Contracts</h2>
+              <Link href="/freelancer/contracts">
+                <button className="text-emerald hover:text-emerald font-medium text-sm">
+                  View All
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="divide-y divide-accent">
+            {activeContracts.length === 0 ? (
+              <div className="p-6 text-center text-muted">
+                <Briefcase size={24} className="mx-auto mb-2" />
+                <p>No active contracts found</p>
+              </div>
+            ) : (
+              activeContracts.map((contract) => (
+                <div key={contract.id} className="p-6 hover:bg-secondary/30 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-medium text-primary mb-1">
+                        {contract.jobTitle}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-muted mb-2">
+                        <span className="flex items-center">
+                          <Briefcase size={16} className="mr-1" />
+                          {contract.clientName}
+                        </span>
+                        <span className="flex items-center">
+                          <DollarSign size={16} className="mr-1" />
+                          ${contract.contractValue.toLocaleString()}
+                        </span>
+                        <span className="flex items-center">
+                          <TrendingUp size={16} className="mr-1" />
+                          {contract.progress}% complete
+                        </span>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="w-full bg-secondary rounded-full h-2 mt-2">
+                        <div
+                          className="bg-accent h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${contract.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 ml-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
+                        {getStatusIcon(contract.status)}
+                        <span className="ml-1 capitalize">{contract.status}</span>
+                      </span>
+
+                      <Link href={`/freelancer/contracts/${contract.id}`}>
+                        <button className="text-emerald hover:text-emerald font-medium text-sm">
+                          View Details
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

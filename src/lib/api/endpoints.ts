@@ -84,6 +84,12 @@ export const API_ENDPOINTS = {
     UPLOAD_DOCUMENT: '/files/upload-document',
     SUPPORTED_TYPES: '/files/supported-types',
   },
+
+  // Dashboard endpoints
+  DASHBOARD: {
+    CLIENT: '/dashboard/client',
+    FREELANCER: '/dashboard/freelancer',
+  },
 };
 
 export default API_ENDPOINTS;

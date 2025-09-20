@@ -16,77 +16,39 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import StatsCard from '../../../../components/features/dashboard/StatsCard';
-
-interface DashboardStats {
-  totalJobs: number;
-  activeJobs: number;
-  totalProposals: number;
-  hiredFreelancers: number;
-  completedProjects: number;
-  totalSpent: number;
-}
-
-interface RecentJob {
-  id: string;
-  title: string;
-  status: 'open' | 'in-progress' | 'completed';
-  proposals: number;
-  createdAt: string;
-}
+import { dashboardApi, type DashboardStats, type RecentJob, type RecentContract } from '../../../../lib/api/dashboard';
 
 export default function ClientDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalJobs: 0,
     activeJobs: 0,
-    totalProposals: 0,
-    hiredFreelancers: 0,
-    completedProjects: 0,
-    totalSpent: 0
+    completedJobs: 0,
+    activeContracts: 0,
+    totalSpent: 0,
+    pendingProposals: 0,
+    ongoingProjects: 0
   });
 
   const [recentJobs, setRecentJobs] = useState<RecentJob[]>([]);
+  const [recentContracts, setRecentContracts] = useState<RecentContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading dashboard data
+    // Load dashboard data from API
     const loadDashboardData = async () => {
       try {
-        // In a real app, this would fetch from your API
-        // For now, we'll use mock data
-        setStats({
-          totalJobs: 12,
-          activeJobs: 3,
-          totalProposals: 45,
-          hiredFreelancers: 8,
-          completedProjects: 7,
-          totalSpent: 12500
-        });
-
-        setRecentJobs([
-          {
-            id: '1',
-            title: 'React Developer for E-commerce Platform',
-            status: 'open',
-            proposals: 12,
-            createdAt: '2025-09-10'
-          },
-          {
-            id: '2',
-            title: 'UI/UX Designer for Mobile App',
-            status: 'in-progress',
-            proposals: 8,
-            createdAt: '2025-09-08'
-          },
-          {
-            id: '3',
-            title: 'Backend API Development',
-            status: 'completed',
-            proposals: 15,
-            createdAt: '2025-09-05'
-          }
-        ]);
+        setLoading(true);
+        setError(null);
+        
+        const dashboardData = await dashboardApi.getClientDashboard();
+        
+        setStats(dashboardData.stats);
+        setRecentJobs(dashboardData.recentJobs);
+        setRecentContracts(dashboardData.recentContracts);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -100,6 +62,8 @@ export default function ClientDashboard() {
       case 'open': return 'text-green-600 bg-green-100';
       case 'in-progress': return 'text-blue-600 bg-blue-100';
       case 'completed': return 'text-gray-600 bg-gray-100';
+      case 'active': return 'text-blue-600 bg-blue-100';
+      case 'cancelled': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -109,6 +73,8 @@ export default function ClientDashboard() {
       case 'open': return <AlertCircle size={16} />;
       case 'in-progress': return <Clock size={16} />;
       case 'completed': return <CheckCircle size={16} />;
+      case 'active': return <Clock size={16} />;
+      case 'cancelled': return <AlertCircle size={16} />;
       default: return <Clock size={16} />;
     }
   };
@@ -118,6 +84,25 @@ export default function ClientDashboard() {
       <DashboardLayout userRole="client">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout userRole="client">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -143,31 +128,31 @@ export default function ClientDashboard() {
           <StatsCard
             title="Active Jobs"
             value={stats.activeJobs.toString()}
-            change="3 in progress"
+            change="Currently open"
             changeType="increase"
           />
           <StatsCard
-            title="Total Proposals"
-            value={stats.totalProposals.toString()}
-            change="+8 this week"
+            title="Completed Jobs"
+            value={stats.completedJobs.toString()}
+            change="Successfully finished"
             changeType="increase"
           />
           <StatsCard
-            title="Hired Freelancers"
-            value={stats.hiredFreelancers.toString()}
-            change="2 this month"
+            title="Active Contracts"
+            value={stats.activeContracts.toString()}
+            change="Currently active"
             changeType="increase"
           />
           <StatsCard
-            title="Completed Projects"
-            value={stats.completedProjects.toString()}
-            change="87% success rate"
+            title="Pending Proposals"
+            value={stats.pendingProposals.toString()}
+            change="Awaiting review"
             changeType="increase"
           />
           <StatsCard
             title="Total Spent"
             value={`$${stats.totalSpent.toLocaleString()}`}
-            change="+$2,500 this month"
+            change="Project investments"
             changeType="increase"
           />
         </div>
@@ -221,9 +206,13 @@ export default function ClientDashboard() {
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <FileText size={16} className="mr-1" />
-                        {job.proposals} proposals
+                        {job.proposalsCount} proposals
                       </span>
                       <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+                      <span className="flex items-center">
+                        <TrendingUp size={16} className="mr-1" />
+                        ${job.budget.toLocaleString()}
+                      </span>
                     </div>
                   </div>
 
@@ -242,6 +231,65 @@ export default function ClientDashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Recent Contracts */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Contracts</h2>
+              <Link href="/client/contracts">
+                <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
+                  View All
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="divide-y divide-gray-200">
+            {recentContracts.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                <Briefcase size={24} className="mx-auto mb-2" />
+                <p>No recent contracts found</p>
+              </div>
+            ) : (
+              recentContracts.map((contract) => (
+                <div key={contract.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">
+                        {contract.jobTitle}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span className="flex items-center">
+                          <Users size={16} className="mr-1" />
+                          {contract.freelancerName}
+                        </span>
+                        <span className="flex items-center">
+                          <TrendingUp size={16} className="mr-1" />
+                          ${contract.contractValue.toLocaleString()}
+                        </span>
+                        <span>Started {new Date(contract.startDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
+                        {getStatusIcon(contract.status)}
+                        <span className="ml-1 capitalize">{contract.status}</span>
+                      </span>
+
+                      <Link href={`/client/contracts/${contract.id}`}>
+                        <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
+                          View Details
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

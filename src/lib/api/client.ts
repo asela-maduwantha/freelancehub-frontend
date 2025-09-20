@@ -106,6 +106,15 @@ class ApiClient {
     }
     return response.data.data;
   }
+
+  // Special method for endpoints that return the full response structure
+  async getFullResponse(endpoint: string, config?: AxiosRequestConfig): Promise<any> {
+    const response = await this.axiosInstance.get(endpoint, config);
+    if(response.data.success === false){
+      throw new Error(response.data.message || 'API Error');
+    }
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
