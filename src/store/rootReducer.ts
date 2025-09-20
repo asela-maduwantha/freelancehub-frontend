@@ -1,14 +1,4 @@
-// Simple combineReducers function
-const combineReducers = (reducers: any) => {
-  return (state: any = {}, action: any) => {
-    const newState: any = {};
-    for (const key in reducers) {
-      newState[key] = reducers[key](state[key], action);
-    }
-    return newState;
-  };
-};
-
+import { combineReducers } from 'redux';
 import authReducer from './slices/auth';
 import userReducer from './slices/user';
 import jobsReducer from './slices/jobs';

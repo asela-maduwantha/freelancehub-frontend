@@ -6,7 +6,7 @@ export const selectUser = (state: RootState) => state.auth.user;
 
 export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
 
-export const selectAuthLoading = (state: RootState) => state.auth.loading;
+export const selectAuthLoading = (state: RootState) => state.auth.isLoading;
 
 export const selectAuthError = (state: RootState) => state.auth.error;
 
@@ -21,18 +21,12 @@ export const selectJobsLoading = (state: RootState) => state.jobs.loading;
 
 export const selectJobsError = (state: RootState) => state.jobs.error;
 
-export const selectJobsPagination = (state: RootState) => ({
-  page: state.jobs.page,
-  totalPages: state.jobs.totalPages,
-  total: state.jobs.total,
-});
+export const selectJobsPagination = (state: RootState) => state.jobs.pagination;
 
 
 export const selectUserProfile = (state: RootState) => state.user.profile;
 
-export const selectUserProfileLoading = (state: RootState) => state.user.loading;
-
-export const selectUserProfileError = (state: RootState) => state.user.error;
+// User loading and error states are not implemented in the current user slice
 
 
 export const selectNotifications = (state: RootState) => state.notifications.notifications;
@@ -40,7 +34,7 @@ export const selectNotifications = (state: RootState) => state.notifications.not
 export const selectUnreadNotificationsCount = (state: RootState) =>
   state.notifications.notifications.filter((n: any) => !n.read).length;
 
-export const selectNotificationsLoading = (state: RootState) => state.notifications.loading;
+// Notifications loading state is not implemented in the current slice
 
 export const selectUI = (state: RootState) => state.ui;
 
@@ -48,7 +42,7 @@ export const selectSidebarOpen = (state: RootState) => state.ui.sidebarOpen;
 
 export const selectTheme = (state: RootState) => state.ui.theme;
 
-export const selectModal = (state: RootState) => state.ui.modal;
+// Modal state is not implemented in the current UI slice
 
 export const selectAuthAndUser = (state: RootState) => ({
   auth: selectAuth(state),

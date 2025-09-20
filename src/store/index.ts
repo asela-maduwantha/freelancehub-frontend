@@ -1,30 +1,23 @@
-// Simple createStore function
-const createStore = (reducer: any) => {
-  let state: any;
-  let listeners: any[] = [];
-
-  const getState = () => state;
-
-  const dispatch = (action: any) => {
-    state = reducer(state, action);
-    listeners.forEach(listener => listener());
-  };
-
-  const subscribe = (listener: any) => {
-    listeners.push(listener);
-    return () => {
-      listeners = listeners.filter(l => l !== listener);
-    };
-  };
-
-  dispatch({ type: '@@redux/INIT' });
-
-  return { getState, dispatch, subscribe };
-};
-
+import { createStore } from 'redux';
 import rootReducer from './rootReducer';
 
-export const store = createStore(rootReducer);
+// Redux DevTools Extension type declaration
+declare global {
+  interface Window {
+    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: any;
+    __REDUX_DEVTOOLS_EXTENSION__?: any;
+  }
+}
+
+// Redux DevTools Extension support
+const composeEnhancers = 
+  (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || 
+  ((x: any) => x);
+
+export const store = createStore(
+  rootReducer,
+  composeEnhancers()
+);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
