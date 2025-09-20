@@ -206,6 +206,17 @@ export interface FileUploadResponse {
   uploadedAt: string;
 }
 
+// Paginated response type
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
 // Error response types
 export interface ApiError {
   message: string;

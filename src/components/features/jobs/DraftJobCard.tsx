@@ -129,7 +129,7 @@ const DraftJobCard: React.FC<DraftJobCardProps> = ({ job, onOpenJob, isLoading =
             </div>
           </div>
 
-          {job.duration && (
+          {job.duration && job.duration.type && (
             <div className="text-sm">
               <span className="font-medium text-primary">Duration: </span>
               <span className="text-secondary">

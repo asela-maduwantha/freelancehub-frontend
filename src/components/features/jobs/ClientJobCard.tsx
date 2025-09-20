@@ -146,7 +146,7 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
             </div>
           </div>
 
-          {job.duration && (
+          {job.duration && job.duration.type && (
             <div className="text-sm">
               <span className="font-medium text-primary">Duration: </span>
               <span className="text-secondary">

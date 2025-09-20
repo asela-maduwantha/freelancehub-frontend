@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface SidebarItem {
@@ -32,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
         <button
           onClick={onToggle}
-          className="p-1 rounded-md bg-primary hover:bg-primary-hover text-text-white transition-colors duration-200"
+          className="p-1 rounded-md bg-[#defde9] hover:bg-primary-hover text-[#025036] transition-colors duration-200"
         >
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -43,25 +44,48 @@ const Sidebar: React.FC<SidebarProps> = ({
         <ul className="space-y-2">
           {items.map((item) => (
             <li key={item.id}>
-              <button
-                onClick={item.onClick}
-                className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
-                  item.isActive
-                    ? 'text-text-white bg-primary font-medium'
-                    : 'text-text-white hover:text-accent hover:bg-primary-hover'
-                } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
-              >
-                {item.icon && (
-                  <span className="flex-shrink-0">
-                    {item.icon}
-                  </span>
-                )}
-                {!isCollapsed && (
-                  <span className="ml-3 text-sm font-medium">
-                    {item.label}
-                  </span>
-                )}
-              </button>
+              {item.href ? (
+                <Link href={item.href}>
+                  <div
+                    className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer ${
+                      item.isActive
+                        ? 'btn-primary-active'
+                        : 'btn-primary'
+                    } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
+                  >
+                    {item.icon && (
+                      <span className="flex-shrink-0">
+                        {item.icon}
+                      </span>
+                    )}
+                    {!isCollapsed && (
+                      <span className="ml-3 text-sm font-medium">
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ) : (
+                <button
+                  onClick={item.onClick}
+                  className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
+                    item.isActive
+                      ? 'btn-primary-active'
+                      : 'btn-primary'
+                  } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
+                >
+                  {item.icon && (
+                    <span className="flex-shrink-0">
+                      {item.icon}
+                    </span>
+                  )}
+                  {!isCollapsed && (
+                    <span className="ml-3 text-sm font-medium">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              )}
             </li>
           ))}
         </ul>

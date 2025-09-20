@@ -52,6 +52,12 @@ export const API_ENDPOINTS = {
     MESSAGES: (id: string) => `/contracts/${id}/messages`,
   },
 
+  MILESTONES: {
+    LIST_BY_CONTRACT: (contractId: string) => `/milestones/contract/${contractId}/milestones`,
+    START_WORK: (id: string) => `/milestones/${id}/in-progress`,
+    SUBMIT_WORK: (id: string) => `/milestones/${id}/submit`,
+  },
+
   PAYMENTS: {
     LIST: '/payments',
     CREATE: '/payments',
@@ -71,6 +77,12 @@ export const API_ENDPOINTS = {
     LIST: '/notifications',
     MARK_READ: (id: string) => `/notifications/${id}/read`,
     MARK_ALL_READ: '/notifications/read-all',
+  },
+
+  // File upload endpoints
+  FILES: {
+    UPLOAD_DOCUMENT: '/files/upload-document',
+    SUPPORTED_TYPES: '/files/supported-types',
   },
 };
 

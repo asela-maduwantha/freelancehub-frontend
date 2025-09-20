@@ -67,9 +67,9 @@
 }
 
 @layer utilities {
-  /* Primary Button (Emerald Green) */
+  /* Primary Button (Green) */
   .btn-primary {
-    background-color: var(--color-primary);
+    background-color: #10B981; /* green-500 */
     color: var(--color-text-white);
     border: none;
     padding: 0.75rem 1.5rem;
@@ -80,12 +80,28 @@
     cursor: pointer;
   }
   .btn-primary:hover {
-    background-color: var(--color-primary-hover);
+    background-color: #14c288;
+    box-shadow: var(--shadow-emerald);
+    transform: translateY(-1px);
+  }
+    .btn-primary-active {
+    background-color: rgb(202, 255, 221); /* green-500 */
+    color: #025036;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-primary-active:hover {
+    background-color: #defde9;
     box-shadow: var(--shadow-emerald);
     transform: translateY(-1px);
   }
   .btn-primary:active {
-    background-color: var(--color-primary-active);
+    background-color: #15803D; /* green-700 */
     transform: translateY(0);
     box-shadow: var(--shadow-sm);
   }

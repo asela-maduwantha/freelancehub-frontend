@@ -1,6 +1,8 @@
 // Job API services
 import { apiClient } from '../client';
 import { API_ENDPOINTS } from '../endpoints';
+import { store } from '../../../store';
+import { jobsActions } from '../../../store/slices/jobs/jobsSlice';
 
 // Types for API requests and responses
 export interface JobBudget {
@@ -103,26 +105,35 @@ class JobService {
   // Create a new job
   async createJob(data: CreateJobRequest): Promise<JobResponse> {
     try {
+      store.dispatch(jobsActions.createJobStart());
       const response = await apiClient.post(API_ENDPOINTS.JOBS.CREATE, data);
+      store.dispatch(jobsActions.createJobSuccess(response));
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to create job');
+      const errorMessage = error.response?.data?.message || 'Failed to create job';
+      store.dispatch(jobsActions.createJobFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }
 
   // Get job details by ID
   async getJob(id: string): Promise<JobResponse> {
     try {
+      store.dispatch(jobsActions.fetchJobDetailStart());
       const response = await apiClient.get(API_ENDPOINTS.JOBS.DETAIL(id));
+      store.dispatch(jobsActions.fetchJobDetailSuccess(response));
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch job details');
+      const errorMessage = error.response?.data?.message || 'Failed to fetch job details';
+      store.dispatch(jobsActions.fetchJobDetailFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }
 
   // Get list of jobs with filters
   async getJobs(filters?: JobFilters, page = 1, limit = 10): Promise<JobListResponse> {
     try {
+      store.dispatch(jobsActions.fetchJobsStart());
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
@@ -135,15 +146,19 @@ class JobService {
       }
 
       const response = await apiClient.get(`${API_ENDPOINTS.JOBS.LIST}?${params}`);
+      store.dispatch(jobsActions.fetchJobsSuccess(response));
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch jobs');
+      const errorMessage = error.response?.data?.message || 'Failed to fetch jobs';
+      store.dispatch(jobsActions.fetchJobsFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }
 
   // Get my jobs (client's jobs)
   async getMyJobs(filters?: JobFilters, page = 1, limit = 10): Promise<JobListResponse> {
     try {
+      store.dispatch(jobsActions.fetchMyJobsStart());
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
@@ -155,49 +170,83 @@ class JobService {
       }
 
       const response = await apiClient.get(`${API_ENDPOINTS.JOBS.MY_JOBS}?${params}`);
+      store.dispatch(jobsActions.fetchMyJobsSuccess(response));
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch my jobs');
+      const errorMessage = error.response?.data?.message || 'Failed to fetch my jobs';
+      store.dispatch(jobsActions.fetchMyJobsFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }
 
   // Update job
   async updateJob(id: string, data: Partial<CreateJobRequest>): Promise<JobResponse> {
     try {
+      store.dispatch(jobsActions.updateJobStart());
       const response = await apiClient.put(API_ENDPOINTS.JOBS.UPDATE(id), data);
+      store.dispatch(jobsActions.updateJobSuccess(response));
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update job');
-    }
-  }
-
-  // Open job for proposals (change status from draft to open)
-  async openJob(id: string): Promise<JobResponse> {
-    try {
-      const response = await apiClient.put(API_ENDPOINTS.JOBS.UPDATE(id), { status: 'open' });
-      return response;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to open job');
+      const errorMessage = error.response?.data?.message || 'Failed to update job';
+      store.dispatch(jobsActions.updateJobFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }
 
   // Delete job
   async deleteJob(id: string): Promise<void> {
     try {
+      store.dispatch(jobsActions.deleteJobStart());
       await apiClient.delete(API_ENDPOINTS.JOBS.DELETE(id));
+      store.dispatch(jobsActions.deleteJobSuccess(id));
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to delete job');
+      const errorMessage = error.response?.data?.message || 'Failed to delete job';
+      store.dispatch(jobsActions.deleteJobFailure(errorMessage));
+      throw new Error(errorMessage);
+    }
+  }
+
+  // Open/Publish job from draft
+  async openJob(id: string): Promise<JobResponse> {
+    try {
+      store.dispatch(jobsActions.updateJobStart());
+      const response = await apiClient.put(API_ENDPOINTS.JOBS.UPDATE(id), { status: 'open' });
+      store.dispatch(jobsActions.updateJobSuccess(response));
+      return response;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to open job';
+      store.dispatch(jobsActions.updateJobFailure(errorMessage));
+      throw new Error(errorMessage);
     }
   }
 
   // Apply to job
   async applyToJob(jobId: string, proposalData: any): Promise<any> {
     try {
+      store.dispatch(jobsActions.applyToJobStart());
       const response = await apiClient.post(API_ENDPOINTS.JOBS.APPLY(jobId), proposalData);
+      store.dispatch(jobsActions.applyToJobSuccess(response));
       return response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to apply to job');
+      const errorMessage = error.response?.data?.message || 'Failed to apply to job';
+      store.dispatch(jobsActions.applyToJobFailure(errorMessage));
+      throw new Error(errorMessage);
     }
+  }
+
+  // Clear error
+  clearError(): void {
+    store.dispatch(jobsActions.clearError());
+  }
+
+  // Set loading
+  setLoading(loading: boolean): void {
+    store.dispatch(jobsActions.setLoading(loading));
+  }
+
+  // Reset current job
+  resetCurrentJob(): void {
+    store.dispatch(jobsActions.resetCurrentJob());
   }
 }
 

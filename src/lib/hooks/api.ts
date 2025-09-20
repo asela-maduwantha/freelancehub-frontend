@@ -89,9 +89,9 @@ export function usePagination<T>(
 
       const result = await apiClient.get(`${endpoint}?${params}`);
 
-      setData(result.data);
-      setTotalPages(result.totalPages);
-      setPage(result.page);
+      setData(result.contracts || result.data || []);
+      setTotalPages(result.pagination?.pages || result.totalPages || 1);
+      setPage(result.pagination?.page || result.page || 1);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);

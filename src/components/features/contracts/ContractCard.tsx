@@ -12,12 +12,16 @@ interface ContractCardProps {
     proposal?: ProposalResponse;
   };
   onCreateMilestone?: (contract: ContractResponse) => void;
+  onViewMilestones?: (contract: ContractResponse) => void;
+  userRole?: 'freelancer' | 'client';
   isLoading?: boolean;
 }
 
 const ContractCard: React.FC<ContractCardProps> = ({ 
   contract, 
   onCreateMilestone, 
+  onViewMilestones,
+  userRole = 'client',
   isLoading = false 
 }) => {
   const formatCurrency = (amount: number, currency = 'USD') => {
@@ -212,7 +216,7 @@ const ContractCard: React.FC<ContractCardProps> = ({
           </div>
           
           <div className="flex gap-3">
-            {canCreateMilestone && (
+            {userRole === 'client' && canCreateMilestone && (
               <Button
                 variant="primary"
                 size="sm"
@@ -225,9 +229,10 @@ const ContractCard: React.FC<ContractCardProps> = ({
             <Button
               variant="secondary"
               size="sm"
+              onClick={() => onViewMilestones?.(contract)}
               disabled={isLoading}
             >
-              View Details
+              View Milestones
             </Button>
           </div>
         </div>

@@ -102,12 +102,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           href: '/client/contracts',
         },
         {
-          id: 'proposals',
-          label: 'Proposals',
-          icon: <FileText size={20} />,
-          href: '/client/jobs', // Proposals are viewed within job details
-        },
-        {
           id: 'payments',
           label: 'Payments',
           icon: <CreditCard size={20} />,
@@ -177,14 +171,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <div className="hidden md:flex items-center space-x-2">
               {userRole === 'client' ? (
                 <Link href="/client/jobs/create">
-                  <Button variant="primary" size="sm">
+                  <Button variant="primary" size="sm" className='btn-accent flex gap-1 items-center justify-center'>
                     <Plus size={16} className="mr-2" />
                     Post Job
                   </Button>
                 </Link>
               ) : (
                 <Link href="/freelancer/jobs">
-                  <Button variant="primary" size="sm">
+                  <Button variant="primary" size="sm" className='btn-accent flex gap-1 items-center justify-center'>
                     <Search size={16} className="mr-2" />
                     Find Work
                   </Button>
@@ -207,13 +201,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-[#F59E0B] rounded-full flex items-center justify-center">
                     <span className="text-text-white text-sm font-medium">
                       {userName.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
-                <div className="hidden md:block">
+                <div className=" md:block flex items-center justify-center gap-2">
                   <p className="text-sm font-medium text-text-white">{userName}</p>
                   <p className="text-xs text-secondary capitalize">{userRole}</p>
                 </div>
