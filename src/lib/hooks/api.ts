@@ -89,9 +89,11 @@ export function usePagination<T>(
 
       const result = await apiClient.get(`${endpoint}?${params}`);
 
-      setData(result.contracts || result.data || []);
-      setTotalPages(result.pagination?.pages || result.totalPages || 1);
-      setPage(result.pagination?.page || result.page || 1);
+      // Handle API response structure - API client already extracts response.data.data
+      // So result should contain the inner data object with contracts and pagination
+      setData(result.contracts || []);
+      setTotalPages(result.pagination?.pages || 1);
+      setPage(result.pagination?.page || 1);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);

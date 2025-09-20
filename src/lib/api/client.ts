@@ -68,7 +68,14 @@ class ApiClient {
 
   // HTTP methods
   async get(endpoint: string, config?: AxiosRequestConfig): Promise<any> {
+    console.log('ApiClient.get - Making request to:', endpoint);
+    console.log('ApiClient.get - Base URL:', API_BASE_URL);
+    console.log('ApiClient.get - Full URL:', `${API_BASE_URL}${endpoint}`);
+    
     const response = await this.axiosInstance.get(endpoint, config);
+    console.log('ApiClient.get - Response status:', response.status);
+    console.log('ApiClient.get - Response data:', response.data);
+    
     if(response.data.success === false){
       throw new Error(response.data.message || 'API Error');
     }

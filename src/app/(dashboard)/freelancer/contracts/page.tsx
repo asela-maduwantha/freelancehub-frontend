@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import { usePagination } from '../../../../lib/hooks/api';
 import { API_ENDPOINTS } from '../../../../lib/api/endpoints';
-import ContractCard from '../../../../components/features/contracts/ContractCard';
+import ContractListItem from '../../../../components/features/contracts/ContractListItem';
 import { ContractResponse } from '../../../../lib/api/contracts';
 import { ComponentLoader } from '../../../../components/common/Loading';
 
@@ -24,8 +24,8 @@ export default function FreelancerContractsPage() {
     prevPage,
   } = usePagination<ContractResponse>(API_ENDPOINTS.CONTRACTS.LIST, 10);
 
-  const handleViewMilestones = (contract: ContractResponse) => {
-    router.push(`/freelancer/contracts/${contract._id}/milestones`);
+  const handleViewDetails = (contract: ContractResponse) => {
+    router.push(`/freelancer/contracts/${contract._id}`);
   };
 
   if (loading && contracts.length === 0) {
@@ -88,15 +88,30 @@ export default function FreelancerContractsPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-6">
-              {contracts.map((contract) => (
-                <ContractCard
-                  key={contract._id}
-                  contract={contract}
-                  userRole="freelancer"
-                  onViewMilestones={handleViewMilestones}
-                />
-              ))}
+            <div className="space-y-4">
+              {contracts.map((contract, index) => {
+                // Safety check before rendering
+                if (!contract || !contract._id) {
+                  console.warn('Skipping invalid contract:', contract);
+                  return null;
+                }
+
+                // Generate a safe key
+                const contractKey = contract._id && typeof contract._id === 'string' 
+                  ? contract._id 
+                  : contract._id && typeof contract._id === 'object' && 'toString' in contract._id
+                    ? (contract._id as any).toString()
+                    : `contract-${index}`;
+
+                return (
+                  <ContractListItem
+                    key={contractKey}
+                    contract={contract}
+                    userRole="freelancer"
+                    onViewDetails={handleViewDetails}
+                  />
+                );
+              })}
             </div>
 
             {/* Pagination */}

@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ContractResponse, contractService } from '@/lib/api/contracts';
 import { JobResponse, jobService } from '@/lib/api/jobs';
 import { ProposalResponse, proposalService } from '@/lib/api/proposals';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
-import ContractCard from '@/components/features/contracts/ContractCard';
+import ContractListItem from '@/components/features/contracts/ContractListItem';
 import CreateMilestoneModal from '@/components/features/contracts/CreateMilestoneModal';
 import { Spinner } from '@/components/ui/Feedback';
 import Button from '@/components/ui/Button';
@@ -16,6 +17,7 @@ interface ContractWithDetails extends ContractResponse {
 }
 
 export default function ClientContractsPage() {
+  const router = useRouter();
   const [contracts, setContracts] = useState<ContractWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,14 +35,40 @@ export default function ClientContractsPage() {
     
     try {
       const response = await contractService.getContracts(page, 10);
-      const contractsData = response.contracts;
-      setTotal(response.pagination.total);
-      setTotalPages(response.pagination.pages);
+      console.log('Contracts API response:', response);
+      
+      // Handle different response structures
+      let contractsData: ContractResponse[];
+      let paginationData: any;
+      
+      if (response && response.contracts) {
+        // If response has the expected structure
+        contractsData = response.contracts;
+        paginationData = response.pagination;
+      } else if (Array.isArray(response)) {
+        // If response is directly an array of contracts
+        contractsData = response;
+        paginationData = { total: response.length, pages: 1, page: 1, limit: 10 };
+      } else {
+        // If response has a different structure, try to extract contracts
+        const anyResponse = response as any;
+        contractsData = anyResponse?.data?.contracts || anyResponse?.contracts || [];
+        paginationData = anyResponse?.data?.pagination || anyResponse?.pagination || { total: 0, pages: 1, page: 1, limit: 10 };
+      }
+      
+      setTotal(paginationData.total);
+      setTotalPages(paginationData.pages);
 
       // Fetch related job and proposal data for each contract
       const contractsWithDetails = await Promise.all(
         contractsData.map(async (contract: ContractResponse) => {
           try {
+            // Ensure contract has proper structure before processing
+            if (!contract || typeof contract !== 'object') {
+              console.warn('Invalid contract data:', contract);
+              return null;
+            }
+
             const [job, proposal] = await Promise.all([
               jobService.getJob(contract.jobId).catch(() => null),
               proposalService.getProposal(contract.proposalId).catch(() => null)
@@ -52,13 +80,16 @@ export default function ClientContractsPage() {
               proposal
             } as ContractWithDetails;
           } catch (err) {
+            console.warn('Error processing contract:', contract, err);
             // Return contract without additional details if fetching fails
             return contract as ContractWithDetails;
           }
         })
       );
 
-      setContracts(contractsWithDetails);
+      // Filter out any null contracts
+      const validContracts = contractsWithDetails.filter(contract => contract !== null);
+      setContracts(validContracts);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch contracts');
     } finally {
@@ -73,6 +104,10 @@ export default function ClientContractsPage() {
   const handleRefresh = () => {
     setPage(1);
     fetchContracts();
+  };
+
+  const handleViewDetails = (contract: ContractResponse) => {
+    router.push(`/client/contracts/${contract._id}`);
   };
 
   const handleCreateMilestone = (contract: ContractResponse) => {
@@ -176,18 +211,36 @@ export default function ClientContractsPage() {
           </div>
         )}
 
-        {/* Contracts Grid */}
+        {/* Contracts List */}
         {!isLoading && contracts.length > 0 && (
           <>
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-1">
-              {contracts.map((contract) => (
-                <ContractCard
-                  key={contract._id}
-                  contract={contract}
-                  onCreateMilestone={handleCreateMilestone}
-                  isLoading={isLoading}
-                />
-              ))}
+            <div className="space-y-4">
+              {contracts.map((contract, index) => {
+                // Debug log to see contract structure
+                console.log('Rendering contract:', contract);
+                
+                // Safety check before rendering
+                if (!contract || !contract._id) {
+                  console.warn('Skipping invalid contract:', contract);
+                  return null;
+                }
+
+                // Generate a safe key
+                const contractKey = contract._id && typeof contract._id === 'string' 
+                  ? contract._id 
+                  : contract._id && typeof contract._id === 'object' && 'toString' in contract._id
+                    ? (contract._id as any).toString()
+                    : `contract-${index}`;
+
+                return (
+                  <ContractListItem
+                    key={contractKey}
+                    contract={contract}
+                    userRole="client"
+                    onViewDetails={handleViewDetails}
+                  />
+                );
+              })}
             </div>
 
             {/* Pagination */}

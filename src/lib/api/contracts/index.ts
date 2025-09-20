@@ -58,9 +58,11 @@ export interface CreateMilestoneRequest {
 }
 
 export interface MilestoneDeliverable {
-  title: string;
-  description: string;
-  fileUrl: string;
+  filename: string;
+  url: string;
+  size: number;
+  type: string;
+  uploadedAt?: string;
 }
 
 export interface MilestonePayment {
@@ -187,9 +189,13 @@ class ContractService {
   // Get milestones for a contract
   async getContractMilestones(contractId: string): Promise<ContractMilestonesResponse> {
     try {
+      console.log('API call - getContractMilestones for contractId:', contractId);
       const response = await apiClient.get(`/milestones/contract/${contractId}/milestones`);
+      console.log('API call - getContractMilestones response:', response);
       return response;
     } catch (error: any) {
+      console.error('API call - getContractMilestones error:', error);
+      console.error('API call - Error response:', error.response);
       throw new Error(error.response?.data?.message || 'Failed to fetch milestones');
     }
   }
