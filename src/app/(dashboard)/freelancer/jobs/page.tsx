@@ -142,7 +142,7 @@ const BrowseProjectsPage: React.FC = () => {
   };
 
   return (
-    <DashboardLayout userRole="freelancer" userName="Freelancer Name">
+    <DashboardLayout userRole="freelancer">
       <div className="flex-1">
         <div className="max-w-7xl mx-auto p-6">
           {/* Header */}

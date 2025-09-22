@@ -125,7 +125,7 @@ const MyProposalsPage: React.FC = () => {
 
   if (loading && proposals.length === 0) {
     return (
-      <DashboardLayout userRole="freelancer" userName="Freelancer Name">
+      <DashboardLayout userRole="freelancer">
         <div className="flex items-center justify-center h-64">
           <Loader size="lg" />
         </div>
@@ -134,7 +134,7 @@ const MyProposalsPage: React.FC = () => {
   }
 
   return (
-    <DashboardLayout userRole="freelancer" userName="Freelancer Name">
+    <DashboardLayout userRole="freelancer">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">

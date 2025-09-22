@@ -16,12 +16,12 @@ const Badge: React.FC<BadgeProps> = ({
   const baseStyles = 'inline-flex items-center font-medium rounded-full';
 
   const variants = {
-    primary: 'badge-in-progress',
-    secondary: 'badge-pending',
-    outline: 'border border-[var(--color-text-secondary)] text-[var(--color-text-body)] bg-[var(--color-bg-content)]',
-    success: 'badge-completed',
-    warning: 'bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]',
-    error: 'bg-red-100 text-red-800'
+    primary: 'badge-primary',
+    secondary: 'badge-secondary',
+    outline: 'badge-outline',
+    success: 'badge-success',
+    warning: 'badge-warning',
+    error: 'badge-error'
   };
 
   const sizes = {

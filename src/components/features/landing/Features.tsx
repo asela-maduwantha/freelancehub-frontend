@@ -36,13 +36,13 @@ const Features: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-secondary">
+    <section className="py-20 bg-dark-gradient-2">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4 font-geist-sans">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Why Choose Frevo?
           </h2>
-          <p className="text-lg text-secondary max-w-2xl mx-auto font-geist-sans">
+          <p className="text-lg text-white-80 max-w-2xl mx-auto">
             Experience the difference with our comprehensive freelancing platform designed for success.
           </p>
         </div>
@@ -54,22 +54,19 @@ const Features: React.FC = () => {
               className="animate-fade-in-up"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <Card className="text-center p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 relative overflow-hidden group card-default">
-                {/* Gradient background on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" style={{ background: 'linear-gradient(to bottom right, var(--color-primary), var(--color-accent))' }}></div>
-
+              <div className="bg-white-10 backdrop-blur-sm border border-white-20 text-center p-6 relative overflow-hidden group rounded-xl hover:bg-white-15 transition-all duration-300 transform hover:-translate-y-2">
                 <div className="relative z-10">
                   <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-primary mb-3 group-hover:text-primary transition-colors font-geist-sans">
+                  <h3 className="text-xl font-semibold text-white mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-secondary group-hover:text-primary transition-colors leading-relaxed">
+                  <p className="text-white-70 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
-              </Card>
+              </div>
             </div>
           ))}
         </div>

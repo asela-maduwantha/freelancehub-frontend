@@ -6,10 +6,14 @@ const HeroIllustration: React.FC = () => {
     <div className="relative">
       <Image
         src="/images/hero-illustration.png"
-        alt="Hero Illustration"
-        width={500}
-        height={500}
-        className="w-full h-auto rounded-lg shadow-2xl"
+        alt="Freelance collaboration illustration"
+        width={600}
+        height={600}
+        className="w-full h-auto drop-shadow-2xl"
+        priority
+        style={{
+          filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.15))'
+        }}
       />
     </div>
   );

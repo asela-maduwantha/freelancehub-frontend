@@ -146,12 +146,11 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
             </div>
           </div>
 
-          {job.duration && job.duration.type && (
+          {job.duration && (
             <div className="text-sm">
               <span className="font-medium text-primary">Duration: </span>
               <span className="text-secondary">
-                {job.duration.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                {job.duration.estimatedHours && ` (${job.duration.estimatedHours} hours)`}
+                {job.duration.value} {job.duration.unit}
               </span>
             </div>
           )}
@@ -159,10 +158,7 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
           <div className="text-sm">
             <span className="font-medium text-primary">Location: </span>
             <span className="text-secondary capitalize">
-              {job.location?.type || 'Remote'}
-              {job.location?.countries && job.location.countries.length > 0 && 
-                ` (${job.location.countries.join(', ')})`
-              }
+              Remote
             </span>
           </div>
 
@@ -189,6 +185,18 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
               {job.isExpired && <span className="text-red-500">• Expired</span>}
             </div>
           </div>
+          
+          {job.status === 'draft' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/client/jobs/drafts')}
+              disabled={isLoading}
+              className="ml-4"
+            >
+              Draft
+            </Button>
+          )}
           
           {canViewProposals && (
             <Button

@@ -21,13 +21,13 @@ const Alert: React.FC<AlertProps> = ({
       case 'success':
         return 'alert-success';
       case 'error':
-        return 'bg-red-50 border-red-200 text-red-800';
+        return 'alert-error';
       case 'warning':
         return 'alert-warning';
       case 'info':
         return 'alert-info';
       default:
-        return 'bg-gray-50 border-gray-200 text-[var(--color-text-body)]';
+        return 'alert-info';
     }
   };
 

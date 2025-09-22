@@ -17,8 +17,10 @@ import {
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import StatsCard from '../../../../components/features/dashboard/StatsCard';
 import { dashboardApi, type DashboardStats, type RecentJob, type RecentContract } from '../../../../lib/api/dashboard';
+import { useUserDisplay } from '../../../../lib/hooks/useAuth';
 
 export default function ClientDashboard() {
+  const { displayName } = useUserDisplay();
   const [stats, setStats] = useState<DashboardStats>({
     totalJobs: 0,
     activeJobs: 0,
@@ -109,11 +111,11 @@ export default function ClientDashboard() {
   }
 
   return (
-    <DashboardLayout userRole="client" userName="John Doe">
+    <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-white rounded-lg p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, John! 👋</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, {displayName}! 👋</h1>
           <p className="text-gray-600">Here's what's happening with your projects today.</p>
         </div>
 

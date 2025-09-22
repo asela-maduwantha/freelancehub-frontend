@@ -35,34 +35,34 @@ const FAQ: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-primary">
+    <section className="py-20 bg-dark-gradient-4">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-white-80">
             Got questions? We've got answers. If you don't see what you're looking for, feel free to contact our support team.
           </p>
         </div>
 
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border rounded-lg" style={{ borderColor: 'var(--color-border-light)' }}>
+            <div key={index} className="bg-white-10 backdrop-blur-sm border border-white-20 rounded-xl animate-fade-in-up">
               <button
-                className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-secondary focus:bg-secondary"
+                className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-white-5 focus:bg-white-5 rounded-xl transition-colors duration-200"
                 onClick={() => toggleFAQ(index)}
               >
-                <span className="text-lg font-semibold text-primary">
+                <span className="text-lg font-semibold text-white">
                   {faq.question}
                 </span>
-                <span className="text-2xl text-muted">
+                <span className="text-2xl font-bold text-accent">
                   {openIndex === index ? '−' : '+'}
                 </span>
               </button>
               {openIndex === index && (
                 <div className="px-6 pb-4">
-                  <p className="text-secondary leading-relaxed">
+                  <p className="text-white-70 leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

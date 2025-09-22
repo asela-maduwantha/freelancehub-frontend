@@ -25,32 +25,36 @@ const HowItWorks: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-secondary">
+    <section className="py-20 bg-dark-gradient-4">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
+        <div className="text-center mb-16 animate-fade-in-up">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             How It Works
           </h2>
-          <p className="text-lg text-secondary max-w-2xl mx-auto">
+          <p className="text-lg text-white-80 max-w-2xl mx-auto">
             Getting started is simple. Follow these four easy steps to find and hire top freelance talent.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="text-center">
+            <div 
+              key={index} 
+              className="text-center animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.2}s` }}
+            >
               <div className="relative">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-text-white)' }}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6 bg-[var(--color-primary)] text-white shadow-lg">
                   {step.step}
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 transform -translate-x-8" style={{ backgroundColor: 'var(--color-primary-light)' }}></div>
+                  <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 transform -translate-x-8 bg-white-30"></div>
                 )}
               </div>
-              <h3 className="text-xl font-semibold text-primary mb-3">
+              <h3 className="text-xl font-semibold text-white mb-3">
                 {step.title}
               </h3>
-              <p className="text-secondary">
+              <p className="text-white-70">
                 {step.description}
               </p>
             </div>

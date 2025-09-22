@@ -13,8 +13,8 @@ export interface JobBudget {
 }
 
 export interface JobDuration {
-  type: 'less-than-1-month' | '1-3-months' | '3-6-months' | 'more-than-6-months';
-  estimatedHours?: number;
+  value: number;
+  unit: 'days' | 'weeks' | 'months';
 }
 
 export interface JobAttachment {
@@ -22,12 +22,6 @@ export interface JobAttachment {
   url: string;
   size: number;
   type: string;
-}
-
-export interface JobLocation {
-  type: 'remote' | 'onsite' | 'hybrid';
-  countries?: string[];
-  timezone?: string;
 }
 
 export interface CreateJobRequest {
@@ -43,7 +37,6 @@ export interface CreateJobRequest {
   isUrgent?: boolean;
   isFeatured?: boolean;
   attachments?: JobAttachment[];
-  location?: JobLocation;
   maxProposals?: number;
   expiresAt?: string;
 }
@@ -71,7 +64,6 @@ export interface JobResponse {
   isUrgent: boolean;
   isFeatured: boolean;
   attachments?: JobAttachment[];
-  location?: JobLocation;
   proposalCount: number;
   maxProposals?: number;
   selectedProposalId?: string | null;

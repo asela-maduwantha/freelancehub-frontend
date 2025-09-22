@@ -13,7 +13,6 @@ import {
   Briefcase,
   DollarSign,
   Clock,
-  MapPin,
   FileText,
   ArrowLeft,
   Plus,
@@ -33,27 +32,23 @@ interface JobFormData {
     max?: number;
     currency?: string;
   };
-  duration: {
-    type: 'less-than-1-month' | '1-3-months' | '3-6-months' | 'more-than-6-months';
-    estimatedHours?: number;
+  duration?: {
+    value: number;
+    unit: 'days' | 'weeks' | 'months';
   };
   skills: string[];
   experienceLevel: 'beginner' | 'intermediate' | 'expert';
   isUrgent: boolean;
   isFeatured: boolean;
-  location: {
-    type: 'remote' | 'onsite' | 'hybrid';
-    countries?: string[];
-    timezone?: string;
-  };
   maxProposals: number;
+  attachments: File[];
+  expiresAt: string;
   // Additional form fields for UI
   budgetMin: string;
   budgetMax: string;
-  estimatedHours: string;
-  countries: string[];
+  durationValue: string;
+  durationUnit: 'days' | 'weeks' | 'months';
   newSkill: string;
-  newCountry: string;
 }
 
 const JOB_CATEGORIES = [
@@ -86,17 +81,10 @@ const BUDGET_TYPES = [
   { value: 'hourly', label: 'Hourly Rate' }
 ];
 
-const DURATION_TYPES = [
-  { value: 'less-than-1-month', label: 'Less than 1 month' },
-  { value: '1-3-months', label: '1-3 months' },
-  { value: '3-6-months', label: '3-6 months' },
-  { value: 'more-than-6-months', label: 'More than 6 months' }
-];
-
-const LOCATION_TYPES = [
-  { value: 'remote', label: 'Remote' },
-  { value: 'onsite', label: 'On-site' },
-  { value: 'hybrid', label: 'Hybrid' }
+const DURATION_UNITS = [
+  { value: 'days', label: 'Days' },
+  { value: 'weeks', label: 'Weeks' },
+  { value: 'months', label: 'Months' }
 ];
 
 export default function CreateJobPage() {
@@ -117,23 +105,22 @@ export default function CreateJobPage() {
       currency: 'USD'
     },
     duration: {
-      type: '1-3-months'
+      value: 1,
+      unit: 'months'
     },
     skills: [],
     experienceLevel: 'intermediate',
     isUrgent: false,
     isFeatured: false,
-    location: {
-      type: 'remote'
-    },
     maxProposals: 50,
+    attachments: [],
+    expiresAt: '',
     // Form-specific fields
     budgetMin: '',
     budgetMax: '',
-    estimatedHours: '',
-    countries: [],
-    newSkill: '',
-    newCountry: ''
+    durationValue: '1',
+    durationUnit: 'months',
+    newSkill: ''
   });
 
   const handleInputChange = (field: keyof JobFormData) => (
@@ -181,15 +168,42 @@ export default function CreateJobPage() {
     }));
   };
 
-  const handleDurationHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDurationValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      estimatedHours: value,
+      durationValue: value,
       duration: {
-        ...prev.duration!,
-        estimatedHours: parseInt(value) || undefined
+        value: parseInt(value) || 1,
+        unit: prev.durationUnit
       }
+    }));
+  };
+
+  const handleDurationUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const unit = e.target.value as 'days' | 'weeks' | 'months';
+    setFormData(prev => ({
+      ...prev,
+      durationUnit: unit,
+      duration: {
+        value: parseInt(prev.durationValue) || 1,
+        unit: unit
+      }
+    }));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...files]
+    }));
+  };
+
+  const removeFile = (indexToRemove: number) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, index) => index !== indexToRemove)
     }));
   };
 
@@ -210,30 +224,7 @@ export default function CreateJobPage() {
     }));
   };
 
-  const addCountry = () => {
-    if (formData.newCountry.trim() && !formData.countries.includes(formData.newCountry.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        countries: [...prev.countries, prev.newCountry.trim()],
-        newCountry: '',
-        location: {
-          ...prev.location!,
-          countries: [...prev.countries, prev.newCountry.trim()]
-        }
-      }));
-    }
-  };
 
-  const removeCountry = (countryToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      countries: prev.countries.filter(country => country !== countryToRemove),
-      location: {
-        ...prev.location!,
-        countries: prev.countries.filter(country => country !== countryToRemove)
-      }
-    }));
-  };
 
   const validateForm = (): string | null => {
     if (!formData.title.trim()) return 'Job title is required';
@@ -263,6 +254,20 @@ export default function CreateJobPage() {
     setIsLoading(true);
 
     try {
+      // Create FormData for file uploads if attachments exist
+      let attachmentUrls: { filename: string; url: string; size: number; type: string; }[] = [];
+      
+      // Here you would normally upload files to your storage service
+      // For now, we'll create placeholder attachment objects
+      if (formData.attachments.length > 0) {
+        attachmentUrls = formData.attachments.map(file => ({
+          filename: file.name,
+          url: `placeholder-url-for-${file.name}`, // Replace with actual upload URL
+          size: file.size,
+          type: file.type
+        }));
+      }
+
       const jobData: CreateJobRequest = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -276,15 +281,16 @@ export default function CreateJobPage() {
           currency: formData.budget.currency
         },
         duration: formData.duration ? {
-          type: formData.duration.type,
-          estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : undefined
+          value: formData.duration.value,
+          unit: formData.duration.unit
         } : undefined,
         skills: formData.skills,
         experienceLevel: formData.experienceLevel,
         isUrgent: formData.isUrgent,
         isFeatured: formData.isFeatured,
-        location: formData.location,
-        maxProposals: formData.maxProposals
+        attachments: attachmentUrls.length > 0 ? attachmentUrls : undefined,
+        maxProposals: formData.maxProposals,
+        expiresAt: formData.expiresAt || undefined
       };
 
       const response = await jobService.createJob(jobData);
@@ -293,7 +299,7 @@ export default function CreateJobPage() {
 
       // Redirect to job details page after successful creation
       setTimeout(() => {
-        router.push(`/jobs/${response.id}`);
+        router.push(`/jobs`);
       }, 2000);
 
     } catch (err: any) {
@@ -304,7 +310,7 @@ export default function CreateJobPage() {
   };
 
   return (
-    <DashboardLayout userRole="client" userName="Client Name">
+    <DashboardLayout userRole="client">
       <div className="flex-1">
         <div className="max-w-6xl mx-auto p-6">
           {/* Header */}
@@ -469,35 +475,25 @@ export default function CreateJobPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Project Duration
                   </label>
-                  <select
-                    value={formData.duration?.type || '1-3-months'}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      duration: {
-                        ...prev.duration!,
-                        type: e.target.value as any
-                      }
-                    }))}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    {DURATION_TYPES.map(duration => (
-                      <option key={duration.value} value={duration.value}>{duration.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Estimated Hours
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="160"
-                    value={formData.estimatedHours}
-                    onChange={handleDurationHoursChange}
-                    min="1"
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      placeholder="3"
+                      value={formData.durationValue}
+                      onChange={handleDurationValueChange}
+                      min="1"
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                    />
+                    <select
+                      value={formData.durationUnit}
+                      onChange={handleDurationUnitChange}
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    >
+                      {DURATION_UNITS.map(unit => (
+                        <option key={unit.value} value={unit.value}>{unit.label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -574,83 +570,58 @@ export default function CreateJobPage() {
               </div>
             </div>
 
-            {/* Location & Preferences */}
+            {/* Attachments & Settings */}
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <MapPin className="mr-2 h-5 w-5" />
-                Location & Preferences
+                <Upload className="mr-2 h-5 w-5" />
+                Attachments & Settings
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Work Location
+                    Project Files (Optional)
                   </label>
-                  <select
-                    value={formData.location?.type || 'remote'}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      location: {
-                        ...prev.location!,
-                        type: e.target.value as 'remote' | 'onsite' | 'hybrid'
-                      }
-                    }))}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    {LOCATION_TYPES.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {(formData.location?.type === 'onsite' || formData.location?.type === 'hybrid') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Countries
-                    </label>
-                    <div className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        placeholder="Add a country"
-                        value={formData.newCountry}
-                        onChange={handleInputChange('newCountry')}
-                        onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            addCountry();
-                          }
-                        }}
-                        className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
-                      />
-                      <Button
-                        type="button"
-                        onClick={addCountry}
-                        variant="secondary"
-                        size="md"
-                        disabled={!formData.newCountry.trim()}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.countries.map(country => (
-                        <span
-                          key={country}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800"
-                        >
-                          {country}
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.zip,.rar"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Max 10MB per file. Supported: PDF, DOC, Images, ZIP</p>
+                  
+                  {formData.attachments.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {formData.attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm text-gray-700 truncate">{file.name}</span>
                           <button
                             type="button"
-                            onClick={() => removeCountry(country)}
-                            className="ml-2 text-orange-600 hover:text-orange-800"
+                            onClick={() => removeFile(index)}
+                            className="text-red-600 hover:text-red-800"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-4 w-4" />
                           </button>
-                        </span>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Job Expiry Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.expiresAt}
+                    onChange={handleInputChange('expiresAt')}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">When should this job posting expire?</p>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -9,18 +9,8 @@ interface NavItem {
   href: string;
 }
 
-const Header: React.FC = () => {
+const LandingHeader: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [isScrolled, setIsScrolled] = React.useState(false);
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const navItems: NavItem[] = [
     { label: 'Find Talent', href: '#find-talent' },
@@ -29,15 +19,8 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-bg-secondary/95 backdrop-blur-xl shadow-2xl border-b border-white/10' 
-          : 'bg-transparent'
-      }`} 
-      role="banner"
-    >
-      <nav className="flex items-center justify-between p-6 lg:px-8" role="navigation" aria-label="Main navigation">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-transparent" role="banner">
+      <nav className="flex items-center justify-between w-3/5 mx-auto my-2 p-3 lg:px-4 bg-hero-gradient border border-white shadow-lg rounded-[20px]" role="navigation" aria-label="Main navigation">
         {/* Logo */}
         <div className="flex items-center space-x-3">
           <div className="relative">
@@ -58,8 +41,8 @@ const Header: React.FC = () => {
               className="relative text-white/90 hover:text-white transition-all duration-300 font-medium group py-2"
             >
               {item.label}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
-              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-accent/50 scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
+              <span className="absolute right-0 bottom-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white/50 scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
             </a>
           ))}
         </div>
@@ -67,13 +50,13 @@ const Header: React.FC = () => {
         {/* Desktop CTA */}
         <div className="hidden lg:flex items-center space-x-4">
           <Link href="/login">
-            <button className="text-white border-2 border-white px-6 py-2.5 rounded-lg hover:bg-white hover:text-primary transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
+            <button className="text-white border-2 border-white px-4 py-2 rounded-lg hover:bg-white hover:text-[#2A4A5B] transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
               Login
             </button>
           </Link>
           <Link href="/register">
-            <button className="bg-accent text-white px-6 py-2.5 rounded-lg hover:bg-accent-hover shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-accent/50">
-              Get Started
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+              Register
             </button>
           </Link>
         </div>
@@ -112,13 +95,13 @@ const Header: React.FC = () => {
               {/* Mobile CTA */}
               <div className="flex flex-col space-y-3 pt-4 border-t border-white/10">
                 <Link href="/login" className="w-full">
-                  <button className="w-full text-white border-2 border-white px-6 py-2.5 rounded-lg hover:bg-white hover:text-primary transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
+                  <button className="w-full text-white border-2 border-white px-4 py-2 rounded-lg hover:bg-white hover:text-[#2A4A5B] transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
                     Login
                   </button>
                 </Link>
                 <Link href="/register" className="w-full">
-                  <button className="w-full bg-accent text-white px-6 py-2.5 rounded-lg hover:bg-accent-hover shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-accent/50">
-                    Get Started
+                  <button className="w-full bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                    Register
                   </button>
                 </Link>
               </div>
@@ -130,4 +113,4 @@ const Header: React.FC = () => {
   );
 };
 
-export default Header;
+export default LandingHeader;

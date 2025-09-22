@@ -2,7 +2,7 @@ import React from 'react';
 
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'accent' | 'outline';
+  variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
   className?: string;
@@ -25,7 +25,8 @@ const Button: React.FC<ButtonProps> = ({
     primary: 'btn-primary focus:ring-[var(--color-primary)]/50',
     secondary: 'btn-secondary focus:ring-[var(--color-primary)]/50',
     accent: 'btn-accent focus:ring-[var(--color-accent)]/50',
-    outline: 'border-2 border-[var(--color-text-white)] text-[var(--color-text-white)] hover:bg-[var(--color-text-white)] hover:text-[var(--color-primary)] disabled:border-[var(--color-disabled-bg)] disabled:text-[var(--color-disabled-bg)] focus:ring-[var(--color-text-white)]/50'
+    ghost: 'btn-ghost focus:ring-[var(--color-text-secondary)]/50',
+    outline: 'border-2 border-[var(--color-text-white)] text-[var(--color-text-white)] hover:bg-[var(--color-text-white)] hover:text-[var(--color-primary)] disabled:border-[var(--color-text-muted)] disabled:text-[var(--color-text-muted)] focus:ring-[var(--color-text-white)]/50'
   };
 
   const sizes = {

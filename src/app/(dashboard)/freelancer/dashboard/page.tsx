@@ -18,8 +18,10 @@ import {
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import StatsCard from '../../../../components/features/dashboard/StatsCard';
 import { dashboardApi, type FreelancerStats, type FreelancerProposal, type ActiveContract } from '../../../../lib/api/dashboard';
+import { useUserDisplay } from '../../../../lib/hooks/useAuth';
 
 export default function FreelancerDashboard() {
+  const { displayName } = useUserDisplay();
   const [stats, setStats] = useState<FreelancerStats>({
     totalProposals: 0,
     activeProposals: 0,
@@ -113,11 +115,11 @@ export default function FreelancerDashboard() {
   }
 
   return (
-    <DashboardLayout userRole="freelancer" userName="Sarah Johnson">
+    <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="card-default p-6">
-          <h1 className="text-2xl font-bold text-primary mb-2">Welcome back, Sarah! 👋</h1>
+          <h1 className="text-2xl font-bold text-primary mb-2">Welcome back, {displayName}! 👋</h1>
           <p className="text-secondary">Here's your freelance performance overview.</p>
         </div>
 

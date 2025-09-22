@@ -22,22 +22,25 @@ import {
 import Sidebar from '../common/Sidebar/Sidebar';
 import Button from '../ui/Button';
 import { authService } from '../../lib/api/auth';
+import { useUserDisplay } from '../../lib/hooks/useAuth';
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  userRole: 'freelancer' | 'client';
-  userName?: string;
-  userAvatar?: string;
+  userRole?: 'freelancer' | 'client';
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
-  userRole,
-  userName = 'User',
-  userAvatar
+  userRole: propUserRole,
 }) => {
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Get user data from Redux state
+  const { displayName, displayAvatar, displayRole, initials } = useUserDisplay();
+  
+  // Use the userRole from props if provided, otherwise use from Redux state
+  const userRole = propUserRole || displayRole;
 
   const handleLogout = async () => {
     try {
@@ -194,21 +197,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             {/* User Menu */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                {userAvatar ? (
+                {displayAvatar ? (
                   <img
-                    src={userAvatar}
-                    alt={userName}
+                    src={displayAvatar}
+                    alt={displayName}
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
                   <div className="w-8 h-8 bg-[#F59E0B] rounded-full flex items-center justify-center">
                     <span className="text-text-white text-sm font-medium">
-                      {userName.charAt(0).toUpperCase()}
+                      {initials}
                     </span>
                   </div>
                 )}
                 <div className=" md:block flex items-center justify-center gap-2">
-                  <p className="text-sm font-medium text-text-white">{userName}</p>
+                  <p className="text-sm font-medium text-text-white">{displayName}</p>
                   <p className="text-xs text-secondary capitalize">{userRole}</p>
                 </div>
               </div>
