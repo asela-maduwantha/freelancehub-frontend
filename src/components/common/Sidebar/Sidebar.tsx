@@ -25,22 +25,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`nav-emerald border-r border-emerald transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}>
+    <div className={`bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-screen ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-emerald">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
         {!isCollapsed && (
-          <h2 className="text-lg font-semibold text-text-white">Menu</h2>
+          <h2 className="text-lg font-semibold text-primary">Menu</h2>
         )}
         <button
           onClick={onToggle}
-          className="p-1 rounded-md bg-[#defde9] hover:bg-primary-hover text-[#025036] transition-colors duration-200"
+          className="p-1 rounded-md bg-orange-100 hover:bg-orange-200 text-orange-600 transition-colors duration-200"
         >
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
       </div>
 
       {/* Navigation Items */}
-      <nav className="flex-1 px-2 py-4">
+      <nav className="flex-1 px-2 py-4 overflow-y-auto">
         <ul className="space-y-2">
           {items.map((item) => (
             <li key={item.id}>
@@ -49,8 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <div
                     className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer ${
                       item.isActive
-                        ? 'btn-primary-active'
-                        : 'btn-primary'
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
                     } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
                   >
                     {item.icon && (
@@ -70,8 +70,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={item.onClick}
                   className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
                     item.isActive
-                      ? 'btn-primary-active'
-                      : 'btn-primary'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
                   } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
                 >
                   {item.icon && (

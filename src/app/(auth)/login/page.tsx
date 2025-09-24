@@ -9,7 +9,7 @@ import Button from '../../../components/ui/Button';
 import { Alert } from '../../../components/ui/Feedback';
 import { authService } from '../../../lib/api/auth';
 import { store } from '../../../store';
-import { LogIn, Eye, EyeOff, Shield, Users, Star, Mail, Lock, CheckCircle } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 
 interface LoginFormData {
   email: string;
@@ -37,7 +37,6 @@ export default function LoginPage() {
       ...prev,
       [field]: value
     }));
-    // Clear errors when user starts typing
     if (error) setError(null);
   };
 
@@ -45,7 +44,6 @@ export default function LoginPage() {
     if (!formData.email.trim()) return 'Email is required';
     if (!/\S+@\S+\.\S+/.test(formData.email)) return 'Please enter a valid email';
     if (!formData.password.trim()) return 'Password is required';
-
     return null;
   };
 
@@ -68,7 +66,6 @@ export default function LoginPage() {
         rememberMe: formData.rememberMe,
       });
 
-      // Get user role from Redux store and redirect to appropriate dashboard
       const user = store.getState().auth.user;
       if (user?.role === 'client') {
         router.push('/client/dashboard');
@@ -77,7 +74,6 @@ export default function LoginPage() {
       } else if (user?.role === 'admin') {
         router.push('/admin/dashboard');
       }
-
     } catch (error: any) {
       setError(error.message || 'Login failed. Please check your credentials.');
     } finally {
@@ -88,74 +84,56 @@ export default function LoginPage() {
   return (
     <AuthLayout
       title="Welcome Back"
-      subtitle="Sign in to your account to continue your journey"
+      subtitle="Sign in to continue to your account"
     >
-      <div className="max-w-md mx-auto space-y-8">
-        {/* Trust Indicators */}
-        <div className="text-center">
-          <div className="flex justify-center space-x-8 mb-6">
-            <div className="flex flex-col items-center group">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[rgba(42,74,91,0.2)] to-[rgba(42,74,91,0.1)] flex items-center justify-center mb-3 border border-[rgba(42,74,91,0.3)] group-hover:border-[rgba(42,74,91,0.5)] transition-all duration-300 group-hover:scale-105">
-                <Shield className="w-7 h-7 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-white/90">Secure</span>
-            </div>
-            <div className="flex flex-col items-center group">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[rgba(43,108,176,0.2)] to-[rgba(43,108,176,0.1)] flex items-center justify-center mb-3 border border-[rgba(43,108,176,0.3)] group-hover:border-[rgba(43,108,176,0.5)] transition-all duration-300 group-hover:scale-105">
-                <Users className="w-7 h-7 text-info" />
-              </div>
-              <span className="text-sm font-medium text-white/90">Community</span>
-            </div>
-            <div className="flex flex-col items-center group">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[rgba(245,101,101,0.2)] to-[rgba(245,101,101,0.1)] flex items-center justify-center mb-3 border border-[rgba(245,101,101,0.3)] group-hover:border-[rgba(245,101,101,0.5)] transition-all duration-300 group-hover:scale-105">
-                <Star className="w-7 h-7 text-accent" />
-              </div>
-              <span className="text-sm font-medium text-white/90">Trusted</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Message */}
+      <div className="space-y-6">
         {error && (
-          <div className="animate-in slide-in-from-top-2 duration-300">
-            <Alert type="error" message={error} />
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-sm">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800 font-medium">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email */}
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-semibold text-white">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
               Email Address
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-white/60 group-focus-within:text-accent transition-colors duration-200" />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-slate-400" />
               </div>
-              <Input
+              <input
                 id="email"
                 type="email"
-                placeholder="john.doe@example.com"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleInputChange('email')}
                 required
                 disabled={isLoading}
                 autoComplete="email"
-                className="pl-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-accent focus:bg-white/15 transition-all duration-200"
+                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
               />
             </div>
           </div>
 
-          {/* Password */}
-          <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-semibold text-white">
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
               Password
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-white/60 group-focus-within:text-accent transition-colors duration-200" />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-slate-400" />
               </div>
-              <Input
+              <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
@@ -163,24 +141,23 @@ export default function LoginPage() {
                 onChange={handleInputChange('password')}
                 required
                 disabled={isLoading}
-                className="pl-12 pr-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-accent focus:bg-white/15 transition-all duration-200"
+                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-accent transition-colors duration-200"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-white/60" />
+                  <EyeOff className="h-5 w-5" />
                 ) : (
-                  <Eye className="h-5 w-5 text-white/60" />
+                  <Eye className="h-5 w-5" />
                 )}
               </button>
             </div>
           </div>
 
-          {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
@@ -189,84 +166,59 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={formData.rememberMe}
                 onChange={handleInputChange('rememberMe')}
-                className="h-4 w-4 rounded border-white/30 bg-white/10 text-accent focus:ring-accent focus:ring-offset-0 focus:ring-2 transition-all duration-200"
+                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-slate-300 rounded"
                 disabled={isLoading}
               />
-              <label htmlFor="rememberMe" className="ml-3 block text-sm font-medium text-white/90">
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-slate-700">
                 Remember me
               </label>
             </div>
 
-            <div className="text-sm">
-              <Link
-                href="/forgot-password"
-                className="font-semibold text-accent hover:text-accent-hover transition-colors duration-200"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-orange-600 hover:text-orange-500 transition-colors duration-300"
+            >
+              Forgot password?
+            </Link>
           </div>
 
-          {/* Submit Button */}
-          <Button
+          <button
             type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-accent to-accent-hover hover:from-accent-hover hover:to-accent-active shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
             disabled={isLoading}
+            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-orange-500/25"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center space-x-3">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Signing In...</span>
-              </div>
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </>
             ) : (
-              <div className="flex items-center justify-center space-x-3">
-                <LogIn className="w-5 h-5" />
-                <span>Sign In</span>
-              </div>
+              <>
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In
+              </>
             )}
-          </Button>
+          </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-8">
+        <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/20" />
+            <div className="w-full border-t border-slate-300" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-transparent text-white/70 font-medium">New to our platform?</span>
+            <span className="px-2 bg-white text-slate-500">Don't have an account?</span>
           </div>
         </div>
 
-        {/* Sign Up Link */}
-        <div className="text-center">
-          <Link href="/register">
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full h-12 font-semibold border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300"
-            >
-              <div className="flex items-center justify-center space-x-3">
-                <Users className="w-5 h-5" />
-                <span>Create Your Account</span>
-              </div>
-            </Button>
-          </Link>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-8 text-center">
-          <div className="bg-gradient-to-r from-success/10 to-success/5 border border-success/20 rounded-xl p-4 backdrop-blur-sm">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-success" />
-              <span className="text-sm font-semibold text-white">Secure & Trusted</span>
-            </div>
-            <p className="text-sm text-white/80 leading-relaxed">
-              Your data is protected with enterprise-grade security. Join thousands of professionals already using our platform.
-            </p>
-          </div>
-        </div>
+        <Link href="/register">
+          <button className="w-full flex justify-center items-center py-2.5 px-4 border-2 border-orange-200 rounded-xl shadow-sm text-sm font-semibold text-gray-700 bg-white/90 backdrop-blur-sm hover:bg-orange-50 hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-300 transform hover:scale-105 group">
+            Create Account
+            <ArrowRight className="ml-2 h-4 w-4 text-orange-600 group-hover:translate-x-1 transition-transform duration-300" />
+          </button>
+        </Link>
       </div>
     </AuthLayout>
   );

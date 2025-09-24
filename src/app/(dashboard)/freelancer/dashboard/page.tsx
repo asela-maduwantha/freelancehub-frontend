@@ -200,7 +200,7 @@ export default function FreelancerDashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-primary">Recent Proposals</h2>
               <Link href="/freelancer/proposals">
-                <button className="text-emerald hover:text-emerald font-medium text-sm">
+                <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
                   View All
                 </button>
               </Link>
@@ -235,7 +235,7 @@ export default function FreelancerDashboard() {
                     </span>
 
                     <Link href={`/freelancer/proposals/${proposal.id}`}>
-                      <button className="text-emerald hover:text-emerald font-medium text-sm">
+                      <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
                         View Details
                       </button>
                     </Link>
@@ -252,7 +252,7 @@ export default function FreelancerDashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-primary">Active Contracts</h2>
               <Link href="/freelancer/contracts">
-                <button className="text-emerald hover:text-emerald font-medium text-sm">
+                <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
                   View All
                 </button>
               </Link>
@@ -303,7 +303,7 @@ export default function FreelancerDashboard() {
                       </span>
 
                       <Link href={`/freelancer/contracts/${contract.id}`}>
-                        <button className="text-emerald hover:text-emerald font-medium text-sm">
+                        <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
                           View Details
                         </button>
                       </Link>
@@ -382,7 +382,7 @@ export default function FreelancerDashboard() {
         </div>
 
         {/* Getting Started Guide */}
-        <div className="bg-emerald rounded-lg p-6 border border-emerald">
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
           <h2 className="text-xl font-semibold text-primary mb-4">Boost Your Profile</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">

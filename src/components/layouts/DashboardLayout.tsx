@@ -148,9 +148,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const sidebarItems = getSidebarItems();
 
   return (
-    <div className="min-h-screen bg-secondary">
-      {/* Top Navigation Bar */}
-      <header className="nav-emerald border-b border-emerald px-6 py-4">
+    <div className="h-screen flex flex-col bg-secondary">
+      {/* Top Navigation Bar - Fixed */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and role indicator */}
           <div className="flex items-center space-x-4">
@@ -229,9 +229,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex">
-        {/* Sidebar */}
+      {/* Main Content Area - Scrollable */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - Fixed */}
         <Sidebar
           items={sidebarItems}
           isCollapsed={sidebarCollapsed}
@@ -239,8 +239,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           className="hidden md:block"
         />
 
-        {/* Main Content */}
-        <main className="flex-1 p-6">
+        {/* Main Content - Scrollable */}
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
       </div>
