@@ -1,18 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary Colors - Blue-Gray (same as dark theme for consistency) */
-  --color-primary: #2A4A5B; /* dark blue-gray */
-  --color-primary-hover: #1E3A50; /* slightly darker */
-  --color-primary-active: #0F2834; /* darkest */
-  --color-primary-light: rgba(42, 74, 91, 0.1); /* primary with low opacity */
+  --color-primary: #F56565; /* dark blue-gray */
+  --color-primary-hover: #E53E3E; /* slightly darker */
+  --color-primary-active: #C53030; /* darkest */
+  --color-primary-light: rgba(245, 101, 101, 0.1); /* primary with low opacity */
   --color-primary-lighter: rgba(42, 74, 91, 0.05); /* very light */
 
-  /* Secondary Colors - Now dark blue-gray for text on light backgrounds */
-  --color-secondary: #2A4A5B; /* dark blue-gray for text */
-  --color-secondary-hover: rgba(42, 74, 91, 0.9); /* slightly lighter */
-  --color-secondary-active: rgba(42, 74, 91, 0.8); /* more opaque */
-  --color-secondary-border: rgba(42, 74, 91, 0.3); /* dark border */
+
 
   /* Accent Colors - Coral (same as dark theme) */
   --color-accent: #F56565; /* coral */
