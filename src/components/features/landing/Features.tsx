@@ -39,10 +39,10 @@ const Features: React.FC = () => {
     <section className="py-20 bg-dark-gradient-2">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             Why Choose Frevo?
           </h2>
-          <p className="text-lg text-white-80 max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Experience the difference with our comprehensive freelancing platform designed for success.
           </p>
         </div>
@@ -51,22 +51,14 @@ const Features: React.FC = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="animate-fade-in-up"
+              className="animate-fade-in-up light-card"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="bg-white-10 backdrop-blur-sm border border-white-20 text-center p-6 relative overflow-hidden group rounded-xl hover:bg-white-15 transition-all duration-300 transform hover:-translate-y-2">
-                <div className="relative z-10">
-                  <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-white-70 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
+              <div className="icon-wrapper">
+                <span className="card-icon">{feature.icon}</span>
               </div>
+              <h3 className="card-title">{feature.title}</h3>
+              <p className="card-description">{feature.description}</p>
             </div>
           ))}
         </div>

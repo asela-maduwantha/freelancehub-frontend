@@ -30,13 +30,13 @@ const Testimonials: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-dark-gradient-3">
+    <section className="py-20 bg-dark-gradient-1">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             What Our Users Say
           </h2>
-          <p className="text-lg text-white-80 max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Don't just take our word for it. Here's what clients and freelancers have to say about their experience on Frevo.
           </p>
         </div>
@@ -45,38 +45,34 @@ const Testimonials: React.FC = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="animate-fade-in-up"
+              className="animate-fade-in-up light-card"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div className="bg-white-10 backdrop-blur-sm border border-white-20 p-6 relative overflow-hidden group rounded-xl hover:bg-white-15 transition-all duration-500 transform hover:-translate-y-3">
-                <div className="relative z-10">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <span
-                        key={i}
-                        className="text-lg transform group-hover:scale-110 transition-transform duration-300 text-accent"
-                        style={{ animationDelay: `${i * 0.1}s` }}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-white-80 mb-6 italic leading-relaxed">
-                    "{testimonial.content}"
+              <div className="flex items-center mb-4">
+                {[...Array(testimonial.rating)].map((_, i) => (
+                  <span
+                    key={i}
+                    className="text-lg transform group-hover:scale-110 transition-transform duration-300 text-accent"
+                    style={{ animationDelay: `${i * 0.1}s` }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <p className="text-secondary mb-6 italic leading-relaxed">
+                "{testimonial.content}"
+              </p>
+              <div className="flex items-center transform group-hover:scale-105 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold mr-4 bg-primary text-white shadow-lg">
+                  {testimonial.avatar}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-primary">
+                    {testimonial.name}
+                  </h4>
+                  <p className="text-sm text-secondary">
+                    {testimonial.role} at {testimonial.company}
                   </p>
-                  <div className="flex items-center transform group-hover:scale-105 transition-transform duration-300">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold mr-4 bg-[var(--color-primary)] text-white shadow-lg">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white">
-                        {testimonial.name}
-                      </h4>
-                      <p className="text-sm text-white-60">
-                        {testimonial.role} at {testimonial.company}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

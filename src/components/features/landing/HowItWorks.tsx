@@ -28,10 +28,10 @@ const HowItWorks: React.FC = () => {
     <section className="py-20 bg-dark-gradient-4">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
             How It Works
           </h2>
-          <p className="text-lg text-white-80 max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Getting started is simple. Follow these four easy steps to find and hire top freelance talent.
           </p>
         </div>
@@ -40,21 +40,16 @@ const HowItWorks: React.FC = () => {
           {steps.map((step, index) => (
             <div 
               key={index} 
-              className="text-center animate-fade-in-up"
+              className="text-center animate-fade-in-up light-card"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6 bg-[var(--color-primary)] text-white shadow-lg">
-                  {step.step}
-                </div>
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 transform -translate-x-8 bg-white-30"></div>
-                )}
+              <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6 bg-accent text-white shadow-lg">
+                {step.step}
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">
+              <h3 className="text-xl font-semibold text-primary mb-3">
                 {step.title}
               </h3>
-              <p className="text-white-70">
+              <p className="text-secondary">
                 {step.description}
               </p>
             </div>

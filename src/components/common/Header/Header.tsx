@@ -29,50 +29,43 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header 
+    <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-bg-secondary/95 backdrop-blur-xl shadow-2xl border-b border-white/10' 
+        isScrolled
+          ? 'nav-light'
           : 'bg-transparent'
-      }`} 
+      }`}
       role="banner"
     >
-      <nav className="flex items-center justify-between p-6 lg:px-8" role="navigation" aria-label="Main navigation">
+      <nav className="nav-content" role="navigation" aria-label="Main navigation">
         {/* Logo */}
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-accent to-primary rounded-xl flex items-center justify-center shadow-lg">
-              <div className="w-5 h-5 bg-white rounded-md transform rotate-45"></div>
-            </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-pulse"></div>
-          </div>
-          <span className="text-2xl font-bold text-white tracking-tight">Frevo</span>
+        <div className="logo">
+          Frevo
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center space-x-8">
+        <ul className="nav-links">
           {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="relative text-white/90 hover:text-white transition-all duration-300 font-medium group py-2"
-            >
-              {item.label}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full"></span>
-              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-accent/50 scale-x-0 transition-transform duration-300 group-hover:scale-x-100"></span>
-            </a>
+            <li key={item.label}>
+              <a
+                href={item.href}
+                className="nav-link"
+              >
+                {item.label}
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
 
         {/* Desktop CTA */}
-        <div className="hidden lg:flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <Link href="/login">
-            <button className="text-white border-2 border-white px-6 py-2.5 rounded-lg hover:bg-white hover:text-primary transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
-              Login
+            <button className="btn-outline">
+              Sign In
             </button>
           </Link>
           <Link href="/register">
-            <button className="bg-accent text-white px-6 py-2.5 rounded-lg hover:bg-accent-hover shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-accent/50">
+            <button className="btn-accent">
               Get Started
             </button>
           </Link>
@@ -80,7 +73,7 @@ const Header: React.FC = () => {
 
         {/* Mobile menu button */}
         <button
-          className="lg:hidden text-white hover:text-accent transition-colors p-3 rounded-xl hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent/50 backdrop-blur-sm"
+          className="lg:hidden text-secondary hover:text-accent transition-colors p-3 rounded-xl hover:bg-primary-lighter focus:outline-none focus:ring-2 focus:ring-accent/50 backdrop-blur-sm"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-menu"
@@ -92,7 +85,7 @@ const Header: React.FC = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div
-            className="absolute top-full left-0 right-0 bg-bg-secondary/95 backdrop-blur-lg lg:hidden shadow-2xl border-t border-white/10"
+            className="absolute top-full left-0 right-0 bg-white lg:hidden shadow-lg border-t border-primary/10"
             id="mobile-menu"
             role="menu"
             aria-label="Mobile navigation menu"
@@ -102,22 +95,22 @@ const Header: React.FC = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="block text-white/90 hover:text-white transition-all duration-300 font-medium py-3 px-4 rounded-lg hover:bg-white/10 border border-transparent hover:border-white/20"
+                  className="block text-secondary hover:text-accent transition-all duration-300 font-medium py-3 px-4 rounded-lg hover:bg-primary-lighter border border-transparent hover:border-primary/20"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
                 </a>
               ))}
-              
+
               {/* Mobile CTA */}
-              <div className="flex flex-col space-y-3 pt-4 border-t border-white/10">
+              <div className="flex flex-col space-y-3 pt-4 border-t border-primary/10">
                 <Link href="/login" className="w-full">
-                  <button className="w-full text-white border-2 border-white px-6 py-2.5 rounded-lg hover:bg-white hover:text-primary transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
-                    Login
+                  <button className="w-full btn-outline">
+                    Sign In
                   </button>
                 </Link>
                 <Link href="/register" className="w-full">
-                  <button className="w-full bg-accent text-white px-6 py-2.5 rounded-lg hover:bg-accent-hover shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-accent/50">
+                  <button className="w-full btn-accent">
                     Get Started
                   </button>
                 </Link>

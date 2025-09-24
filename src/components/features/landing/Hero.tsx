@@ -24,13 +24,13 @@ const HeroSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="min-h-screen relative overflow-hidden bg-hero-gradient">
+    <section className="min-h-screen mt-10 relative overflow-hidden bg-hero-gradient">
       {/* Animated Particles Background */}
       <div className="absolute inset-0 overflow-hidden">
         {particles.map((particle) => (
           <div
             key={particle.id}
-            className="absolute rounded-full bg-hero-particle animate-float-particle"
+            className="absolute rounded-full bg-primary/10 animate-float-particle"
             style={{
               width: `${particle.size}px`,
               height: `${particle.size}px`,
@@ -57,11 +57,11 @@ const HeroSection: React.FC = () => {
                 <span className="text-accent">Our Network</span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-white max-w-lg animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-lg lg:text-xl text-white/80 max-w-lg animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 Connect with top-tier freelance professionals for your next big idea.
               </p>
-              
-              <p className="text-base text-white font-medium animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+
+              <p className="text-base text-white/60 font-medium animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 Trusted by 10,000+ businesses worldwide • <span className="text-accent">4.9★</span> average rating
               </p>
             </div>
@@ -80,7 +80,7 @@ const HeroSection: React.FC = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-2 border-white text-white hover:bg-white hover:text-[#2A4A5B] px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                  className="btn-outline px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
                 >
                   Find Work
                 </Button>
@@ -88,12 +88,41 @@ const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Content - Illustration */}
+          {/* Right Content - Enhanced Illustration Display */}
           <div className="relative animate-float">
-            <div className="absolute -inset-4 bg-hero-glow rounded-3xl blur-xl opacity-50 animate-pulse"></div>
-            <div className="relative transform hover:scale-105 transition-transform duration-500">
-              <HeroIllustration />
+            {/* Multiple layered background effects */}
+            <div className="absolute -inset-8 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-3xl blur-2xl opacity-60 animate-pulse"></div>
+            <div className="absolute -inset-6 bg-gradient-to-br from-orange-400/15 to-red-400/15 rounded-2xl blur-xl opacity-50 animate-pulse" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute -inset-4 bg-gradient-to-tr from-orange-600/10 to-red-600/10 rounded-xl blur-lg opacity-40 animate-pulse" style={{ animationDelay: '2s' }}></div>
+            
+            {/* Main image container with enhanced styling */}
+            <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 shadow-2xl transform hover:scale-105 transition-all duration-700 hover:shadow-orange-500/20">
+              {/* Inner glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-2xl"></div>
+              
+              {/* Image with improved presentation */}
+              <div className="relative overflow-hidden rounded-xl bg-white shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 opacity-30"></div>
+                <div className="relative transform transition-transform duration-500 hover:scale-110">
+                  <HeroIllustration />
+                </div>
+              </div>
+              
+              {/* Floating accent elements */}
+              <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-80 animate-bounce"></div>
+              <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-br from-red-400 to-orange-500 rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute top-1/3 -right-6 w-4 h-4 bg-gradient-to-br from-orange-300 to-red-400 rounded-full opacity-70 animate-bounce" style={{ animationDelay: '1s' }}></div>
             </div>
+
+            {/* Additional floating decorative elements */}
+            <div className="absolute top-10 -left-6 w-16 h-16 border-2 border-orange-400/30 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
+            <div className="absolute bottom-10 -right-8 w-12 h-12 border-2 border-red-400/30 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
+            
+            {/* Subtle grid pattern overlay */}
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)',
+              backgroundSize: '20px 20px'
+            }}></div>
           </div>
         </div>
       </div>
