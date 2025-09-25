@@ -9,6 +9,7 @@ import Button from '../../../../../components/ui/Button/Button';
 import Loader from '../../../../../components/ui/Feedback/Loader';
 import { Alert } from '../../../../../components/ui/Feedback';
 import { jobService, CreateJobRequest } from '../../../../../lib/api/jobs';
+import { fileService } from '../../../../../lib/api/files';
 import {
   Briefcase,
   DollarSign,
@@ -92,6 +93,7 @@ export default function CreateJobPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -194,10 +196,38 @@ export default function CreateJobPage() {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
+    // Validate files before adding
+    const invalidFiles: string[] = [];
+    const validFiles: File[] = [];
+
+    files.forEach(file => {
+      const validationError = fileService.validateFile(file);
+      if (validationError) {
+        invalidFiles.push(`${file.name}: ${validationError}`);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      setError(`Invalid files:\n${invalidFiles.join('\n')}`);
+      return;
+    }
+
+    // Check total file count
+    if (formData.attachments.length + validFiles.length > 10) {
+      setError('Maximum 10 files allowed');
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
-      attachments: [...prev.attachments, ...files]
+      attachments: [...prev.attachments, ...validFiles]
     }));
+
+    // Clear any previous errors
+    if (error) setError(null);
   };
 
   const removeFile = (indexToRemove: number) => {
@@ -254,18 +284,25 @@ export default function CreateJobPage() {
     setIsLoading(true);
 
     try {
-      // Create FormData for file uploads if attachments exist
+      // Upload files to storage service if attachments exist
       let attachmentUrls: { filename: string; url: string; size: number; type: string; }[] = [];
-      
-      // Here you would normally upload files to your storage service
-      // For now, we'll create placeholder attachment objects
+
       if (formData.attachments.length > 0) {
-        attachmentUrls = formData.attachments.map(file => ({
-          filename: file.name,
-          url: `placeholder-url-for-${file.name}`, // Replace with actual upload URL
-          size: file.size,
-          type: file.type
-        }));
+        setIsUploadingFiles(true);
+        try {
+          const uploadResults = await fileService.uploadMultipleDocuments(
+            formData.attachments,
+            formData.attachments.map(() => 'Job attachment') // Optional descriptions
+          );
+          attachmentUrls = uploadResults;
+        } catch (uploadError: any) {
+          console.error('File upload error:', uploadError);
+          setError(`Failed to upload files: ${uploadError.message}`);
+          setIsUploadingFiles(false);
+          return;
+        } finally {
+          setIsUploadingFiles(false);
+        }
       }
 
       const jobData: CreateJobRequest = {
@@ -311,32 +348,35 @@ export default function CreateJobPage() {
 
   return (
     <DashboardLayout userRole="client">
-      <div className="flex-1">
-        <div className="max-w-6xl mx-auto p-6">
-          {/* Header */}
-          <div className="mb-6">
-            <Link href="/client/dashboard">
-              <button className="inline-flex items-center text-gray-600 hover:text-orange-600 mb-3 transition-colors">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </button>
-            </Link>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">Create New Job</h1>
-                <p className="text-gray-600">Post a job and find the perfect freelancer for your project.</p>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Page Header */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Post a New Job</h1>
+              <p className="text-gray-600">Find the perfect freelancer for your project by providing clear requirements and expectations.</p>
+            </div>
+            <div className="hidden md:block">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center">
+                <Plus className="w-8 h-8 text-orange-600" />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <Briefcase className="mr-2 h-5 w-5" />
-                Basic Information
-              </h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Basic Information</h2>
+                  <p className="text-sm text-gray-600">Tell us about your project</p>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
@@ -360,7 +400,7 @@ export default function CreateJobPage() {
                   <select
                     value={formData.category}
                     onChange={handleInputChange('category')}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     required
                   >
                     <option value="">Select a category</option>
@@ -392,7 +432,7 @@ export default function CreateJobPage() {
                     onChange={handleInputChange('description')}
                     rows={6}
                     placeholder="Describe your project in detail. Include requirements, deliverables, and any specific technologies or skills needed..."
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none resize-vertical"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none resize-vertical transition-colors"
                     required
                   />
                 </div>
@@ -400,11 +440,16 @@ export default function CreateJobPage() {
             </div>
 
             {/* Budget & Duration */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <DollarSign className="mr-2 h-5 w-5" />
-                Budget & Duration
-              </h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Budget & Timeline</h2>
+                  <p className="text-sm text-gray-600">Set your project budget and expected duration</p>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -414,7 +459,7 @@ export default function CreateJobPage() {
                   <select
                     value={formData.projectType}
                     onChange={handleInputChange('projectType')}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   >
                     {PROJECT_TYPES.map(type => (
                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -429,7 +474,7 @@ export default function CreateJobPage() {
                   <select
                     value={formData.budget.type}
                     onChange={(e) => handleBudgetTypeChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   >
                     {BUDGET_TYPES.map(type => (
                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -449,7 +494,7 @@ export default function CreateJobPage() {
                     min="1"
                     step="0.01"
                     required
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -466,7 +511,7 @@ export default function CreateJobPage() {
                       min={parseFloat(formData.budgetMin) + 1}
                       step="0.01"
                       required
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
                     />
                   </div>
                 )}
@@ -482,12 +527,12 @@ export default function CreateJobPage() {
                       value={formData.durationValue}
                       onChange={handleDurationValueChange}
                       min="1"
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
                     />
                     <select
                       value={formData.durationUnit}
                       onChange={handleDurationUnitChange}
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                     >
                       {DURATION_UNITS.map(unit => (
                         <option key={unit.value} value={unit.value}>{unit.label}</option>
@@ -499,11 +544,16 @@ export default function CreateJobPage() {
             </div>
 
             {/* Skills & Experience */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <FileText className="mr-2 h-5 w-5" />
-                Skills & Experience
-              </h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Skills & Experience</h2>
+                  <p className="text-sm text-gray-600">Specify required skills and experience level</p>
+                </div>
+              </div>
 
               <div className="space-y-6">
                 <div>
@@ -522,7 +572,7 @@ export default function CreateJobPage() {
                           addSkill();
                         }
                       }}
-                      className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                      className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
                     />
                     <Button
                       type="button"
@@ -560,7 +610,7 @@ export default function CreateJobPage() {
                   <select
                     value={formData.experienceLevel}
                     onChange={handleInputChange('experienceLevel')}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   >
                     {EXPERIENCE_LEVELS.map(level => (
                       <option key={level.value} value={level.value}>{level.label}</option>
@@ -571,11 +621,16 @@ export default function CreateJobPage() {
             </div>
 
             {/* Attachments & Settings */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <Upload className="mr-2 h-5 w-5" />
-                Attachments & Settings
-              </h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                  <Upload className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Attachments & Settings</h2>
+                  <p className="text-sm text-gray-600">Add files and configure job settings</p>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -586,25 +641,39 @@ export default function CreateJobPage() {
                     type="file"
                     multiple
                     onChange={handleFileUpload}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
-                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.zip,.rar"
+                    disabled={isUploadingFiles}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpeg,.jpg,.png,.gif"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Max 10MB per file. Supported: PDF, DOC, Images, ZIP</p>
+                  <p className="text-sm text-gray-500 mt-1">Max 10MB per file. Supported: PDF, DOC, DOCX, TXT, ZIP, JPEG, PNG, GIF</p>
                   
                   {formData.attachments.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {formData.attachments.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                          <div className="flex items-center">
+                            <FileText className="h-4 w-4 text-gray-500 mr-2" />
+                            <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({(file.size / 1024 / 1024).toFixed(1)}MB)
+                            </span>
+                          </div>
                           <button
                             type="button"
                             onClick={() => removeFile(index)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                            disabled={isUploadingFiles}
                           >
                             <X className="h-4 w-4" />
                           </button>
                         </div>
                       ))}
+                      {isUploadingFiles && (
+                        <div className="flex items-center p-2 bg-blue-50 rounded">
+                          <Loader size="sm" className="mr-2" />
+                          <span className="text-sm text-blue-700">Uploading files...</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -618,7 +687,7 @@ export default function CreateJobPage() {
                     value={formData.expiresAt}
                     onChange={handleInputChange('expiresAt')}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
                   />
                   <p className="text-sm text-gray-500 mt-1">When should this job posting expire?</p>
                 </div>
@@ -637,7 +706,7 @@ export default function CreateJobPage() {
                     }))}
                     min="1"
                     max="1000"
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -682,10 +751,10 @@ export default function CreateJobPage() {
             )}
 
             {/* Submit Button */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <div className="flex justify-end space-x-4">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex flex-col sm:flex-row justify-end gap-4">
                 <Link href="/client/dashboard">
-                  <Button type="button" variant="outline" size="lg">
+                  <Button type="button" variant="outline" size="lg" className="w-full sm:w-auto">
                     Cancel
                   </Button>
                 </Link>
@@ -693,21 +762,29 @@ export default function CreateJobPage() {
                   type="submit"
                   variant="primary"
                   size="lg"
-                  disabled={isLoading}
+                  disabled={isLoading || isUploadingFiles}
+                  className="w-full sm:w-auto"
                 >
-                  {isLoading ? (
+                  {isUploadingFiles ? (
+                    <div className="flex items-center justify-center">
+                      <Loader size="sm" className="mr-2" />
+                      Uploading Files...
+                    </div>
+                  ) : isLoading ? (
                     <div className="flex items-center justify-center">
                       <Loader size="sm" className="mr-2" />
                       Creating Job...
                     </div>
                   ) : (
-                    'Create Job'
+                    <div className="flex items-center justify-center">
+                      <Plus className="w-5 h-5 mr-2" />
+                      Post Job
+                    </div>
                   )}
                 </Button>
               </div>
             </div>
-          </form>
-        </div>
+        </form>
       </div>
     </DashboardLayout>
   );

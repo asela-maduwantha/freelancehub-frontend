@@ -90,7 +90,12 @@ export default function CreateProposalPage() {
           title: job.title,
           description: job.description,
           budget: job.budget,
-          duration: job.duration,
+          duration: job.duration ? {
+            type: job.duration.unit,
+            estimatedHours: job.duration.unit === 'days' ? job.duration.value * 8 :
+                           job.duration.unit === 'weeks' ? job.duration.value * 40 :
+                           job.duration.value * 160 // months
+          } : undefined,
           skills: job.skills,
           client: {
             name: job.client.fullName,

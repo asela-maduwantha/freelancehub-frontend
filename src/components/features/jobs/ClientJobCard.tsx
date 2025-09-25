@@ -59,159 +59,75 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return 'text-muted';
-      case 'open':
-        return 'text-emerald';
-      case 'in-progress':
-        return 'text-accent';
-      case 'completed':
-        return 'text-emerald';
-      case 'cancelled':
-        return 'text-red-500';
-      default:
-        return 'text-muted';
-    }
-  };
-
-  const canViewProposals = job.status === 'open' && job.proposalCount > 0;
-
   return (
-    <Card variant="default" className="h-full">
-      <CardHeader>
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg font-semibold text-primary line-clamp-2">
-            {job.title}
-          </h3>
-          <div className="flex gap-2 flex-shrink-0 ml-3">
-            <Badge variant={getStatusBadgeVariant(job.status)}>
-              <span className={getStatusColor(job.status)}>
-                {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-              </span>
-            </Badge>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all duration-300 p-6 group cursor-pointer" onClick={() => router.push(`/client/jobs/${job.id}`)}>
+      {/* Header Section with Status */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+              {job.title}
+            </h3>
             {job.isUrgent && (
-              <Badge variant="warning">Urgent</Badge>
-            )}
-            {job.isFeatured && (
-              <Badge variant="warning">Featured</Badge>
+              <Badge variant="warning" className="text-xs px-2 py-1 flex-shrink-0">Urgent</Badge>
             )}
           </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="font-medium text-green-600 text-base">{formatBudget()}</span>
+            <span className="text-gray-400">•</span>
+            <span className="truncate">{job.category}</span>
+          </div>
         </div>
-        
-        <div className="flex flex-wrap gap-4 text-sm text-secondary">
-          <span className="font-medium text-emerald">
-            {formatBudget()}
+        <div className="flex flex-col items-end gap-2 ml-3">
+          <Badge variant={getStatusBadgeVariant(job.status)} className="text-xs px-2 py-1 font-medium">
+            {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Metadata Row */}
+      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {formatDate(job.postedAt)}
           </span>
-          <span>{job.category}</span>
-          {job.subcategory && <span>• {job.subcategory}</span>}
-        </div>
-      </CardHeader>
-
-      <CardBody>
-        <p className="text-secondary mb-4 line-clamp-3">
-          {job.description}
-        </p>
-
-        <div className="space-y-3">
-          <div>
-            <span className="text-sm font-medium text-primary">Skills: </span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {job.skills.slice(0, 5).map((skill, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {skill}
-                </Badge>
-              ))}
-              {job.skills.length > 5 && (
-                <Badge variant="secondary" className="text-xs">
-                  +{job.skills.length - 5} more
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium text-primary">Experience: </span>
-              <span className="text-secondary capitalize">
-                {job.experienceLevel || 'Not specified'}
+          {job.proposalCount > 0 && (
+            <>
+              <span className="text-gray-400">•</span>
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {job.proposalCount} proposal{job.proposalCount !== 1 ? 's' : ''}
               </span>
-            </div>
-            <div>
-              <span className="font-medium text-primary">Project Type: </span>
-              <span className="text-secondary capitalize">
-                {job.projectType.replace('-', ' ')}
-              </span>
-            </div>
-          </div>
-
-          {job.duration && (
-            <div className="text-sm">
-              <span className="font-medium text-primary">Duration: </span>
-              <span className="text-secondary">
-                {job.duration.value} {job.duration.unit}
-              </span>
-            </div>
-          )}
-
-          <div className="text-sm">
-            <span className="font-medium text-primary">Location: </span>
-            <span className="text-secondary capitalize">
-              Remote
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center pt-2 border-t border-light">
-            <div className="text-sm">
-              <span className="font-medium text-primary">Proposals: </span>
-              <span className="text-secondary">{job.proposalCount}</span>
-            </div>
-            <div className="text-sm">
-              <span className="font-medium text-primary">Max: </span>
-              <span className="text-secondary">{job.maxProposals || 'Unlimited'}</span>
-            </div>
-          </div>
-        </div>
-      </CardBody>
-
-      <CardFooter>
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted">
-            <div>Posted: {formatDate(job.postedAt)}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <div className={`w-2 h-2 rounded-full ${job.isActive ? 'bg-emerald-500' : 'bg-gray-400'}`}></div>
-              <span>{job.isActive ? 'Active' : 'Inactive'}</span>
-              {job.isExpired && <span className="text-red-500">• Expired</span>}
-            </div>
-          </div>
-          
-          {job.status === 'draft' && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => router.push('/client/jobs/drafts')}
-              disabled={isLoading}
-              className="ml-4"
-            >
-              Draft
-            </Button>
-          )}
-          
-          {canViewProposals && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => router.push(`/client/jobs/${job.id}/proposals`)}
-              disabled={isLoading}
-              className="ml-4"
-            >
-              View Proposals ({job.proposalCount})
-            </Button>
+            </>
           )}
         </div>
-      </CardFooter>
-    </Card>
+        {job.isExpired && (
+          <span className="text-red-500 font-medium">Expired</span>
+        )}
+      </div>
+
+      {/* Action Button */}
+      <div className="flex justify-end pt-2 border-t border-gray-100">
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => router.push(`/client/jobs/${job.id}`)}
+          disabled={isLoading}
+          className="px-4 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          View Details
+        </Button>
+      </div>
+    </div>
   );
 };
 

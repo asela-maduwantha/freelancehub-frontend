@@ -90,6 +90,20 @@ class ApiClient {
     return response.data.data;
   }
 
+  async postFormData(endpoint: string, formData: FormData, config?: AxiosRequestConfig): Promise<any> {
+    const response = await this.axiosInstance.post(endpoint, formData, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    if(response.data.success === false){
+      throw new Error(response.data.message || 'API Error');
+    }
+    return response.data.data;
+  }
+
   async put(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<any> {
     const response = await this.axiosInstance.put(endpoint, data, config);
     if(response.data.success === false){

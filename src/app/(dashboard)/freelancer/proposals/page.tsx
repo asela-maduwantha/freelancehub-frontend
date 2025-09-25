@@ -414,7 +414,7 @@ const MyProposalsPage: React.FC = () => {
                     <div>
                       <span className="text-sm text-gray-600">Location</span>
                       <p className="font-medium text-gray-900 capitalize">
-                        {selectedJob.location?.type || 'Remote'}
+                        Remote
                       </p>
                     </div>
                   </div>

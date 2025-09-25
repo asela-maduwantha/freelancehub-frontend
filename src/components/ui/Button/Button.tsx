@@ -22,11 +22,11 @@ const Button: React.FC<ButtonProps> = ({
   const baseStyles = 'font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed';
 
   const variants = {
-    primary: 'btn-primary focus:ring-[var(--color-primary)]/50',
-    secondary: 'btn-secondary focus:ring-[var(--color-primary)]/50',
-    accent: 'btn-accent focus:ring-[var(--color-accent)]/50',
-    ghost: 'btn-ghost focus:ring-[var(--color-text-secondary)]/50',
-    outline: 'border-2 border-[var(--color-text-white)] text-[var(--color-text-white)] hover:bg-[var(--color-text-white)] hover:text-[var(--color-primary)] disabled:border-[var(--color-text-muted)] disabled:text-[var(--color-text-muted)] focus:ring-[var(--color-text-white)]/50'
+    primary: 'bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 hover:border-blue-700 focus:ring-blue-500',
+    secondary: 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 focus:ring-blue-500',
+    accent: 'bg-orange-500 text-white border border-orange-500 hover:bg-orange-600 hover:border-orange-600 focus:ring-orange-500',
+    ghost: 'bg-transparent text-gray-600 border border-transparent hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500',
+    outline: 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-500'
   };
 
   const sizes = {

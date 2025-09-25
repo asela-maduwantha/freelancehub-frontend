@@ -129,12 +129,11 @@ const DraftJobCard: React.FC<DraftJobCardProps> = ({ job, onOpenJob, isLoading =
             </div>
           </div>
 
-          {job.duration && job.duration.type && (
+          {job.duration && (
             <div className="text-sm">
               <span className="font-medium text-primary">Duration: </span>
               <span className="text-secondary">
-                {job.duration.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                {job.duration.estimatedHours && ` (${job.duration.estimatedHours} hours)`}
+                {job.duration.value} {job.duration.unit}
               </span>
             </div>
           )}
@@ -142,10 +141,7 @@ const DraftJobCard: React.FC<DraftJobCardProps> = ({ job, onOpenJob, isLoading =
           <div className="text-sm">
             <span className="font-medium text-primary">Location: </span>
             <span className="text-secondary capitalize">
-              {job.location?.type || 'Remote'}
-              {job.location?.countries && job.location.countries.length > 0 && 
-                ` (${job.location.countries.join(', ')})`
-              }
+              Remote
             </span>
           </div>
         </div>
