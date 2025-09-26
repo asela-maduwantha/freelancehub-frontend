@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { jobService, JobResponse, JobListResponse } from '../../../../../lib/api/jobs';
+import DashboardLayout from '../../../../../components/layouts/DashboardLayout';
 import DraftJobCard from '../../../../../components/features/jobs/DraftJobCard';
 import { Card, CardBody } from '../../../../../components/ui/Card';
 import Button from '../../../../../components/ui/Button';
@@ -76,16 +77,19 @@ const DraftJobsPage: React.FC = () => {
 
   if (loading && jobs.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <Spinner size="lg" />
+      <DashboardLayout userRole="client">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <Spinner size="lg" />
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <DashboardLayout userRole="client">
+      <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
@@ -228,6 +232,7 @@ const DraftJobsPage: React.FC = () => {
         </>
       )}
     </div>
+    </DashboardLayout>
   );
 };
 
