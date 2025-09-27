@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { JobResponse, jobService } from '../../../../../lib/api/jobs';
+import { apiClient } from '../../../../../lib/api/client';
 import { ProposalResponse, proposalService } from '../../../../../lib/api/proposals';
 import DashboardLayout from '../../../../../components/layouts/DashboardLayout';
 import { Spinner } from '../../../../../components/ui/Feedback';
@@ -27,8 +28,13 @@ export default function JobDetailPage() {
       setError(null);
 
       try {
-        // Fetch job details using the proper API method
-        const jobData = await jobService.getJob(jobId);
+        // Fetch job details using the API client directly to avoid processing issues
+        const response = await apiClient.get(`/jobs/${jobId}`);
+        
+        // Normalize the job data
+        const jobData = response;
+        
+        
         setJob(jobData);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch job details');
@@ -190,12 +196,12 @@ export default function JobDetailPage() {
             </div>
             <div className="flex gap-3">
               {job.status === 'draft' && (
-                <Button variant="outline" onClick={() => router.push('/client/jobs/drafts')}>
+                <Button variant="outline" onClick={() => router.push(`/client/jobs/${job.id}/edit`)}>
                   Edit Draft
                 </Button>
               )}
               {job.status === 'open' && (
-                <Button variant="primary" onClick={() => router.push(`/client/jobs/${job.id}/proposals`)}>
+                <Button variant="primary" className='btn-accent' onClick={() => router.push(`/client/jobs/${job.id}/proposals`)}>
                   View Proposals ({job.proposalCount})
                 </Button>
               )}
@@ -287,7 +293,7 @@ export default function JobDetailPage() {
                     </div>
                   </div>
 
-                  {job.duration && job.duration.value && (
+                  {job.duration && job.duration.value !== undefined && job.duration.unit && (
                     <div>
                       <h3 className="text-sm font-medium text-gray-700 mb-2">Duration</h3>
                       <span className="text-gray-900 font-medium">

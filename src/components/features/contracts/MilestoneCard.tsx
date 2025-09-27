@@ -67,8 +67,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onUpdate }) =>
       text: 'Overdue', 
       variant: 'error' as const, 
       icon: '⚠️',
-      color: 'text-red-600',
-      bgColor: 'bg-red-50'
+      color: 'text-accent',
+      bgColor: 'bg-accent-light'
     };
     return { 
       text: 'Pending', 
@@ -93,7 +93,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onUpdate }) =>
     if (milestone.isOverdue) {
       return {
         text: `${Math.abs(milestone.daysUntilDue)} days overdue`,
-        class: 'text-red-600 bg-red-50 border-red-200'
+        class: 'text-accent bg-accent-light border-accent'
       };
     }
     if (milestone.daysUntilDue <= 3 && milestone.daysUntilDue > 0) {

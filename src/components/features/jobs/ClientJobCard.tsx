@@ -60,10 +60,10 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-red-200 transition-all duration-300 p-4 group cursor-pointer h-full" onClick={() => router.push(`/client/jobs/${job.id}`)}>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-accent transition-all duration-300 p-4 group cursor-pointer h-full" onClick={() => router.push(`/client/jobs/${job.id}`)}>
       {/* Header with Title and Status */}
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-base font-semibold text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 leading-tight flex-1 pr-2">
+        <h3 className="text-base font-semibold text-gray-900 group-hover:text-accent transition-colors line-clamp-2 leading-tight flex-1 pr-2">
           {job.title}
         </h3>
         <div className="flex flex-col items-end gap-1">
@@ -87,7 +87,7 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
         <div className="mb-3">
           <div className="flex flex-wrap gap-1">
             {job.skills.slice(0, 3).map((skill, index) => (
-              <span key={index} className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded">
+              <span key={index} className="text-xs bg-accent-light text-accent px-2 py-0.5 rounded">
                 {skill}
               </span>
             ))}
@@ -113,16 +113,16 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
       <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100 mb-3">
         <span>{formatDate(job.postedAt)}</span>
         <div className="flex items-center gap-2">
-          {job.proposalCount > 0 && (
+          {job.status === 'open' && (
             <span className="flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              {job.proposalCount}
+              {job.proposalCount || 0}
             </span>
           )}
           {job.isExpired && (
-            <span className="text-red-500 font-medium">Expired</span>
+            <span className="text-accent font-medium">Expired</span>
           )}
         </div>
       </div>
@@ -131,7 +131,7 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
       <div className="text-center pt-2 border-t border-gray-100">
         <span
           onClick={() => router.push(`/client/jobs/${job.id}`)}
-          className="inline-flex items-center text-red-600 hover:text-red-700 font-medium text-sm cursor-pointer hover:underline transition-colors duration-200"
+          className="inline-flex items-center text-accent hover:text-accent-hover font-medium text-sm cursor-pointer hover:underline transition-colors duration-200"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

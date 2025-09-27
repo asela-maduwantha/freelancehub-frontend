@@ -123,7 +123,7 @@ export default function JobProposalsPage() {
     });
   };
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: string | undefined) => {
     switch (status) {
       case 'pending':
         return 'warning';
@@ -199,15 +199,15 @@ export default function JobProposalsPage() {
         {total > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="card-default p-4">
-              <div className="text-2xl font-bold text-accent">{stats.pending}</div>
+              <div className="text-2xl font-bold" style={{color: 'var(--color-warning)'}}>{stats.pending}</div>
               <div className="text-sm text-secondary">Pending</div>
             </div>
             <div className="card-default p-4">
-              <div className="text-2xl font-bold text-emerald">{stats.accepted}</div>
+              <div className="text-2xl font-bold" style={{color: 'var(--color-success)'}}>{stats.accepted}</div>
               <div className="text-sm text-secondary">Accepted</div>
             </div>
             <div className="card-default p-4">
-              <div className="text-2xl font-bold text-danger">{stats.rejected}</div>
+              <div className="text-2xl font-bold" style={{color: 'var(--color-error)'}}>{stats.rejected}</div>
               <div className="text-sm text-secondary">Rejected</div>
             </div>
             <div className="card-default p-4">
@@ -262,29 +262,31 @@ export default function JobProposalsPage() {
           <>
             <div className="space-y-6">
               {proposals.map((proposal) => (
-                <Card key={proposal._id} variant="default">
+                <Card key={proposal._id || `proposal-${Math.random()}`} variant="default">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-medium text-primary">Proposal #{proposal._id.slice(-6)}</h4>
+                          <h4 className="font-medium text-primary">
+                            Proposal #{proposal._id ? proposal._id.slice(-6) : 'Unknown'}
+                          </h4>
                           <Badge variant={getStatusBadgeVariant(proposal.status)}>
-                            {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
+                            {proposal.status ? (proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)) : 'Unknown'}
                           </Badge>
                           {!proposal.clientViewed && (
                             <Badge variant="warning">New</Badge>
                           )}
                         </div>
                         <div className="text-sm text-secondary">
-                          Submitted: {formatDate(proposal.createdAt)}
+                          Submitted: {proposal.createdAt ? formatDate(proposal.createdAt) : 'Unknown date'}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-semibold text-emerald">
-                          {formatCurrency(proposal.proposedRate.amount, proposal.proposedRate.currency)}
+                        <div className="text-lg font-semibold" style={{color: 'var(--color-success)'}}>
+                          {proposal.proposedRate ? formatCurrency(proposal.proposedRate.amount, proposal.proposedRate.currency) : 'N/A'}
                         </div>
                         <div className="text-sm text-secondary">
-                          {proposal.proposedRate.type === 'fixed' ? 'Fixed Price' : 'Per Hour'}
+                          {proposal.proposedRate ? (proposal.proposedRate.type === 'fixed' ? 'Fixed Price' : 'Per Hour') : ''}
                         </div>
                       </div>
                     </div>
@@ -295,7 +297,7 @@ export default function JobProposalsPage() {
                       <div>
                         <h5 className="font-medium text-primary mb-2">Cover Letter</h5>
                         <p className="text-secondary text-sm leading-relaxed">
-                          {proposal.coverLetter}
+                          {proposal.coverLetter || 'No cover letter provided'}
                         </p>
                       </div>
 
@@ -315,14 +317,14 @@ export default function JobProposalsPage() {
                             {proposal.proposedMilestones.map((milestone, index) => (
                               <div key={index} className="border border-light rounded-lg p-3">
                                 <div className="flex justify-between items-start mb-1">
-                                  <h6 className="font-medium text-secondary">{milestone.title}</h6>
-                                  <span className="text-emerald font-medium">
-                                    {formatCurrency(milestone.amount)}
+                                  <h6 className="font-medium text-secondary">{milestone?.title || 'Untitled Milestone'}</h6>
+                                  <span className="font-medium" style={{color: 'var(--color-success)'}}>
+                                    {milestone?.amount ? formatCurrency(milestone.amount) : 'N/A'}
                                   </span>
                                 </div>
-                                <p className="text-sm text-muted mb-1">{milestone.description}</p>
+                                <p className="text-sm text-muted mb-1">{milestone?.description || 'No description'}</p>
                                 <div className="text-xs text-muted">
-                                  Duration: {milestone.durationDays} days
+                                  Duration: {milestone?.durationDays || 0} days
                                 </div>
                               </div>
                             ))}
@@ -340,15 +342,15 @@ export default function JobProposalsPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                 </svg>
                                 <a 
-                                  href={attachment.url} 
+                                  href={attachment?.url} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="link-default"
                                 >
-                                  {attachment.filename}
+                                  {attachment?.filename || 'Unnamed file'}
                                 </a>
                                 <span className="text-muted">
-                                  ({(attachment.size / 1024 / 1024).toFixed(1)} MB)
+                                  ({attachment?.size ? (attachment.size / 1024 / 1024).toFixed(1) : '0'} MB)
                                 </span>
                               </div>
                             ))}
@@ -364,16 +366,16 @@ export default function JobProposalsPage() {
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => handleRejectProposal(proposal._id)}
-                          disabled={actionLoading === proposal._id}
+                          onClick={() => proposal._id && handleRejectProposal(proposal._id)}
+                          disabled={actionLoading === proposal._id || !proposal._id}
                         >
                           {actionLoading === proposal._id ? 'Rejecting...' : 'Reject'}
                         </Button>
                         <Button
                           variant="primary"
                           size="sm"
-                          onClick={() => handleAcceptProposal(proposal._id)}
-                          disabled={actionLoading === proposal._id}
+                          onClick={() => proposal._id && handleAcceptProposal(proposal._id)}
+                          disabled={actionLoading === proposal._id || !proposal._id}
                         >
                           {actionLoading === proposal._id ? 'Accepting...' : 'Accept'}
                         </Button>
@@ -388,7 +390,7 @@ export default function JobProposalsPage() {
                           variant="primary"
                           size="sm"
                           onClick={() => handleCreateContract(proposal)}
-                          disabled={actionLoading === proposal._id}
+                          disabled={actionLoading === proposal._id || !proposal._id}
                         >
                           Create Contract
                         </Button>

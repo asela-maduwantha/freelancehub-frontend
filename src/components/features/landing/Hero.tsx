@@ -116,7 +116,7 @@ const HeroSection: React.FC = () => {
 
             {/* Additional floating decorative elements */}
             <div className="absolute top-10 -left-6 w-16 h-16 border-2 border-orange-400/30 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
-            <div className="absolute bottom-10 -right-8 w-12 h-12 border-2 border-red-400/30 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
+            <div className="absolute bottom-10 -right-8 w-12 h-12 border-2 border-accent/30 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
             
             {/* Subtle grid pattern overlay */}
             <div className="absolute inset-0 opacity-10" style={{
