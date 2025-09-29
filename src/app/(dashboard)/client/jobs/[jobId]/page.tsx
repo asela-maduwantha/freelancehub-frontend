@@ -185,7 +185,7 @@ export default function JobDetailPage() {
               <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
                 <span>Max Proposals: {job.maxProposals || 'Unlimited'}</span>
                 <span className="text-gray-400">•</span>
-                <span className={job.isActive ? 'text-green-600' : 'text-red-600'}>
+                <span className={job.isActive ? 'text-green-600' : 'text-btn-accent'}>
                   {job.isActive ? 'Active' : 'Inactive'}
                 </span>
                 <span className="text-gray-400">•</span>

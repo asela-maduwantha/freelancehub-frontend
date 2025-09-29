@@ -7,14 +7,71 @@ export interface CreateContractRequest {
   startDate: string;
   endDate: string;
   terms?: string;
+  milestones?: CreateContractMilestoneRequest[];
+}
+
+export interface CreateContractMilestoneRequest {
+  title: string;
+  description: string;
+  amount: number;
+  currency?: string;
+  durationDays: number;
 }
 
 export interface ContractResponse {
   _id: string;
-  proposalId: string;
-  jobId: string;
-  clientId: string;
-  freelancerId: string;
+  proposalId: {
+    _id: string;
+    proposedRate: {
+      amount: number;
+      type: string;
+      currency: string;
+    };
+    status: string;
+  };
+  jobId: {
+    _id: string;
+    title: string;
+    category: string;
+    subcategory: string;
+    projectType: string;
+    budget: {
+      type: string;
+      min: number;
+      max: number;
+      currency: string;
+    };
+    isActive: boolean;
+    isExpired: boolean;
+    canReceiveProposals: boolean;
+    id: string;
+  };
+  clientId: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+    fullName: string;
+    isFreelancer: boolean;
+    isClient: boolean;
+    isAdmin: boolean;
+    id: string;
+  };
+  freelancerId: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+    fullName: string;
+    isFreelancer: boolean;
+    isClient: boolean;
+    isAdmin: boolean;
+    id: string;
+  };
   title: string;
   description: string;
   contractType: string;
@@ -35,6 +92,13 @@ export interface ContractResponse {
   createdAt: string;
   updatedAt: string;
   __v?: number;
+  remainingAmount: number;
+  completionPercentage: number;
+  isActive: boolean;
+  isCompleted: boolean;
+  platformFee: number;
+  freelancerAmount: number;
+  id: string;
 }
 
 export interface ContractListResponse {
@@ -75,8 +139,32 @@ export interface MilestonePayment {
 export interface MilestoneContractInfo {
   _id: string;
   title: string;
-  clientId: string;
-  freelancerId: string;
+  clientId: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+    fullName: string;
+    isFreelancer: boolean;
+    isClient: boolean;
+    isAdmin: boolean;
+    id: string;
+  };
+  freelancerId: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+    fullName: string;
+    isFreelancer: boolean;
+    isClient: boolean;
+    isAdmin: boolean;
+    id: string;
+  };
 }
 
 export interface MilestoneResponse {
@@ -197,6 +285,18 @@ class ContractService {
       console.error('API call - getContractMilestones error:', error);
       console.error('API call - Error response:', error.response);
       throw new Error(error.response?.data?.message || 'Failed to fetch milestones');
+    }
+  }
+
+  // Download contract as PDF
+  async downloadContract(contractId: string): Promise<Blob> {
+    try {
+      const response = await apiClient.get(`/contracts/${contractId}/download`, {
+        responseType: 'blob',
+      });
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to download contract');
     }
   }
 }

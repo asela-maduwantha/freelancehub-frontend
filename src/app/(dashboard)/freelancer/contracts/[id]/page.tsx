@@ -325,11 +325,27 @@ export default function ContractDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Job ID</p>
-                    <p className="text-sm font-mono text-gray-900">{contract.jobId}</p>
+                    <p className="text-sm font-mono text-gray-900">
+                      {typeof contract.jobId === 'object' ? contract.jobId._id : contract.jobId}
+                    </p>
+                    {typeof contract.jobId === 'object' && (
+                      <p className="text-xs text-gray-500 mt-1">{contract.jobId.title}</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Proposal ID</p>
-                    <p className="text-sm font-mono text-gray-900">{contract.proposalId}</p>
+                    <p className="text-sm font-mono text-gray-900">
+                      {typeof contract.proposalId === 'object' ? contract.proposalId._id : contract.proposalId}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Client</p>
+                    <p className="text-sm text-gray-900">
+                      {typeof contract.clientId === 'object' ? contract.clientId.fullName : 'N/A'}
+                    </p>
+                    {typeof contract.clientId === 'object' && (
+                      <p className="text-xs text-gray-500 mt-1">{contract.clientId.email}</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Created</p>

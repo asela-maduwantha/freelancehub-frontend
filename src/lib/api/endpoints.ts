@@ -50,12 +50,16 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/contracts/${id}`,
     MILESTONES: (id: string) => `/contracts/${id}/milestones`,
     MESSAGES: (id: string) => `/contracts/${id}/messages`,
+    DOWNLOAD: (id: string) => `/contracts/${id}/download`,
   },
 
   MILESTONES: {
     LIST_BY_CONTRACT: (contractId: string) => `/milestones/contract/${contractId}/milestones`,
     START_WORK: (id: string) => `/milestones/${id}/in-progress`,
     SUBMIT_WORK: (id: string) => `/milestones/${id}/submit`,
+    APPROVE: (id: string) => `/milestones/${id}/approve`,
+    REJECT: (id: string) => `/milestones/${id}/reject`,
+    PROCESS_PAYMENT: (id: string) => `/milestones/${id}/payment`,
   },
 
   PAYMENTS: {

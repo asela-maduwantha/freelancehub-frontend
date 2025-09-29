@@ -38,6 +38,14 @@ export interface SubmitMilestoneRequest {
   submissionNote?: string;
 }
 
+export interface RejectMilestoneRequest {
+  feedback: string;
+}
+
+export interface ProcessPaymentRequest {
+  paymentId: string;
+}
+
 export interface FileUploadResponse {
   filename: string;
   url: string;
@@ -60,6 +68,21 @@ export const milestoneApi = {
   // Submit milestone work
   submitWork: (milestoneId: string, data: SubmitMilestoneRequest): Promise<any> => {
     return apiClient.put(API_ENDPOINTS.MILESTONES.SUBMIT_WORK(milestoneId), data);
+  },
+
+  // Approve submitted milestone
+  approve: (milestoneId: string): Promise<any> => {
+    return apiClient.put(API_ENDPOINTS.MILESTONES.APPROVE(milestoneId));
+  },
+
+  // Reject submitted milestone
+  reject: (milestoneId: string, data: RejectMilestoneRequest): Promise<any> => {
+    return apiClient.put(API_ENDPOINTS.MILESTONES.REJECT(milestoneId), data);
+  },
+
+  // Process milestone payment
+  processPayment: (milestoneId: string, data: ProcessPaymentRequest): Promise<any> => {
+    return apiClient.put(API_ENDPOINTS.MILESTONES.PROCESS_PAYMENT(milestoneId), data);
   },
 
   // Upload file for deliverable

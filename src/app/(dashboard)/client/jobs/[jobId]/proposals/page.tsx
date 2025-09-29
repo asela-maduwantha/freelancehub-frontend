@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { ProposalResponse, proposalService } from '../../../../../../lib/api/proposals';
 import { JobResponse, jobService } from '../../../../../../lib/api/jobs';
 import DashboardLayout from '../../../../../../components/layouts/DashboardLayout';
-import CreateContractModal from '../../../../../../components/features/contracts/CreateContractModal';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../../components/ui/Card';
 import Button from '../../../../../../components/ui/Button';
 import { Badge } from '../../../../../../components/ui/Display';
@@ -25,10 +24,6 @@ export default function JobProposalsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-
-  // Contract modal state
-  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
-  const [selectedProposal, setSelectedProposal] = useState<ProposalResponse | null>(null);
 
   const fetchJob = async () => {
     if (!jobId) return;
@@ -94,12 +89,7 @@ export default function JobProposalsPage() {
   };
 
   const handleCreateContract = (proposal: ProposalResponse) => {
-    setSelectedProposal(proposal);
-    setIsContractModalOpen(true);
-  };
-
-  const handleContractCreated = () => {
-    fetchProposals(); // Refresh the proposals list to reflect any status changes
+    router.push(`/client/jobs/${jobId}/create-contract?proposalId=${proposal._id}`);
   };
 
   const formatCurrency = (amount: number, currency = 'USD') => {
@@ -429,19 +419,6 @@ export default function JobProposalsPage() {
               </div>
             )}
           </>
-        )}
-
-        {/* Create Contract Modal */}
-        {selectedProposal && (
-          <CreateContractModal
-            isOpen={isContractModalOpen}
-            onClose={() => {
-              setIsContractModalOpen(false);
-              setSelectedProposal(null);
-            }}
-            proposal={selectedProposal}
-            onContractCreated={handleContractCreated}
-          />
         )}
       </div>
     </DashboardLayout>
