@@ -138,37 +138,24 @@ export interface MilestonePayment {
 
 export interface MilestoneContractInfo {
   _id: string;
+  currency: string;
+  clientId: string;
+  freelancerId: string;
   title: string;
-  clientId: {
-    _id: string;
-    email: string;
-    profile: {
-      firstName: string;
-      lastName: string;
-    };
-    fullName: string;
-    isFreelancer: boolean;
-    isClient: boolean;
-    isAdmin: boolean;
-    id: string;
-  };
-  freelancerId: {
-    _id: string;
-    email: string;
-    profile: {
-      firstName: string;
-      lastName: string;
-    };
-    fullName: string;
-    isFreelancer: boolean;
-    isClient: boolean;
-    isAdmin: boolean;
-    id: string;
-  };
+  description: string;
+  contractType: string;
+  totalAmount: number;
+  remainingAmount: number | null;
+  completionPercentage: number | null;
+  isActive: boolean;
+  isCompleted: boolean;
+  platformFee: number | null;
+  freelancerAmount: number | null;
+  id: string;
 }
 
 export interface MilestoneResponse {
-  _id: string;
+  _id?: string;
   contractId: string | MilestoneContractInfo;
   title: string;
   description: string;

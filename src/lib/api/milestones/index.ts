@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '../endpoints';
 
 // Types for API requests and responses
 export interface MilestoneResponse {
-  _id: string;
+  _id?: string;
   title: string;
   description: string;
   amount: number;
@@ -19,6 +19,7 @@ export interface MilestoneResponse {
   paymentId: string | null;
   contract: any[]; // Contract data
   payment: any[]; // Payment data
+  id: string;
 }
 
 export interface Deliverable {

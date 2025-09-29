@@ -8,6 +8,8 @@ import { Spinner } from '@/components/ui/Feedback';
 import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Display';
+import Dropdown from '@/components/ui/Dropdown';
+import DashboardLayout from '../../../../../../components/layouts/DashboardLayout';
 import {
   DndContext,
   closestCorners,
@@ -41,6 +43,22 @@ const STATUS_COLUMNS = [
   { id: 'rejected', title: 'Rejected', color: 'bg-red-500' },
 ];
 
+// Status options for client dropdown (limited transitions)
+const CLIENT_STATUS_OPTIONS = [
+  { value: 'approved', label: 'Approved', color: 'bg-green-500' },
+  { value: 'rejected', label: 'Rejected', color: 'bg-red-500' },
+];
+
+// Get valid status options for a milestone based on current status
+const getValidStatusOptions = (currentStatus: string) => {
+  // For clients, only allow transitions from SUBMITTED status
+  if (currentStatus === 'submitted') {
+    return CLIENT_STATUS_OPTIONS;
+  }
+  // For other statuses, show current status only (read-only)
+  return [{ value: currentStatus, label: currentStatus.replace('-', ' ').toUpperCase(), color: STATUS_COLUMNS.find(col => col.id === currentStatus)?.color || 'bg-gray-500' }];
+};
+
 // Droppable Column Component
 interface DroppableColumnProps {
   id: string;
@@ -59,11 +77,12 @@ function DroppableColumn({ id, title, color, count, children }: DroppableColumnP
     <div className="flex-shrink-0 w-80">
       <div
         ref={setNodeRef}
-        className={`bg-secondary rounded-lg p-4 h-96 transition-all duration-200 overflow-y-auto ${
+        className={`bg-secondary rounded-lg p-4 h-[600px] transition-all duration-200 overflow-y-auto ${  // Increased height from h-96 to h-[600px]
           isOver ? 'ring-2 ring-primary ring-opacity-50 bg-primary bg-opacity-5' : ''
         }`}
       >
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-light">
+        {/* Sticky column header */}
+        <div className="sticky top-0 bg-secondary z-10 pb-2 mb-4 border-b border-light">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${color}`}></div>
             <h4 className="font-medium text-primary">{title}</h4>
@@ -81,10 +100,11 @@ function DroppableColumn({ id, title, color, count, children }: DroppableColumnP
 // Sortable Milestone Card Component
 interface SortableMilestoneCardProps {
   milestone: MilestoneResponse;
-  onStatusChange?: (milestoneId: string, newStatus: string) => void;
+  onStatusChange: (milestoneId: string, newStatus: string) => void;
+  isUpdating: boolean;
 }
 
-function SortableMilestoneCard({ milestone, onStatusChange }: SortableMilestoneCardProps) {
+function SortableMilestoneCard({ milestone, onStatusChange, isUpdating }: SortableMilestoneCardProps) {
   const {
     attributes,
     listeners,
@@ -92,7 +112,7 @@ function SortableMilestoneCard({ milestone, onStatusChange }: SortableMilestoneC
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: milestone._id });
+  } = useSortable({ id: milestone.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -196,10 +216,16 @@ function SortableMilestoneCard({ milestone, onStatusChange }: SortableMilestoneC
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1 border-t border-light">
-          <Badge variant={getStatusBadgeVariant(milestone.status)} className="text-xs">
-            {milestone.status.replace('-', ' ').toUpperCase()}
-          </Badge>
+        <div className="flex items-center justify-between pt-2 border-t border-light gap-2">
+          <div className="flex-1">
+            <Dropdown
+              options={getValidStatusOptions(milestone.status)}
+              value={milestone.status}
+              onChange={(newStatus) => onStatusChange(milestone.id, newStatus)}
+              className="text-xs"
+              disabled={isUpdating || milestone.status !== 'submitted'}
+            />
+          </div>
 
           <div className="flex items-center gap-1 text-xs text-secondary">
             <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,6 +250,9 @@ const ContractMilestonesPage = () => {
   const [contractTitle, setContractTitle] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectMilestoneId, setRejectMilestoneId] = useState<string | null>(null);
+  const [rejectFeedback, setRejectFeedback] = useState('');
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -291,64 +320,78 @@ const ContractMilestonesPage = () => {
     const overMilestoneId = extractMilestoneId(overId);
 
     // Find the active milestone
-    const activeMilestone = milestones.find(m => m._id === activeMilestoneId);
+    const activeMilestone = milestones.find(m => m.id === activeMilestoneId);
     if (!activeMilestone) return;
 
     // If dropping on a column header (status change)
     if (STATUS_COLUMNS.some(col => col.id === overId)) {
       const newStatus = overId;
-      if (activeMilestone.status !== newStatus) {
-        try {
-          setIsUpdating(true);
-          setError(null);
 
-          // Optimistically update UI first
-          setMilestones(prev => prev.map(m =>
-            m._id === activeMilestoneId
-              ? { ...m, status: newStatus as any }
-              : m
-          ));
+      // Validate client can only transition from SUBMITTED to APPROVED or REJECTED
+      if (activeMilestone.status !== 'submitted' || (newStatus !== 'approved' && newStatus !== 'rejected')) {
+        setError('Clients can only approve or reject submitted milestones');
+        return;
+      }
 
-          // Call appropriate API based on status transition
-          await performStatusTransition(activeMilestoneId, activeMilestone.status, newStatus);
+      // For rejections via drag-and-drop, show feedback modal
+      if (newStatus === 'rejected') {
+        setRejectMilestoneId(activeMilestoneId);
+        setRejectFeedback('');
+        setShowRejectModal(true);
+        return;
+      }
 
-          // Show success message
-          const statusLabel = STATUS_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
-          setSuccessMessage(`Milestone moved to ${statusLabel}`);
+      // For approvals, proceed directly
+      try {
+        setIsUpdating(true);
+        setError(null);
 
-          // Clear success message after 3 seconds
-          setTimeout(() => setSuccessMessage(null), 3000);
+        // Optimistically update UI first
+        setMilestones(prev => prev.map(m =>
+          m.id === activeMilestoneId
+            ? { ...m, status: newStatus as any }
+            : m
+        ));
 
-          // Refresh data to get updated milestone
-          await fetchMilestones();
-        } catch (error: any) {
-          // Revert optimistic update on error
-          setMilestones(prev => prev.map(m =>
-            m._id === activeMilestoneId
-              ? { ...m, status: activeMilestone.status }
-              : m
-          ));
+        // Call appropriate API based on status transition
+        await performStatusTransition(activeMilestoneId, activeMilestone.status, newStatus);
 
-          // Show error message
-          setError(error.message || 'Failed to update milestone status');
-          console.error('Status transition error:', error);
-        } finally {
-          setIsUpdating(false);
-        }
+        // Show success message
+        const statusLabel = STATUS_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
+        setSuccessMessage(`Milestone moved to ${statusLabel}`);
+
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(null), 3000);
+
+        // Refresh data to get updated milestone
+        await fetchMilestones();
+      } catch (error: any) {
+        // Revert optimistic update on error
+        setMilestones(prev => prev.map(m =>
+          m.id === activeMilestoneId
+            ? { ...m, status: activeMilestone.status }
+            : m
+        ));
+
+        // Show error message
+        setError(error.message || 'Failed to update milestone status');
+        console.error('Status transition error:', error);
+      } finally {
+        setIsUpdating(false);
       }
       return;
     }
 
     // If dropping on another milestone (reordering within same status)
-    const overMilestone = milestones.find(m => m._id === overMilestoneId);
+    const overMilestone = milestones.find(m => m.id === overMilestoneId);
     if (overMilestone && activeMilestone.status === overMilestone.status) {
       // Get all milestones with the same status
       const statusMilestones = milestones
         .filter(m => m.status === activeMilestone.status)
         .sort((a, b) => a.order - b.order);
 
-      const activeIndex = statusMilestones.findIndex((item) => item._id === activeMilestoneId);
-      const overIndex = statusMilestones.findIndex((item) => item._id === overMilestoneId);
+      const activeIndex = statusMilestones.findIndex((item) => item.id === activeMilestoneId);
+      const overIndex = statusMilestones.findIndex((item) => item.id === overMilestoneId);
 
       if (activeIndex !== -1 && overIndex !== -1) {
         const reorderedStatus = arrayMove(statusMilestones, activeIndex, overIndex);
@@ -362,46 +405,131 @@ const ContractMilestonesPage = () => {
     }
   };
 
-  // Perform status transition API calls
-  const performStatusTransition = async (milestoneId: string, currentStatus: string, newStatus: string) => {
+  // Perform status transition API calls (client-specific)
+  const performStatusTransition = async (milestoneId: string, currentStatus: string, newStatus: string, feedback?: string) => {
     switch (newStatus) {
-      case 'in-progress':
-        if (currentStatus === 'pending') {
-          await milestoneApi.startWork(milestoneId);
-        }
-        break;
-
-      case 'submitted':
-        // This would typically require deliverables, but for drag-and-drop we'll assume it's already submitted
-        // In a real implementation, you might want to show a modal for submission details
-        break;
-
       case 'approved':
         if (currentStatus === 'submitted') {
           await milestoneApi.approve(milestoneId);
+        } else {
+          throw new Error('Can only approve milestones that are submitted');
         }
         break;
 
       case 'rejected':
         if (currentStatus === 'submitted') {
-          // For drag-and-drop rejection, we might need feedback
-          // For now, we'll use a default rejection message
-          await milestoneApi.reject(milestoneId, {
-            feedback: 'Milestone rejected via Kanban board'
-          });
-        }
-        break;
-
-      case 'paid':
-        if (currentStatus === 'approved') {
-          // This would typically require payment processing
-          // For now, we'll assume payment is processed
-          // await milestoneApi.processPayment(milestoneId, { paymentId: 'auto-generated' });
+          if (!feedback || feedback.trim() === '') {
+            throw new Error('Feedback is required when rejecting a milestone');
+          }
+          await milestoneApi.reject(milestoneId, { feedback });
+        } else {
+          throw new Error('Can only reject milestones that are submitted');
         }
         break;
 
       default:
         throw new Error(`Invalid status transition from ${currentStatus} to ${newStatus}`);
+    }
+  };
+
+  // Handle status change from dropdown
+  const handleStatusChange = async (milestoneId: string, newStatus: string) => {
+    const milestone = milestones.find(m => m.id === milestoneId);
+    if (!milestone || milestone.status === newStatus) return;
+
+    // For rejections, show feedback modal
+    if (newStatus === 'rejected') {
+      setRejectMilestoneId(milestoneId);
+      setRejectFeedback('');
+      setShowRejectModal(true);
+      return;
+    }
+
+    // For approvals, proceed directly
+    try {
+      setIsUpdating(true);
+      setError(null);
+
+      // Optimistically update UI first
+      setMilestones(prev => prev.map(m =>
+        m.id === milestoneId
+          ? { ...m, status: newStatus as any }
+          : m
+      ));
+
+      // Call appropriate API based on status transition
+      await performStatusTransition(milestoneId, milestone.status, newStatus);
+
+      // Show success message
+      const statusLabel = STATUS_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
+      setSuccessMessage(`Milestone status changed to ${statusLabel}`);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+
+      // Refresh data to get updated milestone
+      await fetchMilestones();
+    } catch (error: any) {
+      // Revert optimistic update on error
+      setMilestones(prev => prev.map(m =>
+        m.id === milestoneId
+          ? { ...m, status: milestone.status }
+          : m
+      ));
+
+      // Show error message
+      setError(error.message || 'Failed to update milestone status');
+      console.error('Status change error:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Handle rejection with feedback
+  const handleRejectMilestone = async () => {
+    if (!rejectMilestoneId || !rejectFeedback.trim()) return;
+
+    const milestone = milestones.find(m => m.id === rejectMilestoneId);
+    if (!milestone) return;
+
+    try {
+      setIsUpdating(true);
+      setError(null);
+      setShowRejectModal(false);
+
+      // Optimistically update UI first
+      setMilestones(prev => prev.map(m =>
+        m.id === rejectMilestoneId
+          ? { ...m, status: 'rejected' as any }
+          : m
+      ));
+
+      // Call reject API with feedback
+      await performStatusTransition(rejectMilestoneId, milestone.status, 'rejected', rejectFeedback);
+
+      // Show success message
+      setSuccessMessage('Milestone rejected with feedback');
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+
+      // Refresh data to get updated milestone
+      await fetchMilestones();
+    } catch (error: any) {
+      // Revert optimistic update on error
+      setMilestones(prev => prev.map(m =>
+        m.id === rejectMilestoneId
+          ? { ...m, status: milestone.status }
+          : m
+      ));
+
+      // Show error message
+      setError(error.message || 'Failed to reject milestone');
+      console.error('Rejection error:', error);
+    } finally {
+      setIsUpdating(false);
+      setRejectMilestoneId(null);
+      setRejectFeedback('');
     }
   };
 
@@ -476,47 +604,48 @@ const ContractMilestonesPage = () => {
   const stats = getMilestoneStats();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Button variant="secondary" size="sm" onClick={handleGoBack}>
-              ← Back to Contract
-            </Button>
-            <h1 className="text-2xl font-bold text-primary">Project Milestones</h1>
-          </div>
-          {contractTitle && (
-            <p className="text-secondary text-sm">{contractTitle}</p>
-          )}
-        </div>
-
-        {/* Stats Summary */}
-        <div className="flex items-center gap-4 text-sm">
-          <div className="text-center">
-            <div className="font-semibold text-primary">{stats.total}</div>
-            <div className="text-secondary">Total</div>
-          </div>
-          <div className="text-center">
-            <div className="font-semibold text-blue-600">{stats.inProgress}</div>
-            <div className="text-secondary">In Progress</div>
-          </div>
-          <div className="text-center">
-            <div className="font-semibold text-yellow-600">{stats.submitted}</div>
-            <div className="text-secondary">Submitted</div>
-          </div>
-          <div className="text-center">
-            <div className="font-semibold text-green-600">{stats.completed}</div>
-            <div className="text-secondary">Completed</div>
-          </div>
-          {stats.overdue > 0 && (
-            <div className="text-center">
-              <div className="font-semibold text-red-600">{stats.overdue}</div>
-              <div className="text-secondary">Overdue</div>
+    <DashboardLayout userRole="client">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Button variant="secondary" size="sm" onClick={handleGoBack}>
+                ← Back to Contract
+              </Button>
+              <h1 className="text-2xl font-bold text-primary">Project Milestones</h1>
             </div>
-          )}
+            {contractTitle && (
+              <p className="text-secondary text-sm">{contractTitle}</p>
+            )}
+          </div>
+
+          {/* Stats Summary */}
+          <div className="flex items-center gap-4 text-sm">
+            <div className="text-center">
+              <div className="font-semibold text-primary">{stats.total}</div>
+              <div className="text-secondary">Total</div>
+            </div>
+            <div className="text-center">
+              <div className="font-semibold text-blue-600">{stats.inProgress}</div>
+              <div className="text-secondary">In Progress</div>
+            </div>
+            <div className="text-center">
+              <div className="font-semibold text-yellow-600">{stats.submitted}</div>
+              <div className="text-secondary">Submitted</div>
+            </div>
+            <div className="text-center">
+              <div className="font-semibold text-green-600">{stats.completed}</div>
+              <div className="text-secondary">Completed</div>
+            </div>
+            {stats.overdue > 0 && (
+              <div className="text-center">
+                <div className="font-semibold text-red-600">{stats.overdue}</div>
+                <div className="text-secondary">Overdue</div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
       {/* Success/Error Messages */}
       {successMessage && (
@@ -547,6 +676,47 @@ const ContractMilestonesPage = () => {
           <div className="bg-white rounded-lg p-6 flex items-center gap-3">
             <Spinner size="sm" />
             <span className="text-primary">Updating milestone...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Feedback Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-primary mb-4">Reject Milestone</h3>
+            <p className="text-secondary text-sm mb-4">
+              Please provide feedback explaining why this milestone is being rejected. This will help the freelancer understand what needs to be improved.
+            </p>
+            <textarea
+              value={rejectFeedback}
+              onChange={(e) => setRejectFeedback(e.target.value)}
+              placeholder="Enter your feedback here..."
+              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              rows={4}
+              autoFocus
+            />
+            <div className="flex gap-3 mt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectMilestoneId(null);
+                  setRejectFeedback('');
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleRejectMilestone}
+                disabled={!rejectFeedback.trim()}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                Reject Milestone
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -611,7 +781,7 @@ const ContractMilestonesPage = () => {
             <div className="flex gap-6 overflow-x-auto pb-4">
               {STATUS_COLUMNS.map((column) => {
                 const columnMilestones = milestones
-                  .filter(m => m.status === column.id && m._id) // Filter out milestones without IDs
+                  .filter(m => m.status === column.id && m.id) // Filter out milestones without IDs
                   .sort((a, b) => a.order - b.order);
                 return (
                   <DroppableColumn
@@ -622,14 +792,16 @@ const ContractMilestonesPage = () => {
                     count={columnMilestones.length}
                   >
                     <SortableContext
-                      items={columnMilestones.map((m, index) => `${column.id}-${m._id || `fallback-${index}`}`)}
+                      items={columnMilestones.map((m, index) => `${column.id}-${m.id || `fallback-${index}`}`)}
                       strategy={verticalListSortingStrategy}
                     >
                       <div className="space-y-3">
                         {columnMilestones.map((milestone, index) => (
                           <SortableMilestoneCard
-                            key={`${column.id}-${milestone._id || `fallback-${index}`}`}
+                            key={`${column.id}-${milestone.id || `fallback-${index}`}`}
                             milestone={milestone}
+                            onStatusChange={handleStatusChange}
+                            isUpdating={isUpdating}
                           />
                         ))}
                       </div>
@@ -642,6 +814,7 @@ const ContractMilestonesPage = () => {
         </CardBody>
       </Card>
     </div>
+    </DashboardLayout>
   );
 };
 
