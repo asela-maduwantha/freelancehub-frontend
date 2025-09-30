@@ -39,7 +39,6 @@ const STATUS_COLUMNS = [
   { id: 'in-progress', title: 'In Progress', color: 'bg-blue-500' },
   { id: 'submitted', title: 'Submitted', color: 'bg-yellow-500' },
   { id: 'approved', title: 'Approved', color: 'bg-green-500' },
-  { id: 'paid', title: 'Paid', color: 'bg-emerald-500' },
   { id: 'rejected', title: 'Rejected', color: 'bg-red-500' },
 ];
 
@@ -144,8 +143,6 @@ function SortableMilestoneCard({ milestone, userRole, onStatusChange, isUpdating
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'paid':
-        return 'success';
       case 'approved':
         return 'success';
       case 'submitted':
@@ -163,7 +160,7 @@ function SortableMilestoneCard({ milestone, userRole, onStatusChange, isUpdating
   const isOverdue = () => {
     const dueDate = new Date(milestone.dueDate);
     const now = new Date();
-    return dueDate < now && milestone.status !== 'approved' && milestone.status !== 'paid';
+    return dueDate < now && milestone.status !== 'approved';
   };
 
   const getDaysUntilDue = () => {
@@ -581,15 +578,15 @@ const MilestoneTrackerPage = () => {
     const pending = allMilestones.filter(m => m.status === 'pending').length;
     const inProgress = allMilestones.filter(m => m.status === 'in-progress').length;
     const submitted = allMilestones.filter(m => m.status === 'submitted').length;
-    const completed = allMilestones.filter(m => m.status === 'approved' || m.status === 'paid').length;
+    const completed = allMilestones.filter(m => m.status === 'approved').length;
     const overdue = allMilestones.filter(m => {
       const dueDate = new Date(m.dueDate);
       const now = new Date();
-      return dueDate < now && m.status !== 'approved' && m.status !== 'paid';
+      return dueDate < now && m.status !== 'approved';
     }).length;
 
     const totalAmount = allMilestones.reduce((sum, m) => sum + m.amount, 0);
-    const paidAmount = allMilestones.filter(m => m.status === 'paid').reduce((sum, m) => sum + m.amount, 0);
+    const approvedAmount = allMilestones.filter(m => m.status === 'approved').reduce((sum, m) => sum + m.amount, 0);
 
     return {
       total,
@@ -599,7 +596,7 @@ const MilestoneTrackerPage = () => {
       completed,
       overdue,
       totalAmount,
-      paidAmount,
+      approvedAmount,
       currency: allMilestones[0]?.currency || 'USD'
     };
   };

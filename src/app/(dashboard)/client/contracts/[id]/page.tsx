@@ -405,16 +405,23 @@ export default function ClientContractDetailPage() {
                   </div>
                   
                   <div>
-                    <p className="text-sm text-secondary">Amount Paid</p>
+                    <p className="text-sm text-secondary">Total Paid (Upfront)</p>
                     <p className="text-xl font-semibold text-success">
                       {formatCurrency(contract.totalPaid, contract.currency)}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-sm text-secondary">Remaining</p>
+                    <p className="text-sm text-secondary">Released to Freelancer</p>
+                    <p className="text-lg font-medium text-primary">
+                      {formatCurrency(contract.releasedAmount, contract.currency)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-secondary">Held Balance</p>
                     <p className="text-xl font-semibold text-warning">
-                      {formatCurrency(contract.totalAmount - contract.totalPaid, contract.currency)}
+                      {formatCurrency(contract.remainingAmount, contract.currency)}
                     </p>
                   </div>
 

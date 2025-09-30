@@ -150,13 +150,13 @@ export default function FreelancerDashboard() {
             changeType="increase"
           />
           <StatsCard
-            title="Total Earnings"
+            title="Funds Released"
             value={`$${stats.totalEarnings.toLocaleString()}`}
-            change="Lifetime earnings"
+            change="From approved milestones"
             changeType="increase"
           />
           <StatsCard
-            title="Monthly Earnings"
+            title="Monthly Releases"
             value={`$${stats.monthlyEarnings.toLocaleString()}`}
             change="This month"
             changeType="increase"

@@ -10,6 +10,16 @@ import Button from '../../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../../components/ui/Card';
 import { Spinner } from '../../../../../../components/ui/Feedback';
 import { Badge } from '../../../../../../components/ui/Display';
+import { formatCurrency } from '../../../../../../lib/utils/formatting';
+import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { ContractHeader } from './components/ContractHeader';
+import { ProposalSummary } from './components/ProposalSummary';
+import { ContractTimeline } from './components/ContractTimeline';
+import { MilestonesKanban } from './components/MilestonesKanban';
+import { ContractTerms } from './components/ContractTerms';
+import { ContractSubmitActions } from './components/ContractSubmitActions';
+import { MilestoneFormData } from './types';
 import {
   DndContext,
   closestCorners,
@@ -32,17 +42,6 @@ import {
   useDroppable,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-
-interface MilestoneFormData {
-  id: string;
-  title: string;
-  description: string;
-  amount: number;
-  durationDays: number;
-  isSelected: boolean;
-  column: 'proposal' | 'custom' | 'contract';
-  isFromProposal?: boolean; // To distinguish proposal vs custom milestones
-}
 
 // Add Milestone Modal Component
 interface AddMilestoneModalProps {
@@ -202,6 +201,107 @@ function AddMilestoneModal({ isOpen, onClose, onAdd, isSubmitting, formatCurrenc
     </div>
   );
 }
+
+// Stripe Payment Form Component
+interface StripePaymentFormProps {
+  paymentIntent: any;
+  onSuccess: () => void;
+  onError: (error: string) => void;
+}
+
+const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ paymentIntent, onSuccess, onError }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      onError('Stripe is not properly initialized. Please refresh the page and try again.');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const cardElement = elements.getElement(CardElement);
+
+      if (!cardElement) {
+        throw new Error('Card element not found. Please refresh the page and try again.');
+      }
+
+      // Confirm payment with the payment method
+      const { error: confirmError } = await stripe.confirmCardPayment(paymentIntent.client_secret, {
+        payment_method: {
+          card: cardElement,
+        }
+      });
+
+      if (confirmError) {
+        throw new Error(confirmError.message || 'Payment failed');
+      }
+
+      // Payment succeeded
+      onSuccess();
+    } catch (err: any) {
+      onError(err.message || 'Payment failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#424770',
+        '::placeholder': {
+          color: '#aab7c4',
+        },
+      },
+      invalid: {
+        color: '#9e2146',
+      },
+    },
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Card Information
+        </label>
+        <div className="p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+          <CardElement options={cardElementOptions} />
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        className="w-full"
+        disabled={!stripe || !elements || isProcessing}
+      >
+        {isProcessing ? (
+          <div className="flex items-center gap-2">
+            <Spinner size="sm" />
+            Processing Payment...
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span>Pay {formatCurrency(paymentIntent.amount, 'USD')}</span>
+          </div>
+        )}
+      </Button>
+
+      <div className="text-center text-xs text-gray-500">
+        <span>🔒 Your payment information is secure and encrypted</span>
+      </div>
+    </form>
+  );
+};
 
 // Droppable Column Component
 interface DroppableColumnProps {
@@ -403,13 +503,15 @@ function SortableMilestoneCard({
   );
 }
 
-export default function CreateContractPage() {
-  const params = useParams();
+function CreateContractPage() {
   const router = useRouter();
+  const params = useParams();
   const searchParams = useSearchParams();
+
   const jobId = params.jobId as string;
   const proposalId = searchParams.get('proposalId');
 
+  // State variables
   const [job, setJob] = useState<JobResponse | null>(null);
   const [proposal, setProposal] = useState<ProposalResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -424,6 +526,14 @@ export default function CreateContractPage() {
 
   // Modal state
   const [isAddMilestoneModalOpen, setIsAddMilestoneModalOpen] = useState(false);
+
+  // Payment state for new upfront payment system
+  const [paymentStep, setPaymentStep] = useState(false);
+  const [paymentIntent, setPaymentIntent] = useState<any>(null);
+  const [createdContract, setCreatedContract] = useState<any>(null);
+
+  // Initialize Stripe
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -694,8 +804,15 @@ export default function CreateContractPage() {
 
       const result = await contractService.createContract(contractData);
 
-      // Redirect to contract details or success page
-      router.push(`/client/contracts/${result._id}`);
+      // Store contract data and payment intent for payment step
+      setCreatedContract(result);
+      if (result.paymentIntent) {
+        setPaymentIntent(result.paymentIntent);
+        setPaymentStep(true);
+      } else {
+        // If no payment intent, redirect directly (shouldn't happen in new system)
+        router.push(`/client/contracts/${result._id}`);
+      }
 
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to create contract');
@@ -746,315 +863,115 @@ export default function CreateContractPage() {
     );
   }
 
+  // Payment Step UI
+  if (paymentStep && paymentIntent && createdContract) {
+    return (
+      <DashboardLayout userRole="client">
+        <div className="max-w-2xl mx-auto space-y-6">
+  //         <div className="flex items-center gap-4">
+  //           <Button variant="secondary" onClick={() => setPaymentStep(false)}>
+  //             ← Back to Contract
+  //           </Button>
+  //           <div>
+  //             <h1 className="text-2xl font-bold text-primary">Complete Payment</h1>
+  //             <p className="text-secondary">Secure upfront payment for the contract</p>
+  //           </div>
+  //         </div>
+
+  //         <Card variant="default">
+  //           <CardHeader>
+  //             <h3 className="text-lg font-semibold text-primary">Payment Summary</h3>
+  //           </CardHeader>
+  //           <CardBody>
+  //             <div className="space-y-4">
+  //               <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+  //                 <span className="font-medium">Contract Amount</span>
+  //                 <span className="text-lg font-semibold">{formatCurrency(createdContract.totalAmount, createdContract.currency)}</span>
+  //               </div>
+
+  //               <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+  //                 <span className="font-medium">Platform Fee</span>
+  //                 <span className="text-blue-700">{formatCurrency(createdContract.platformFee, createdContract.currency)}</span>
+  //               </div>
+
+  //               <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+  //                 <span className="font-medium text-green-700">Total to Pay</span>
+  //                 <span className="text-xl font-bold text-green-700">{formatCurrency(createdContract.totalAmount, createdContract.currency)}</span>
+  //               </div>
+  //             </div>
+  //           </CardBody>
+  //         </Card>
+
+          {/* Stripe Payment Form */}
+          <Card variant="default">
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-primary">Payment Information</h3>
+              <p className="text-sm text-secondary">Your payment is secured by Stripe</p>
+            </CardHeader>
+          <CardBody>
+            <Elements stripe={stripePromise}>
+              <StripePaymentForm
+                paymentIntent={paymentIntent}
+                onSuccess={() => router.push(`/client/contracts/${createdContract._id}`)}
+                onError={(error) => setError(error)}
+              />
+            </Elements>
+          </CardBody>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}
+
   return (
     <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => router.back()}
-              >
-                ← Back
-              </Button>
-              <h1 className="text-2xl font-bold text-primary">Create Contract</h1>
-            </div>
-            {job && (
-              <div>
-                <p className="text-lg text-primary font-medium">{job.title}</p>
-                <p className="text-secondary text-sm mt-1">
-                  {job.category} • {formatCurrency(job.budget.min)} {job.budget.max ? `- ${formatCurrency(job.budget.max)}` : ''}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        <ContractHeader job={job} formatCurrency={formatCurrency} />
 
         {/* Proposal Summary */}
-        {proposal && (
-          <Card variant="default">
-            <CardHeader>
-              <h2 className="text-lg font-semibold text-primary">Proposal Summary</h2>
-            </CardHeader>
-            <CardBody>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <div className="text-sm text-secondary">Proposal ID</div>
-                  <div className="font-medium text-primary">#{proposal._id.slice(-6)}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-secondary">Proposed Rate</div>
-                  <div className="font-medium" style={{color: 'var(--color-success)'}}>
-                    {formatCurrency(proposal.proposedRate.amount, proposal.proposedRate.currency)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-secondary">Status</div>
-                  <Badge variant="success">Accepted</Badge>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        )}
+        <ProposalSummary proposal={proposal} formatCurrency={formatCurrency} />
 
         {/* Contract Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Contract Dates */}
-          <Card variant="default">
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-primary">Contract Timeline</h3>
-            </CardHeader>
-            <CardBody>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-group">
-                  <label className="form-label">
-                    Start Date <span className="text-error">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                    disabled={isSubmitting}
-                    className="input-default"
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                  <div className="form-help">When work should begin</div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">
-                    End Date <span className="text-error">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                    disabled={isSubmitting}
-                    className="input-default"
-                    min={startDate || new Date().toISOString().split('T')[0]}
-                  />
-                  <div className="form-help">When the project should be completed</div>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+          <ContractTimeline
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
+            isSubmitting={isSubmitting}
+          />
 
           {/* Milestones Kanban Board */}
-          <Card variant="default">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-primary">Project Milestones</h3>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setIsAddMilestoneModalOpen(true)}
-                  disabled={isSubmitting}
-                >
-                  + Add Milestone
-                </Button>
-              </div>
-              <p className="text-secondary text-sm mt-1">
-                Drag milestones between columns to organize them. Only milestones in "Contract Milestones" will be included.
-              </p>
-            </CardHeader>
-            <CardBody>
-              {milestones.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-muted mb-4">
-                    <svg className="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <p className="text-secondary mb-4">No milestones defined yet.</p>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setIsAddMilestoneModalOpen(true)}
-                    disabled={isSubmitting}
-                  >
-                    Add First Milestone
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCorners}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={milestones.map(m => m.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="flex gap-6 overflow-x-auto pb-4">
-                        {/* Proposal Column */}
-                        <DroppableColumn
-                          id="proposal-column"
-                          title="Proposal Milestones"
-                          color="bg-blue-500"
-                          count={milestones.filter(m => m.column === 'proposal').length}
-                        >
-                          <div className="space-y-3">
-                            {milestones
-                              .filter(m => m.column === 'proposal')
-                              .map((milestone, index) => (
-                                <SortableMilestoneCard
-                                  key={milestone.id}
-                                  milestone={milestone}
-                                  index={milestones.findIndex(m => m.id === milestone.id)}
-                                  onChange={handleMilestoneChange}
-                                  onRemove={handleRemoveMilestone}
-                                  isSubmitting={isSubmitting}
-                                  formatCurrency={formatCurrency}
-                                />
-                              ))}
-                          </div>
-                        </DroppableColumn>
-
-                        {/* Custom Column */}
-                        <DroppableColumn
-                          id="custom-column"
-                          title="Custom Milestones"
-                          color="bg-orange-500"
-                          count={milestones.filter(m => m.column === 'custom').length}
-                        >
-                          <div className="space-y-3">
-                            {milestones
-                              .filter(m => m.column === 'custom')
-                              .map((milestone, index) => (
-                                <SortableMilestoneCard
-                                  key={milestone.id}
-                                  milestone={milestone}
-                                  index={milestones.findIndex(m => m.id === milestone.id)}
-                                  onChange={handleMilestoneChange}
-                                  onRemove={handleRemoveMilestone}
-                                  isSubmitting={isSubmitting}
-                                  formatCurrency={formatCurrency}
-                                />
-                              ))}
-                          </div>
-                        </DroppableColumn>
-
-                        {/* Contract Column */}
-                        <DroppableColumn
-                          id="contract-column"
-                          title="Contract Milestones"
-                          color="bg-green-500"
-                          count={milestones.filter(m => m.column === 'contract').length}
-                        >
-                          <div className="space-y-3">
-                            {milestones
-                              .filter(m => m.column === 'contract')
-                              .map((milestone, contractIndex) => (
-                                <SortableMilestoneCard
-                                  key={milestone.id}
-                                  milestone={milestone}
-                                  index={contractIndex + 1}
-                                  onChange={handleMilestoneChange}
-                                  onRemove={handleRemoveMilestone}
-                                  isSubmitting={isSubmitting}
-                                  formatCurrency={formatCurrency}
-                                />
-                              ))}
-                          </div>
-                        </DroppableColumn>
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-
-                  {/* Total Summary */}
-                  {milestones.filter(m => m.isSelected).length > 0 && (
-                    <div className="bg-secondary rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-primary">
-                          Total Contract Amount ({milestones.filter(m => m.column === 'contract').length} milestones)
-                        </span>
-                        <span className="text-lg font-semibold" style={{color: 'var(--color-success)'}}>
-                          {formatCurrency(getTotalMilestoneAmount())}
-                        </span>
-                      </div>
-                      {proposal && (
-                        <div className="text-sm text-secondary mt-1">
-                          Proposal total: {formatCurrency(proposal.proposedRate.amount)}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+          <MilestonesKanban
+            milestones={milestones}
+            proposal={proposal}
+            isSubmitting={isSubmitting}
+            isAddMilestoneModalOpen={isAddMilestoneModalOpen}
+            setIsAddMilestoneModalOpen={setIsAddMilestoneModalOpen}
+            sensors={sensors}
+            handleDragEnd={handleDragEnd}
+            handleMilestoneChange={handleMilestoneChange}
+            handleRemoveMilestone={handleRemoveMilestone}
+            formatCurrency={formatCurrency}
+            getTotalMilestoneAmount={getTotalMilestoneAmount}
+          />
 
           {/* Contract Terms */}
-          <Card variant="default">
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-primary">Contract Terms</h3>
-            </CardHeader>
-            <CardBody>
-              <div className="form-group">
-                <label className="form-label">Additional Terms & Conditions (Optional)</label>
-                <textarea
-                  value={terms}
-                  onChange={(e) => setTerms(e.target.value)}
-                  disabled={isSubmitting}
-                  className="input-default resize-none"
-                  rows={4}
-                  placeholder="Enter any specific terms, conditions, or requirements for this contract..."
-                />
-                <div className="form-help">
-                  These terms will be added to the standard contract template.
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+          <ContractTerms
+            terms={terms}
+            setTerms={setTerms}
+            isSubmitting={isSubmitting}
+          />
 
           {/* Submit Actions */}
-          <CardFooter>
-            {/* Error Display */}
-            {error && (
-              <div className="w-full mb-4">
-                <div className="alert-error p-3 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <svg className="h-4 w-4 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.268 15.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <span className="text-sm">{error}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="flex gap-3 justify-end w-full">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => router.back()}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isSubmitting || !startDate || !endDate}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    Creating Contract...
-                  </>
-                ) : (
-                  'Create Contract'
-                )}
-              </Button>
-            </div>
-          </CardFooter>
+          <ContractSubmitActions
+            error={error}
+            isSubmitting={isSubmitting}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </form>
 
         {/* Add Milestone Modal */}
@@ -1077,3 +994,5 @@ export default function CreateContractPage() {
     </DashboardLayout>
   );
 }
+
+export default CreateContractPage;

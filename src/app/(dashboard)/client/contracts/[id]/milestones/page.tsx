@@ -39,7 +39,6 @@ const STATUS_COLUMNS = [
   { id: 'in-progress', title: 'In Progress', color: 'bg-blue-500' },
   { id: 'submitted', title: 'Submitted', color: 'bg-yellow-500' },
   { id: 'approved', title: 'Approved', color: 'bg-green-500' },
-  { id: 'paid', title: 'Paid', color: 'bg-emerald-500' },
   { id: 'rejected', title: 'Rejected', color: 'bg-red-500' },
 ];
 
@@ -101,10 +100,11 @@ function DroppableColumn({ id, title, color, count, children }: DroppableColumnP
 interface SortableMilestoneCardProps {
   milestone: MilestoneResponse;
   onStatusChange: (milestoneId: string, newStatus: string) => void;
+  onPaymentClick?: (milestone: MilestoneResponse) => void;
   isUpdating: boolean;
 }
 
-function SortableMilestoneCard({ milestone, onStatusChange, isUpdating }: SortableMilestoneCardProps) {
+function SortableMilestoneCard({ milestone, onStatusChange, onPaymentClick, isUpdating }: SortableMilestoneCardProps) {
   const {
     attributes,
     listeners,
@@ -136,8 +136,6 @@ function SortableMilestoneCard({ milestone, onStatusChange, isUpdating }: Sortab
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'paid':
-        return 'success';
       case 'approved':
         return 'success';
       case 'submitted':
@@ -155,7 +153,7 @@ function SortableMilestoneCard({ milestone, onStatusChange, isUpdating }: Sortab
   const isOverdue = () => {
     const dueDate = new Date(milestone.dueDate);
     const now = new Date();
-    return dueDate < now && milestone.status !== 'approved' && milestone.status !== 'paid';
+    return dueDate < now && milestone.status !== 'approved';
   };
 
   const getDaysUntilDue = () => {
@@ -354,7 +352,11 @@ const ContractMilestonesPage = () => {
         ));
 
         // Call appropriate API based on status transition
-        await performStatusTransition(activeMilestoneId, activeMilestone.status, newStatus);
+        if (newStatus === 'approved') {
+          await milestoneApi.approve(activeMilestoneId);
+        } else if (newStatus === 'rejected') {
+          await milestoneApi.reject(activeMilestoneId, { feedback: rejectFeedback });
+        }
 
         // Show success message
         const statusLabel = STATUS_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
@@ -405,33 +407,6 @@ const ContractMilestonesPage = () => {
     }
   };
 
-  // Perform status transition API calls (client-specific)
-  const performStatusTransition = async (milestoneId: string, currentStatus: string, newStatus: string, feedback?: string) => {
-    switch (newStatus) {
-      case 'approved':
-        if (currentStatus === 'submitted') {
-          await milestoneApi.approve(milestoneId);
-        } else {
-          throw new Error('Can only approve milestones that are submitted');
-        }
-        break;
-
-      case 'rejected':
-        if (currentStatus === 'submitted') {
-          if (!feedback || feedback.trim() === '') {
-            throw new Error('Feedback is required when rejecting a milestone');
-          }
-          await milestoneApi.reject(milestoneId, { feedback });
-        } else {
-          throw new Error('Can only reject milestones that are submitted');
-        }
-        break;
-
-      default:
-        throw new Error(`Invalid status transition from ${currentStatus} to ${newStatus}`);
-    }
-  };
-
   // Handle status change from dropdown
   const handleStatusChange = async (milestoneId: string, newStatus: string) => {
     const milestone = milestones.find(m => m.id === milestoneId);
@@ -450,6 +425,18 @@ const ContractMilestonesPage = () => {
       setIsUpdating(true);
       setError(null);
 
+      // Check if contract has sufficient balance for approval (upfront payment system)
+      if (newStatus === 'approved') {
+        const totalContractAmount = milestones.reduce((sum, m) => sum + m.amount, 0);
+        const approvedAmount = milestones
+          .filter(m => m.status === 'approved' || (m.id === milestoneId && newStatus === 'approved'))
+          .reduce((sum, m) => sum + m.amount, 0);
+
+        if (approvedAmount > totalContractAmount) {
+          throw new Error('Insufficient contract balance to approve this milestone. The contract balance has been exhausted.');
+        }
+      }
+
       // Optimistically update UI first
       setMilestones(prev => prev.map(m =>
         m.id === milestoneId
@@ -458,7 +445,11 @@ const ContractMilestonesPage = () => {
       ));
 
       // Call appropriate API based on status transition
-      await performStatusTransition(milestoneId, milestone.status, newStatus);
+      if (newStatus === 'approved') {
+        await milestoneApi.approve(milestoneId);
+      } else if (newStatus === 'rejected') {
+        await milestoneApi.reject(milestoneId, { feedback: rejectFeedback });
+      }
 
       // Show success message
       const statusLabel = STATUS_COLUMNS.find(col => col.id === newStatus)?.title || newStatus;
@@ -505,7 +496,7 @@ const ContractMilestonesPage = () => {
       ));
 
       // Call reject API with feedback
-      await performStatusTransition(rejectMilestoneId, milestone.status, 'rejected', rejectFeedback);
+      await milestoneApi.reject(rejectMilestoneId, { feedback: rejectFeedback });
 
       // Show success message
       setSuccessMessage('Milestone rejected with feedback');
@@ -542,15 +533,14 @@ const ContractMilestonesPage = () => {
     const pending = milestones.filter(m => m.status === 'pending').length;
     const inProgress = milestones.filter(m => m.status === 'in-progress').length;
     const submitted = milestones.filter(m => m.status === 'submitted').length;
-    const completed = milestones.filter(m => m.status === 'approved' || m.status === 'paid').length;
+    const completed = milestones.filter(m => m.status === 'approved').length;
     const overdue = milestones.filter(m => {
       const dueDate = new Date(m.dueDate);
       const now = new Date();
-      return dueDate < now && m.status !== 'approved' && m.status !== 'paid';
+      return dueDate < now && m.status !== 'approved';
     }).length;
 
     const totalAmount = milestones.reduce((sum, m) => sum + m.amount, 0);
-    const paidAmount = milestones.filter(m => m.status === 'paid').reduce((sum, m) => sum + m.amount, 0);
 
     return {
       total,
@@ -560,7 +550,6 @@ const ContractMilestonesPage = () => {
       completed,
       overdue,
       totalAmount,
-      paidAmount,
       currency: milestones[0]?.currency || 'USD'
     };
   };
@@ -735,15 +724,15 @@ const ContractMilestonesPage = () => {
               </div>
             </div>
             <div>
-              <div className="text-sm text-secondary">Paid Amount</div>
+              <div className="text-sm text-secondary">Approved Amount</div>
               <div className="text-lg font-semibold text-success">
-                {formatCurrency(stats.paidAmount, stats.currency)}
+                {formatCurrency(milestones.filter(m => m.status === 'approved').reduce((sum, m) => sum + m.amount, 0), stats.currency)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-secondary">Remaining</div>
+              <div className="text-sm text-secondary">Pending Approval</div>
               <div className="text-lg font-semibold text-secondary">
-                {formatCurrency(stats.totalAmount - stats.paidAmount, stats.currency)}
+                {formatCurrency(milestones.filter(m => m.status === 'submitted').reduce((sum, m) => sum + m.amount, 0), stats.currency)}
               </div>
             </div>
           </div>
@@ -813,6 +802,7 @@ const ContractMilestonesPage = () => {
           </DndContext>
         </CardBody>
       </Card>
+
     </div>
     </DashboardLayout>
   );

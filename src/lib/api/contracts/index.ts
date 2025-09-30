@@ -27,6 +27,7 @@ export interface ContractResponse {
   currency: string;
   status: 'draft' | 'active' | 'completed' | 'cancelled' | 'pending';
   totalPaid: number;
+  releasedAmount: number;
   remainingAmount: number;
   completionPercentage: number;
   platformFeePercentage: number;
@@ -39,6 +40,8 @@ export interface ContractResponse {
   terms?: string;
   isClientSigned: boolean;
   isFreelancerSigned: boolean;
+  stripePaymentIntentId?: string;
+  paymentIntent?: any; // Stripe payment intent data
   clientId: {
     _id: string;
     email: string;

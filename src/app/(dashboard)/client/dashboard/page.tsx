@@ -16,11 +16,13 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import StatsCard from '../../../../components/features/dashboard/StatsCard';
+import PaymentStatsWidget from '../../../../components/features/payments/PaymentStatsWidget';
 import { dashboardApi, type DashboardStats, type RecentJob, type RecentContract } from '../../../../lib/api/dashboard';
-import { useUserDisplay } from '../../../../lib/hooks/useAuth';
+import { useUserDisplay, useAuth } from '../../../../lib/hooks/useAuth';
 
 export default function ClientDashboard() {
   const { displayName } = useUserDisplay();
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalJobs: 0,
     activeJobs: 0,
@@ -152,9 +154,9 @@ export default function ClientDashboard() {
             changeType="increase"
           />
           <StatsCard
-            title="Total Spent"
+            title="Total Invested"
             value={`$${stats.totalSpent.toLocaleString()}`}
-            change="Project investments"
+            change="Upfront payments made"
             changeType="increase"
           />
         </div>
@@ -294,6 +296,11 @@ export default function ClientDashboard() {
             )}
           </div>
         </div>
+
+        {/* Payment Stats Widget */}
+        {user && (
+          <PaymentStatsWidget userId={user.id} userType="client" />
+        )}
 
         {/* Getting Started Guide */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">

@@ -109,7 +109,7 @@ export default function ContractMilestonesPage() {
   };
 
   const isOverdue = (milestone: MilestoneResponse) => {
-    return new Date(milestone.dueDate) < new Date() && milestone.status !== 'approved' && milestone.status !== 'paid';
+    return new Date(milestone.dueDate) < new Date() && milestone.status !== 'approved';
   };
 
   const getDaysUntilDue = (milestone: MilestoneResponse) => {
