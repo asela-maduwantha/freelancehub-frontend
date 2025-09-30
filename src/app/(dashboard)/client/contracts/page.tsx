@@ -71,7 +71,7 @@ export default function ClientContractsPage() {
 
             const [job, proposal] = await Promise.all([
               jobService.getJob(typeof contract.jobId === 'object' ? contract.jobId._id : contract.jobId).catch(() => null),
-              proposalService.getProposal(typeof contract.proposalId === 'object' ? contract.proposalId._id : contract.proposalId).catch(() => null)
+              contract.proposalId ? proposalService.getProposal(typeof contract.proposalId === 'object' ? contract.proposalId._id : contract.proposalId).catch(() => null) : Promise.resolve(null)
             ]);
             
             return {

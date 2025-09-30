@@ -41,8 +41,29 @@ export interface CreateProposalRequest {
 
 export interface ProposalResponse {
   _id: string;
-  jobId: string;
-  freelancerId: string;
+  job: {
+    id: string;
+    title: string;
+    category: string;
+    subcategory?: string;
+    projectType: 'fixed-price' | 'hourly';
+    budget: {
+      type: 'fixed' | 'hourly' | 'range';
+      min: number;
+      max?: number;
+      currency: string;
+    };
+    client: {
+      id: string;
+      email: string;
+      fullName: string;
+    };
+  };
+  freelancer: {
+    id: string;
+    email: string;
+    fullName: string;
+  };
   coverLetter: string;
   proposedRate: ProposedRate;
   estimatedDuration?: EstimatedDuration;

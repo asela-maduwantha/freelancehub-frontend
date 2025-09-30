@@ -31,6 +31,16 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/jobs/${id}`,
     DELETE: (id: string) => `/jobs/${id}`,
     APPLY: (id: string) => `/jobs/${id}/apply`,
+    FEATURED: '/jobs/featured',
+    RECENT: '/jobs/recent',
+  },
+
+  CATEGORIES: {
+    LIST: '/categories',
+  },
+
+  SKILLS: {
+    LIST: '/skills',
   },
 
   PROPOSALS: {

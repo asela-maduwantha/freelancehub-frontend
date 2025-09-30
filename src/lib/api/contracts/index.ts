@@ -20,7 +20,53 @@ export interface CreateContractMilestoneRequest {
 
 export interface ContractResponse {
   _id: string;
-  proposalId: {
+  title: string;
+  description: string;
+  contractType: 'fixed-price' | 'hourly';
+  totalAmount: number;
+  currency: string;
+  status: 'draft' | 'active' | 'completed' | 'cancelled' | 'pending';
+  totalPaid: number;
+  remainingAmount: number;
+  completionPercentage: number;
+  platformFeePercentage: number;
+  platformFee: number;
+  freelancerAmount: number;
+  milestoneCount: number;
+  completedMilestones: number;
+  startDate: string;
+  endDate: string;
+  terms?: string;
+  isClientSigned: boolean;
+  isFreelancerSigned: boolean;
+  clientId: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+      avatar?: string;
+    };
+    fullName: string;
+  };
+  freelancerId: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+      title?: string;
+    };
+    fullName: string;
+  };
+  jobId: {
+    _id: string;
+    title: string;
+    category: string;
+    subcategory?: string;
+  };
+  // Legacy fields still used in components
+  proposalId?: {
     _id: string;
     proposedRate: {
       amount: number;
@@ -29,76 +75,10 @@ export interface ContractResponse {
     };
     status: string;
   };
-  jobId: {
-    _id: string;
-    title: string;
-    category: string;
-    subcategory: string;
-    projectType: string;
-    budget: {
-      type: string;
-      min: number;
-      max: number;
-      currency: string;
-    };
-    isActive: boolean;
-    isExpired: boolean;
-    canReceiveProposals: boolean;
-    id: string;
-  };
-  clientId: {
-    _id: string;
-    email: string;
-    profile: {
-      firstName: string;
-      lastName: string;
-    };
-    fullName: string;
-    isFreelancer: boolean;
-    isClient: boolean;
-    isAdmin: boolean;
-    id: string;
-  };
-  freelancerId: {
-    _id: string;
-    email: string;
-    profile: {
-      firstName: string;
-      lastName: string;
-    };
-    fullName: string;
-    isFreelancer: boolean;
-    isClient: boolean;
-    isAdmin: boolean;
-    id: string;
-  };
-  title: string;
-  description: string;
-  contractType: string;
-  totalAmount: number;
-  currency: string;
   hourlyRate?: number;
-  startDate: string;
-  endDate: string;
-  status: string;
-  platformFeePercentage: number;
-  totalPaid: number;
-  milestoneCount: number;
-  completedMilestones?: number;
   estimatedHours?: number;
-  terms?: string;
-  isClientSigned: boolean;
-  isFreelancerSigned: boolean;
   createdAt: string;
   updatedAt: string;
-  __v?: number;
-  remainingAmount: number;
-  completionPercentage: number;
-  isActive: boolean;
-  isCompleted: boolean;
-  platformFee: number;
-  freelancerAmount: number;
-  id: string;
 }
 
 export interface ContractListResponse {

@@ -106,28 +106,28 @@ const SubmitWorkModal: React.FC<SubmitWorkModalProps> = ({
         <Card variant="default">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Submit Work</h2>
+              <h2 className="text-xl font-bold text-primary">Submit Work</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted hover:text-primary"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <p className="text-gray-600 mt-2">Milestone: {milestoneTitle}</p>
+            <p className="text-secondary mt-2">Milestone: {milestoneTitle}</p>
           </CardHeader>
 
           <CardBody>
             <div className="space-y-6">
               {/* File Upload Section */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Upload Deliverables *
                 </label>
                 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-border-default rounded-lg p-6 text-center">
                   <input
                     type="file"
                     multiple
@@ -139,10 +139,10 @@ const SubmitWorkModal: React.FC<SubmitWorkModalProps> = ({
                     htmlFor="file-upload"
                     className="cursor-pointer flex flex-col items-center"
                   >
-                    <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-12 h-12 text-muted mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-secondary">
                       Click to select files or drag and drop
                     </span>
                   </label>
@@ -151,16 +151,16 @@ const SubmitWorkModal: React.FC<SubmitWorkModalProps> = ({
                 {/* Selected Files */}
                 {files.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Files:</h4>
+                    <h4 className="text-sm font-medium text-primary mb-2">Selected Files:</h4>
                     <div className="space-y-2">
                       {files.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                          <span className="text-sm text-gray-700">{file.name}</span>
+                        <div key={index} className="flex items-center justify-between bg-secondary p-2 rounded">
+                          <span className="text-sm text-primary">{file.name}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
+                            <span className="text-xs text-muted">{formatFileSize(file.size)}</span>
                             <button
                               onClick={() => removeFile(index)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-error hover:text-error"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -185,21 +185,21 @@ const SubmitWorkModal: React.FC<SubmitWorkModalProps> = ({
                 {/* Uploaded Files */}
                 {uploadedDeliverables.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Uploaded Deliverables:</h4>
+                    <h4 className="text-sm font-medium text-primary mb-2">Uploaded Deliverables:</h4>
                     <div className="space-y-2">
                       {uploadedDeliverables.map((deliverable, index) => (
-                        <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded border border-green-200">
+                        <div key={index} className="flex items-center justify-between bg-success bg-opacity-10 p-2 rounded border border-success border-opacity-20">
                           <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span className="text-sm text-gray-700">{deliverable.filename}</span>
+                            <span className="text-sm text-primary">{deliverable.filename}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{formatFileSize(deliverable.size)}</span>
+                            <span className="text-xs text-muted">{formatFileSize(deliverable.size)}</span>
                             <button
                               onClick={() => removeUploadedFile(index)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-error hover:text-error"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -215,7 +215,7 @@ const SubmitWorkModal: React.FC<SubmitWorkModalProps> = ({
 
               {/* Submission Note */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Submission Note
                 </label>
                 <textarea
@@ -223,19 +223,19 @@ const SubmitWorkModal: React.FC<SubmitWorkModalProps> = ({
                   onChange={(e) => setSubmissionNote(e.target.value)}
                   placeholder="Describe your work and any additional notes..."
                   rows={4}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-border-default rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 />
               </div>
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <div className="bg-error bg-opacity-10 border border-error border-opacity-20 rounded-md p-3">
                   <div className="flex">
-                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                     </svg>
                     <div className="ml-3">
-                      <p className="text-sm text-red-800">{error}</p>
+                      <p className="text-sm text-error">{error}</p>
                     </div>
                   </div>
                 </div>

@@ -19,7 +19,9 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  X,
+  Calendar
 } from 'lucide-react';
 
 interface ProposalFilters {
@@ -70,6 +72,11 @@ const MyProposalsPage: React.FC = () => {
   };
 
   const handleViewJob = async (jobId: string) => {
+    if (!jobId) {
+      setError('Job ID is missing');
+      return;
+    }
+
     try {
       setJobLoading(true);
       setJobModalOpen(true);
@@ -205,7 +212,7 @@ const MyProposalsPage: React.FC = () => {
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            Proposal for Job #{proposal.jobId.slice(-8)}
+                            Proposal for Job #{proposal.job ? proposal.job.id.slice(-8) : 'Unknown'}
                           </h3>
                           <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                             <Badge variant={getStatusBadgeVariant(proposal.status)}>
@@ -281,7 +288,8 @@ const MyProposalsPage: React.FC = () => {
                     <div className="flex flex-col gap-3 lg:min-w-[200px]">
                       <Button
                         variant="primary"
-                        onClick={() => handleViewJob(proposal.jobId)}
+                        onClick={() => proposal.job && handleViewJob(proposal.job.id)}
+                        disabled={!proposal.job}
                         className="w-full"
                       >
                         <Eye className="mr-2 h-4 w-4" />
@@ -355,127 +363,177 @@ const MyProposalsPage: React.FC = () => {
         )}
 
         {/* Job Details Modal */}
-        <Modal
-          isOpen={jobModalOpen}
-          onClose={() => {
-            setJobModalOpen(false);
-            setSelectedJob(null);
-          }}
-          title="Job Details"
-          size="xl"
-        >
-          {jobLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader size="lg" />
-            </div>
-          ) : selectedJob ? (
-            <div className="space-y-6">
-              {/* Job Header */}
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedJob.title}</h2>
-                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                  <Badge variant={selectedJob.isUrgent ? 'warning' : 'secondary'}>
-                    {selectedJob.isUrgent ? 'Urgent' : 'Regular'}
-                  </Badge>
-                  <span>Posted {formatDate(selectedJob.postedAt)}</span>
-                  <span>{selectedJob.proposalCount} proposals</span>
-                </div>
+        {jobModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop with blur effect */}
+            <div
+              className="absolute inset-0 bg-black bg-opacity-20 backdrop-blur-sm transition-all duration-300"
+              onClick={() => {
+                setJobModalOpen(false);
+                setSelectedJob(null);
+              }}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
+              {/* Header */}
+              <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100/50">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Job Details
+                </h3>
+                <button
+                  onClick={() => {
+                    setJobModalOpen(false);
+                    setSelectedJob(null);
+                  }}
+                  className="p-2 hover:bg-gray-100/50 rounded-full transition-colors duration-200"
+                >
+                  <X className="h-6 w-6 text-gray-500" />
+                </button>
               </div>
 
-              {/* Job Description */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Job Description</h3>
-                <p className="text-gray-700 leading-relaxed">{selectedJob.description}</p>
-              </div>
+              {/* Content */}
+              <div className="px-8 py-6 max-h-[calc(90vh-140px)] overflow-y-auto">
+                {jobLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader size="lg" />
+                  </div>
+                ) : selectedJob ? (
+                  <div className="space-y-8">
+                    {/* Job Header */}
+                    <div className="text-center">
+                      <h2 className="text-3xl font-bold text-gray-900 mb-3">{selectedJob.title}</h2>
+                      <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-6">
+                        <Badge variant={selectedJob.isUrgent ? 'warning' : 'secondary'} className="px-3 py-1">
+                          {selectedJob.isUrgent ? 'Urgent' : 'Regular'}
+                        </Badge>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          Posted {formatDate(selectedJob.postedAt)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FileText className="h-4 w-4" />
+                          {selectedJob.proposalCount} proposals
+                        </span>
+                      </div>
+                    </div>
 
-              {/* Job Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                    <div>
-                      <span className="text-sm text-gray-600">Budget</span>
-                      <p className="font-medium text-gray-900">{formatBudget(selectedJob.budget)}</p>
+                    {/* Job Description */}
+                    <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-xl p-6 border border-blue-100/50">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        Job Description
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-lg">{selectedJob.description}</p>
+                    </div>
+
+                    {/* Job Details Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-green-100 rounded-lg">
+                              <DollarSign className="h-5 w-5 text-green-600" />
+                            </div>
+                            <div>
+                              <span className="text-sm text-gray-600 font-medium">Budget</span>
+                              <p className="font-bold text-gray-900 text-lg">{formatBudget(selectedJob.budget)}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                              <Briefcase className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <span className="text-sm text-gray-600 font-medium">Project Type</span>
+                              <p className="font-bold text-gray-900 text-lg capitalize">
+                                {selectedJob.projectType.replace('-', ' ')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                              <MapPin className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <span className="text-sm text-gray-600 font-medium">Location</span>
+                              <p className="font-bold text-gray-900 text-lg">Remote</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
+                          <span className="text-sm text-gray-600 font-medium block mb-2">Category</span>
+                          <p className="font-bold text-gray-900 text-lg capitalize">
+                            {selectedJob.category.replace('-', ' ')}
+                          </p>
+                        </div>
+
+                        <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
+                          <span className="text-sm text-gray-600 font-medium block mb-2">Experience Level</span>
+                          <p className="font-bold text-gray-900 text-lg capitalize">
+                            {selectedJob.experienceLevel || 'Not specified'}
+                          </p>
+                        </div>
+
+                        <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
+                          <span className="text-sm text-gray-600 font-medium block mb-2">Status</span>
+                          <Badge variant={selectedJob.status === 'open' ? 'success' : 'secondary'} className="px-3 py-1 text-sm">
+                            {selectedJob.status.charAt(0).toUpperCase() + selectedJob.status.slice(1)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Skills Required */}
+                    <div className="bg-gradient-to-r from-green-50/50 to-blue-50/50 rounded-xl p-6 border border-green-100/50">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <User className="h-5 w-5 text-green-600" />
+                        Skills Required
+                      </h3>
+                      <div className="flex flex-wrap gap-3">
+                        {selectedJob.skills.map((skill: string, index: number) => (
+                          <Badge key={index} variant="outline" className="px-4 py-2 text-sm font-medium bg-white/70 border-gray-300 hover:bg-white/90 transition-colors">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Client Information */}
+                    <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-6 border border-purple-100/50">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <User className="h-5 w-5 text-purple-600" />
+                        Client Information
+                      </h3>
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg">
+                          <User className="h-7 w-7 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-lg">{selectedJob.client.fullName}</p>
+                          <p className="text-gray-600">{selectedJob.client.email}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <span className="text-sm text-gray-600">Project Type</span>
-                      <p className="font-medium text-gray-900 capitalize">
-                        {selectedJob.projectType.replace('-', ' ')}
-                      </p>
-                    </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <p className="text-gray-600 text-lg">Failed to load job details</p>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <span className="text-sm text-gray-600">Location</span>
-                      <p className="font-medium text-gray-900 capitalize">
-                        Remote
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <span className="text-sm text-gray-600">Category</span>
-                    <p className="font-medium text-gray-900 capitalize">
-                      {selectedJob.category.replace('-', ' ')}
-                    </p>
-                  </div>
-
-                  <div>
-                    <span className="text-sm text-gray-600">Experience Level</span>
-                    <p className="font-medium text-gray-900 capitalize">
-                      {selectedJob.experienceLevel || 'Not specified'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <span className="text-sm text-gray-600">Status</span>
-                    <Badge variant={selectedJob.status === 'open' ? 'success' : 'secondary'}>
-                      {selectedJob.status.charAt(0).toUpperCase() + selectedJob.status.slice(1)}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Skills Required */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills Required</h3>
-                <div className="flex flex-wrap gap-2">
-                  {selectedJob.skills.map((skill: string, index: number) => (
-                    <Badge key={index} variant="outline">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Client Information */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Client Information</h3>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <User className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{selectedJob.client.fullName}</p>
-                    <p className="text-sm text-gray-600">{selectedJob.client.email}</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600">Failed to load job details</p>
-            </div>
-          )}
-        </Modal>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

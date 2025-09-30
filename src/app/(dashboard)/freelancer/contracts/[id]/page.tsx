@@ -8,6 +8,7 @@ import { ComponentLoader } from '../../../../../components/common/Loading';
 import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
+import { Modal } from '../../../../../components/ui/Modal';
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function ContractDetailPage() {
   const [contract, setContract] = useState<ContractResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSignModal, setShowSignModal] = useState(false);
+  const [signingContract, setSigningContract] = useState(false);
 
   useEffect(() => {
     const fetchContract = async () => {
@@ -77,6 +80,44 @@ export default function ContractDetailPage() {
 
   const handleBackToContracts = () => {
     router.push('/freelancer/contracts');
+  };
+
+  const handleSignContract = async () => {
+    if (!contract) return;
+
+    try {
+      setSigningContract(true);
+      await contractService.signContract(contract._id);
+      // Refresh contract data
+      const updatedContract = await contractService.getContract(contractId);
+      setContract(updatedContract);
+      setShowSignModal(false);
+      alert('Contract signed successfully!');
+    } catch (err: any) {
+      alert('Failed to sign contract: ' + (err.message || 'Unknown error'));
+    } finally {
+      setSigningContract(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!contract) return;
+
+    try {
+      const response = await contractService.downloadContract(contract._id);
+      // Create a blob from the response and download it
+      const blob = new Blob([response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contract-${contract._id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      alert('Failed to download PDF: ' + (err.message || 'Unknown error'));
+    }
   };
 
   if (loading) {
@@ -142,6 +183,14 @@ export default function ContractDetailPage() {
             </div>
           </div>
           <div className="flex gap-3">
+            <Button variant="outline" onClick={handleDownloadPDF}>
+              Download PDF
+            </Button>
+            {!contract.isFreelancerSigned && contract.status !== 'cancelled' && (
+              <Button variant="primary" onClick={() => setShowSignModal(true)}>
+                Sign Contract
+              </Button>
+            )}
             <Button variant="primary" onClick={handleViewMilestones}>
               View Milestones
             </Button>
@@ -360,6 +409,51 @@ export default function ContractDetailPage() {
             </Card>
           </div>
         </div>
+
+        {/* Sign Contract Modal */}
+        <Modal
+          isOpen={showSignModal}
+          onClose={() => setShowSignModal(false)}
+          title="Sign Contract"
+        >
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 text-blue-500 mb-4">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Sign Contract Agreement</h3>
+              <p className="text-gray-600 mb-4">
+                By signing this contract, you agree to the terms and conditions outlined in the agreement.
+                This action cannot be undone.
+              </p>
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <div className="text-sm text-gray-700">
+                  <p><strong>Contract:</strong> {contract.title}</p>
+                  <p><strong>Client:</strong> {typeof contract.clientId === 'object' ? contract.clientId.fullName : 'N/A'}</p>
+                  <p><strong>Amount:</strong> {formatCurrency(contract.totalAmount, contract.currency)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setShowSignModal(false)}
+                disabled={signingContract}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSignContract}
+                disabled={signingContract}
+              >
+                {signingContract ? 'Signing...' : 'Sign Contract'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </DashboardLayout>
   );

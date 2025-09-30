@@ -19,7 +19,11 @@ import {
   ChevronDown,
   Briefcase,
   FileText,
-  Eye
+  Eye,
+  TrendingUp,
+  Zap,
+  Award,
+  SlidersHorizontal
 } from 'lucide-react';
 
 const JOB_STATUSES = [
@@ -30,44 +34,61 @@ const JOB_STATUSES = [
   { value: 'draft', label: 'Draft' }
 ];
 
-const JOB_CATEGORIES = [
-  'Web Development',
-  'Mobile Development',
-  'Desktop Development',
-  'Data Science & Analytics',
-  'Design & Creative',
-  'Writing & Translation',
-  'Marketing & Sales',
-  'Customer Service',
-  'Consulting',
-  'Other'
+const EXPERIENCE_LEVELS = [
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'expert', label: 'Expert' }
+];
+
+const PROJECT_TYPES = [
+  { value: 'fixed-price', label: 'Fixed Price' },
+  { value: 'hourly', label: 'Hourly' }
+];
+
+const SORT_OPTIONS = [
+  { value: 'relevance', label: 'Most Relevant' },
+  { value: 'recent', label: 'Most Recent' },
+  { value: 'budget-high', label: 'Highest Budget' },
+  { value: 'budget-low', label: 'Lowest Budget' },
+  { value: 'proposals-low', label: 'Least Competitive' }
 ];
 
 const BrowseProjectsPage: React.FC = () => {
   const [jobs, setJobs] = useState<JobResponse[]>([]);
+  const [featuredJobs, setFeaturedJobs] = useState<JobResponse[]>([]);
+  const [recentJobs, setRecentJobs] = useState<JobResponse[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<JobFilters>({
-    status: 'open' 
+    status: 'open'
   });
+  const [sortBy, setSortBy] = useState('relevance');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const fetchJobs = async (page = 1, searchQuery = '', activeFilters = {}) => {
+  const fetchJobs = async (page = 1, searchQuery = '', activeFilters = {}, sort = 'relevance') => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const queryFilters: JobFilters = {
         ...activeFilters
       };
 
+      // Add search if provided
+      if (searchQuery.trim()) {
+        queryFilters.search = searchQuery.trim();
+      }
+
       const response = await jobService.getJobs(queryFilters, page, 12);
       setJobs(response.jobs);
-      console.log(response);
       setTotalPages(response.totalPages);
       setTotal(response.total);
       setCurrentPage(page);
@@ -78,8 +99,65 @@ const BrowseProjectsPage: React.FC = () => {
     }
   };
 
+  const fetchFeaturedJobs = async () => {
+    try {
+      setIsLoadingFeatured(true);
+      const response = await jobService.getFeaturedJobs(1, 6);
+      setFeaturedJobs(response.jobs);
+    } catch (err: any) {
+      console.error('Failed to load featured jobs:', err);
+    } finally {
+      setIsLoadingFeatured(false);
+    }
+  };
+
+  const fetchRecentJobs = async () => {
+    try {
+      setIsLoadingRecent(true);
+      const response = await jobService.getRecentJobs(1, 8, 7);
+      setRecentJobs(response.jobs);
+    } catch (err: any) {
+      console.error('Failed to load recent jobs:', err);
+    } finally {
+      setIsLoadingRecent(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await jobService.getCategories();
+      setCategories(response.categories || []);
+    } catch (err: any) {
+      console.error('Failed to load categories:', err);
+    }
+  };
+
+  const fetchSkills = async () => {
+    try {
+      const response = await jobService.getSkills();
+      setSkills(response.skills || []);
+    } catch (err: any) {
+      console.error('Failed to load skills:', err);
+    }
+  };
+
   useEffect(() => {
-    fetchJobs(1, searchTerm, filters);
+    // Load initial data
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([
+          fetchJobs(1, searchTerm, filters, sortBy),
+          fetchFeaturedJobs(),
+          fetchRecentJobs(),
+          fetchCategories(),
+          fetchSkills()
+        ]);
+      } catch (error) {
+        console.error('Failed to load initial data:', error);
+      }
+    };
+
+    loadInitialData();
   }, []);
 
   const handleSearch = () => {
@@ -90,7 +168,7 @@ const BrowseProjectsPage: React.FC = () => {
       delete searchFilters.search;
     }
     setFilters(searchFilters);
-    fetchJobs(1, searchTerm, searchFilters);
+    fetchJobs(1, searchTerm, searchFilters, sortBy);
   };
 
   const handleFilterChange = (key: keyof JobFilters, value: any) => {
@@ -101,11 +179,16 @@ const BrowseProjectsPage: React.FC = () => {
       (newFilters as any)[key] = value;
     }
     setFilters(newFilters);
-    fetchJobs(1, searchTerm, newFilters);
+    fetchJobs(1, searchTerm, newFilters, sortBy);
+  };
+
+  const handleSortChange = (newSort: string) => {
+    setSortBy(newSort);
+    fetchJobs(1, searchTerm, filters, newSort);
   };
 
   const handlePageChange = (page: number) => {
-    fetchJobs(page, searchTerm, filters);
+    fetchJobs(page, searchTerm, filters, sortBy);
   };
 
   const formatBudget = (budget: JobResponse['budget']) => {
@@ -147,104 +230,226 @@ const BrowseProjectsPage: React.FC = () => {
     <DashboardLayout userRole="freelancer">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Browse Projects</h1>
-              <p className="text-gray-600">Find and apply to projects that match your skills</p>
+              <h1 className="text-3xl font-bold text-gray-900">Find Your Next Project</h1>
+              <p className="text-gray-600 mt-2">Discover exciting opportunities that match your skills</p>
             </div>
             <div className="text-sm text-gray-600">
-              {total} projects found
+              {total} projects available
             </div>
           </div>
+        </div>
 
-          {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search Bar */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    type="text"
-                    placeholder="Search projects by title, description, or skills..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  />
-                </div>
-              </div>
-              
-              {/* Search Button */}
-              <Button onClick={handleSearch} variant="primary">
-                Search
-              </Button>
-              
-              {/* Filter Toggle */}
-              <Button 
-                onClick={() => setShowFilters(!showFilters)} 
-                variant="outline"
-                className="flex items-center"
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-                <ChevronDown className="ml-2 h-4 w-4 transition-transform" />
-              </Button>
+        {/* Featured Jobs Section */}
+        {featuredJobs.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Award className="h-5 w-5 text-yellow-500" />
+              <h2 className="text-xl font-semibold text-gray-900">Featured Projects</h2>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredJobs.map((job) => (
+                <div key={job.id} className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{job.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <DollarSign className="h-4 w-4" />
+                        <span>{formatBudget(job.budget)}</span>
+                      </div>
+                    </div>
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-medium">
+                      Featured
+                    </span>
+                  </div>
+                  <p className="text-gray-700 text-sm mb-3 line-clamp-2">{job.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                        <span className="text-xs font-medium text-green-700">
+                          {job.client.fullName.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-600">{job.client.fullName}</span>
+                    </div>
+                    <Link href={`/freelancer/jobs/${job.id}`}>
+                      <Button variant="primary" size="sm">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-            {/* Filter Options */}
-            {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={filters.status || ''}
-                      onChange={(e) => handleFilterChange('status', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    >
-                      <option value="">All Statuses</option>
-                      {JOB_STATUSES.map(status => (
-                        <option key={status.value} value={status.value}>{status.label}</option>
-                      ))}
-                    </select>
+        {/* Recent Jobs Section */}
+        {recentJobs.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="h-5 w-5 text-blue-500" />
+              <h2 className="text-xl font-semibold text-gray-900">Recently Posted</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentJobs.slice(0, 4).map((job) => (
+                <div key={job.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-gray-900 line-clamp-1 flex-1">{job.title}</h3>
+                    <span className="text-xs text-green-600 font-medium ml-2">New</span>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category
-                    </label>
-                    <select
-                      value={filters.category || ''}
-                      onChange={(e) => handleFilterChange('category', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    >
-                      <option value="">All Categories</option>
-                      {JOB_CATEGORIES.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      {formatBudget(job.budget)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {getTimeAgo(job.postedAt)}
+                    </span>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Client ID (Optional)
-                    </label>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{job.client.fullName}</span>
+                    <Link href={`/freelancer/jobs/${job.id}`}>
+                      <Button variant="outline" size="sm">
+                        View
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search projects by title, description, or skills..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            </div>
+            
+            {/* Sort Dropdown */}
+            <div className="w-full lg:w-48">
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                {SORT_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Search Button */}
+            <Button onClick={handleSearch} variant="primary" className="px-6">
+              Search
+            </Button>
+            
+            {/* Advanced Filters Toggle */}
+            <Button 
+              onClick={() => setShowFilters(!showFilters)} 
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+              <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </Button>
+          </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={filters.category || ''}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((category: any) => (
+                      <option key={category.id || category.slug} value={category.slug || category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Experience Level
+                  </label>
+                  <select
+                    value={filters.experienceLevel || ''}
+                    onChange={(e) => handleFilterChange('experienceLevel', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="">All Levels</option>
+                    {EXPERIENCE_LEVELS.map(level => (
+                      <option key={level.value} value={level.value}>{level.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Type
+                  </label>
+                  <select
+                    value={filters.projectType || ''}
+                    onChange={(e) => handleFilterChange('projectType', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="">All Types</option>
+                    {PROJECT_TYPES.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Budget Range
+                  </label>
+                  <div className="flex gap-2">
                     <input
-                      type="text"
-                      placeholder="Filter by client ID"
-                      value={filters.clientId || ''}
-                      onChange={(e) => handleFilterChange('clientId', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minBudget || ''}
+                      onChange={(e) => handleFilterChange('minBudget', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxBudget || ''}
+                      onChange={(e) => handleFilterChange('maxBudget', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Error Alert */}

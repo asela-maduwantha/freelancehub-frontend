@@ -91,6 +91,10 @@ export interface JobFilters {
   category?: string;
   clientId?: string;
   search?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'expert';
+  projectType?: 'fixed-price' | 'hourly';
+  minBudget?: number;
+  maxBudget?: number;
 }
 
 class JobService {
@@ -135,6 +139,10 @@ class JobService {
         if (filters.category) params.append('category', filters.category);
         if (filters.clientId) params.append('clientId', filters.clientId);
         if (filters.search) params.append('search', filters.search);
+        if (filters.experienceLevel) params.append('experienceLevel', filters.experienceLevel);
+        if (filters.projectType) params.append('projectType', filters.projectType);
+        if (filters.minBudget !== undefined) params.append('minBudget', filters.minBudget.toString());
+        if (filters.maxBudget !== undefined) params.append('maxBudget', filters.maxBudget.toString());
       }
 
       const response = await apiClient.get(`${API_ENDPOINTS.JOBS.LIST}?${params}`);
@@ -194,6 +202,59 @@ class JobService {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to delete job';
       store.dispatch(jobsActions.deleteJobFailure(errorMessage));
+      throw new Error(errorMessage);
+    }
+  }
+
+  // Get featured jobs
+  async getFeaturedJobs(page = 1, limit = 6): Promise<JobListResponse> {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+
+      const response = await apiClient.get(`${API_ENDPOINTS.JOBS.FEATURED}?${params}`);
+      return response;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to fetch featured jobs';
+      throw new Error(errorMessage);
+    }
+  }
+
+  // Get recent jobs
+  async getRecentJobs(page = 1, limit = 8, days = 7): Promise<JobListResponse> {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      params.append('days', days.toString());
+
+      const response = await apiClient.get(`${API_ENDPOINTS.JOBS.RECENT}?${params}`);
+      return response;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to fetch recent jobs';
+      throw new Error(errorMessage);
+    }
+  }
+
+  // Get categories
+  async getCategories(): Promise<{ categories: any[] }> {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.CATEGORIES.LIST);
+      return response;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to fetch categories';
+      throw new Error(errorMessage);
+    }
+  }
+
+  // Get skills
+  async getSkills(): Promise<{ skills: any[] }> {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.SKILLS.LIST);
+      return response;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to fetch skills';
       throw new Error(errorMessage);
     }
   }
