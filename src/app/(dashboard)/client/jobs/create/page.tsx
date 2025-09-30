@@ -26,9 +26,9 @@ interface JobFormData {
   description: string;
   category: string;
   subcategory: string;
-  projectType: 'fixed-price' | 'hourly';
+  projectType: 'fixed-price';
   budget: {
-    type: 'fixed' | 'hourly' | 'range';
+    type: 'fixed' | 'range';
     min: number;
     max?: number;
     currency?: string;
@@ -72,14 +72,12 @@ const EXPERIENCE_LEVELS = [
 ];
 
 const PROJECT_TYPES = [
-  { value: 'fixed-price', label: 'Fixed Price' },
-  { value: 'hourly', label: 'Hourly Rate' }
+  { value: 'fixed-price', label: 'Fixed Price' }
 ];
 
 const BUDGET_TYPES = [
   { value: 'fixed', label: 'Fixed Amount' },
-  { value: 'range', label: 'Budget Range' },
-  { value: 'hourly', label: 'Hourly Rate' }
+  { value: 'range', label: 'Budget Range' }
 ];
 
 const DURATION_UNITS = [
@@ -151,7 +149,7 @@ export default function CreateJobPage() {
       ...prev,
       budget: {
         ...prev.budget,
-        type: type as 'fixed' | 'hourly' | 'range'
+        type: type as 'fixed' | 'range'
       }
     }));
   };

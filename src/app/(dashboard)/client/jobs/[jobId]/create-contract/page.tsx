@@ -789,7 +789,6 @@ export default function CreateContractPage() {
                   <div className="text-sm text-secondary">Proposed Rate</div>
                   <div className="font-medium" style={{color: 'var(--color-success)'}}>
                     {formatCurrency(proposal.proposedRate.amount, proposal.proposedRate.currency)}
-                    {proposal.proposedRate.type === 'hourly' ? '/hr' : ''}
                   </div>
                 </div>
                 <div>

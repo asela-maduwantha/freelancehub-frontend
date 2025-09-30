@@ -23,7 +23,7 @@ export interface CreateJobRequest {
   budget: {
     min: number;
     max: number;
-    type: 'fixed' | 'hourly';
+    type: 'fixed';
   };
   duration: string;
   experienceLevel: 'entry' | 'intermediate' | 'expert';

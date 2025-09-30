@@ -28,8 +28,6 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
       return formatCurrency(budget.min, budget.currency);
     } else if (budget.type === 'range') {
       return `${formatCurrency(budget.min, budget.currency)} - ${formatCurrency(budget.max || 0, budget.currency)}`;
-    } else if (budget.type === 'hourly') {
-      return `${formatCurrency(budget.min, budget.currency)}/hr`;
     }
     return 'Budget not specified';
   };

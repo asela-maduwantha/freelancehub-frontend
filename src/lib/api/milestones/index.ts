@@ -11,7 +11,7 @@ export interface MilestoneResponse {
   currency: string;
   order: number;
   dueDate: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'approved' | 'rejected';
+  status: 'pending' | 'in-progress' | 'submitted' | 'approved' | 'paid' | 'rejected';
   deliverables: Deliverable[];
   createdAt: string;
   updatedAt: string;
@@ -59,6 +59,38 @@ export const milestoneApi = {
   // Get milestones for a contract
   getByContract: (contractId: string): Promise<MilestoneListResponse> => {
     return apiClient.get(API_ENDPOINTS.MILESTONES.LIST_BY_CONTRACT(contractId));
+  },
+
+  // Get all milestones with filtering
+  getAll: (params?: {
+    contractId?: string;
+    status?: string;
+    isOverdue?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<MilestoneListResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params?.contractId) queryParams.append('contractId', params.contractId);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.isOverdue !== undefined) queryParams.append('isOverdue', params.isOverdue.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const url = queryParams.toString() 
+      ? `${API_ENDPOINTS.MILESTONES.LIST_ALL}?${queryParams}`
+      : API_ENDPOINTS.MILESTONES.LIST_ALL;
+    
+    return apiClient.get(url);
+  },
+
+  // Get overdue milestones
+  getOverdue: (): Promise<MilestoneListResponse> => {
+    return apiClient.get(API_ENDPOINTS.MILESTONES.OVERDUE);
+  },
+
+  // Get contract milestone statistics
+  getStats: (contractId: string): Promise<any> => {
+    return apiClient.get(API_ENDPOINTS.MILESTONES.STATS(contractId));
   },
 
   // Start working on a milestone

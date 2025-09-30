@@ -30,7 +30,7 @@ import {
   title: string;
   description: string;
   budget: {
-    type: 'fixed' | 'hourly' | 'range';
+    type: 'fixed' | 'range';
     min: number;
     max?: number;
     currency?: string;
@@ -66,7 +66,7 @@ interface ProposalFormData {
   coverLetter: string;
   proposedRate: {
     amount: string;
-    type: 'fixed' | 'hourly';
+    type: 'fixed';
     currency: string;
   };
   estimatedDuration: {
@@ -163,7 +163,7 @@ export default function CreateProposalPage() {
     }));
   };
 
-  const handleProposedRateChange = (field: 'amount' | 'type' | 'currency') => (
+  const handleProposedRateChange = (field: 'amount' | 'currency') => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData(prev => ({
@@ -306,8 +306,7 @@ export default function CreateProposalPage() {
     }
 
     // For fixed-price jobs, check if milestone total matches proposed rate (if milestones exist)
-    // Skip this validation for hourly jobs since working hours can change
-    if (formData.proposedRate.type === 'fixed' && formData.proposedMilestones.length > 0) {
+    if (formData.proposedMilestones.length > 0) {
       const milestoneTotal = getTotalMilestoneAmount();
       const proposedTotal = parseFloat(formData.proposedRate.amount);
       if (Math.abs(milestoneTotal - proposedTotal) > 0.01) {
@@ -399,7 +398,6 @@ export default function CreateProposalPage() {
   const milestoneTotal = getTotalMilestoneAmount();
   const proposedTotal = parseFloat(formData.proposedRate.amount) || 0;
   const isMilestoneTotalValid = formData.proposedMilestones.length === 0 ||
-    formData.proposedRate.type === 'hourly' ||
     Math.abs(milestoneTotal - proposedTotal) <= 0.01;
 
   return (
@@ -504,45 +502,15 @@ export default function CreateProposalPage() {
                   <DollarSign className="inline h-4 w-4 mr-1" />
                   Proposed Budget (USD) *
                 </label>
-                <div className="flex gap-2">
-                  <select
-                    value={formData.proposedRate.type}
-                    onChange={handleProposedRateChange('type')}
-                    disabled={jobDetails?.budget.type !== 'range'}
-                    className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                      jobDetails?.budget.type !== 'range' ? 'bg-gray-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {jobDetails?.budget.type === 'hourly' && (
-                      <option value="hourly">Hourly Rate</option>
-                    )}
-                    {jobDetails?.budget.type === 'fixed' && (
-                      <option value="fixed">Fixed Price</option>
-                    )}
-                    {jobDetails?.budget.type === 'range' && (
-                      <>
-                        <option value="fixed">Fixed Price</option>
-                        <option value="hourly">Hourly Rate</option>
-                      </>
-                    )}
-                  </select>
-                  <Input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={formData.proposedRate.amount}
-                    onChange={handleProposedRateChange('amount')}
-                    required
-                    className="flex-1"
-                  />
-                </div>
-                {formData.proposedRate.type === 'hourly' && (
-                  <p className="text-xs text-gray-500 mt-1">Rate per hour</p>
-                )}
-                {jobDetails?.budget.type !== 'range' && (
-                  <p className="text-xs text-blue-600 mt-1">
-                    Budget type is locked to match the job requirements
-                  </p>
-                )}
+                <Input
+                  type="number"
+                  placeholder="Enter fixed price amount"
+                  value={formData.proposedRate.amount}
+                  onChange={handleProposedRateChange('amount')}
+                  required
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500 mt-1">Fixed price for the entire project</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -593,18 +561,6 @@ export default function CreateProposalPage() {
                 Add Milestone
               </Button>
             </div>
-
-            {formData.proposedRate.type === 'hourly' && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2 text-blue-700">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium">Hourly Job Milestones</p>
-                    <p className="mt-1">Milestone amounts are estimates only. Actual payments will be based on hours worked at your hourly rate.</p>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {formData.proposedMilestones.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
@@ -682,25 +638,15 @@ export default function CreateProposalPage() {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-700">
-                        {formData.proposedRate.type === 'hourly'
-                          ? 'Estimated Milestone Total:'
-                          : 'Milestone Total:'
-                        }
+                        Milestone Total:
                       </span>
                       <span className={`font-semibold ${
-                        formData.proposedRate.type === 'hourly'
-                          ? 'text-blue-600'
-                          : isMilestoneTotalValid ? 'text-green-600' : 'text-red-600'
+                        isMilestoneTotalValid ? 'text-green-600' : 'text-red-600'
                       }`}>
                         ${milestoneTotal.toFixed(2)}
-                        {formData.proposedRate.type === 'fixed' && !isMilestoneTotalValid && proposedTotal > 0 && (
+                        {!isMilestoneTotalValid && proposedTotal > 0 && (
                           <span className="text-sm text-red-500 ml-2">
                             (Should equal ${proposedTotal.toFixed(2)})
-                          </span>
-                        )}
-                        {formData.proposedRate.type === 'hourly' && (
-                          <span className="text-sm text-blue-500 ml-2">
-                            (Estimate - may change based on actual hours)
                           </span>
                         )}
                       </span>

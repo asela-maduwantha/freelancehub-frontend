@@ -22,7 +22,7 @@ export interface ContractResponse {
   _id: string;
   title: string;
   description: string;
-  contractType: 'fixed-price' | 'hourly';
+  contractType: 'fixed-price';
   totalAmount: number;
   currency: string;
   status: 'draft' | 'active' | 'completed' | 'cancelled' | 'pending';

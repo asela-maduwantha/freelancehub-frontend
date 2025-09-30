@@ -65,6 +65,9 @@ export const API_ENDPOINTS = {
 
   MILESTONES: {
     LIST_BY_CONTRACT: (contractId: string) => `/milestones/contract/${contractId}/milestones`,
+    LIST_ALL: '/milestones',
+    OVERDUE: '/milestones/overdue',
+    STATS: (contractId: string) => `/milestones/contract/${contractId}/stats`,
     START_WORK: (id: string) => `/milestones/${id}/in-progress`,
     SUBMIT_WORK: (id: string) => `/milestones/${id}/submit`,
     APPROVE: (id: string) => `/milestones/${id}/approve`,

@@ -43,7 +43,7 @@ export interface Job {
   budget: {
     min: number;
     max: number;
-    type: 'fixed' | 'hourly';
+    type: 'fixed';
   };
   duration: string;
   experienceLevel: 'entry' | 'intermediate' | 'expert';
@@ -214,7 +214,7 @@ export interface JobFormData {
   category: string;
   budgetMin: number;
   budgetMax: number;
-  budgetType: 'fixed' | 'hourly';
+  budgetType: 'fixed';
   duration: string;
   experienceLevel: 'entry' | 'intermediate' | 'expert';
   location: string;

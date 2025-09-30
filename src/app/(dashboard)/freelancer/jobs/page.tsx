@@ -41,8 +41,7 @@ const EXPERIENCE_LEVELS = [
 ];
 
 const PROJECT_TYPES = [
-  { value: 'fixed-price', label: 'Fixed Price' },
-  { value: 'hourly', label: 'Hourly' }
+  { value: 'fixed-price', label: 'Fixed Price' }
 ];
 
 const SORT_OPTIONS = [

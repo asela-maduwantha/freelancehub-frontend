@@ -123,7 +123,6 @@ const CreateContractModal: React.FC<CreateContractModalProps> = ({
               <span className="text-secondary">Rate:</span>
               <span className="text-emerald font-medium">
                 {formatCurrency(proposal.proposedRate.amount, proposal.proposedRate.currency)}
-                {proposal.proposedRate.type === 'hourly' ? '/hr' : ''}
               </span>
             </div>
             {proposal.estimatedDuration && (

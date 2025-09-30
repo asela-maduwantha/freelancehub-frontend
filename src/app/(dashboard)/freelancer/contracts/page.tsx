@@ -111,8 +111,7 @@ export default function FreelancerContractsPage() {
 
   const contractTypeOptions = [
     { value: 'all', label: 'All Types' },
-    { value: 'fixed-price', label: 'Fixed Price' },
-    { value: 'hourly', label: 'Hourly' },
+    { value: 'fixed-price', label: 'Fixed Price' }
   ];
 
   const amountRangeOptions = [

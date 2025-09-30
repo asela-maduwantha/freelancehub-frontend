@@ -27,9 +27,9 @@ interface JobFormData {
   description: string;
   category: string;
   subcategory: string;
-  projectType: 'fixed-price' | 'hourly';
+  projectType: 'fixed-price';
   budget: {
-    type: 'fixed' | 'hourly' | 'range';
+    type: 'fixed' | 'range';
     min: number;
     max?: number;
     currency?: string;
@@ -79,8 +79,7 @@ const PROJECT_TYPES = [
 
 const BUDGET_TYPES = [
   { value: 'fixed', label: 'Fixed Amount' },
-  { value: 'range', label: 'Budget Range' },
-  { value: 'hourly', label: 'Hourly Rate' }
+  { value: 'range', label: 'Budget Range' }
 ];
 
 const DURATION_UNITS = [
@@ -145,7 +144,7 @@ export default function EditJobPage() {
           description: jobData.description,
           category: jobData.category,
           subcategory: jobData.subcategory || '',
-          projectType: jobData.projectType === 'fixed-price' ? 'fixed-price' : 'hourly',
+          projectType: 'fixed-price',
           budget: {
             type: jobData.budget.type,
             min: jobData.budget.min,

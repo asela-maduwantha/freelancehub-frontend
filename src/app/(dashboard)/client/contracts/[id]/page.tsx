@@ -316,7 +316,6 @@ export default function ClientContractDetailPage() {
                         <h3 className="font-medium text-primary mb-1">Proposed Rate</h3>
                         <p className="text-secondary">
                           {formatCurrency(contract.proposal.proposedRate.amount, contract.proposal.proposedRate.currency || contract.currency)}
-                          {contract.proposal.proposedRate.type === 'hourly' ? '/hour' : ''}
                         </p>
                       </div>
                       <div>

@@ -77,8 +77,6 @@ export default function JobDetailPage() {
       return formatCurrency(budget.min, budget.currency);
     } else if (budget.type === 'range') {
       return `${formatCurrency(budget.min, budget.currency)} - ${formatCurrency(budget.max || 0, budget.currency)}`;
-    } else if (budget.type === 'hourly') {
-      return `${formatCurrency(budget.min, budget.currency)}/hr`;
     }
     return 'Budget not specified';
   };
@@ -403,7 +401,6 @@ export default function JobDetailPage() {
                           </div>
                           <div className="text-xs text-gray-600 mb-2">
                             {formatCurrency(proposal.proposedRate.amount, proposal.proposedRate.currency || 'USD')}
-                            {proposal.proposedRate.type === 'hourly' && '/hr'}
                           </div>
                           {proposal.estimatedDuration && (
                             <div className="text-xs text-gray-500">

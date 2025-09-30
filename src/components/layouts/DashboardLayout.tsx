@@ -17,7 +17,8 @@ import {
   FileText,
   TrendingUp,
   Users,
-  Star
+  Star,
+  Kanban
 } from 'lucide-react';
 import Sidebar from '../common/Sidebar/Sidebar';
 import Button from '../ui/Button';
@@ -105,6 +106,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           href: '/client/contracts',
         },
         {
+          id: 'milestone-tracker',
+          label: 'Milestone Tracker',
+          icon: <Kanban size={20} />,
+          href: '/milestone-tracker',
+        },
+        {
           id: 'payments',
           label: 'Payments',
           icon: <CreditCard size={20} />,
@@ -133,6 +140,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           label: 'Contracts',
           icon: <FileText size={20} />,
           href: '/freelancer/contracts',
+        },
+        {
+          id: 'milestone-tracker',
+          label: 'Milestone Tracker',
+          icon: <Kanban size={20} />,
+          href: '/milestone-tracker',
         },
         {
           id: 'earnings',

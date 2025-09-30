@@ -7,7 +7,7 @@ import { proposalsActions } from '../../../store/slices/proposals/proposalsSlice
 // Types for proposal API requests and responses
 export interface ProposedRate {
   amount: number;
-  type: 'fixed' | 'hourly';
+  type: 'fixed';
   currency?: string;
 }
 
@@ -46,9 +46,9 @@ export interface ProposalResponse {
     title: string;
     category: string;
     subcategory?: string;
-    projectType: 'fixed-price' | 'hourly';
+    projectType: 'fixed-price';
     budget: {
-      type: 'fixed' | 'hourly' | 'range';
+      type: 'fixed' | 'range';
       min: number;
       max?: number;
       currency: string;

@@ -6,7 +6,7 @@ import { jobsActions } from '../../../store/slices/jobs/jobsSlice';
 
 // Types for API requests and responses
 export interface JobBudget {
-  type: 'fixed' | 'hourly' | 'range';
+  type: 'fixed' | 'range';
   min: number;
   max?: number;
   currency?: string;
@@ -29,7 +29,7 @@ export interface CreateJobRequest {
   description: string;
   category: string;
   subcategory?: string;
-  projectType: 'fixed-price' | 'hourly';
+  projectType: 'fixed-price';
   budget: JobBudget;
   duration?: JobDuration;
   skills: string[];
@@ -55,7 +55,7 @@ export interface JobResponse {
   description: string;
   category: string;
   subcategory?: string;
-  projectType: 'fixed-price' | 'hourly';
+  projectType: 'fixed-price';
   budget: JobBudget;
   duration?: JobDuration;
   skills: string[];
@@ -92,7 +92,7 @@ export interface JobFilters {
   clientId?: string;
   search?: string;
   experienceLevel?: 'beginner' | 'intermediate' | 'expert';
-  projectType?: 'fixed-price' | 'hourly';
+  projectType?: 'fixed-price';
   minBudget?: number;
   maxBudget?: number;
 }
