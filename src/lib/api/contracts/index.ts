@@ -8,6 +8,8 @@ export interface CreateContractRequest {
   endDate: string;
   terms?: string;
   milestones?: CreateContractMilestoneRequest[];
+  paymentMethodId?: string; // For saved cards
+  savePaymentMethod?: boolean; // For saving new cards
 }
 
 export interface CreateContractMilestoneRequest {
@@ -25,7 +27,7 @@ export interface ContractResponse {
   contractType: 'fixed-price';
   totalAmount: number;
   currency: string;
-  status: 'draft' | 'active' | 'completed' | 'cancelled' | 'pending';
+  status: 'draft' | 'active' | 'completed' | 'cancelled' | 'pending' | 'pending_payment_method';
   totalPaid: number;
   releasedAmount: number;
   remainingAmount: number;
@@ -42,6 +44,7 @@ export interface ContractResponse {
   isFreelancerSigned: boolean;
   stripePaymentIntentId?: string;
   paymentIntent?: any; // Stripe payment intent data
+  setupIntent?: any; // Stripe setup intent for saving cards
   clientId: {
     _id: string;
     email: string;

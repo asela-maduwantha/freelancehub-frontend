@@ -136,11 +136,61 @@ export interface UserBalanceResponse {
   pendingBalance: number;
 }
 
-export interface PaymentFormData {
-  amount: string;
+export interface PaymentMethod {
+  id: string;
+  stripePaymentMethodId: string;
+  type: 'card';
+  card: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+  };
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface PaymentMethodsResponse {
+  paymentMethods: PaymentMethod[];
+  defaultPaymentMethodId?: string;
+}
+
+export interface ConfirmPaymentMethodRequest {
+  setupIntentId: string;
+  paymentMethodId: string;
+}
+
+export interface ConfirmPaymentMethodResponse {
+  contract: {
+    id: string;
+    status: string;
+    paymentMethodId: string;
+  };
+  paymentMethod: PaymentMethod;
+}
+
+export interface CreatePaymentIntentRequest {
+  contractId: string; // Required by backend
+  amount: number;
+  currency?: string;
+  description?: string;
+  paymentMethodId?: string; // Optional: for using saved payment method
+}
+
+export interface PaymentIntentResponse {
+  id: string; // Stripe PaymentIntent ID
+  clientSecret: string;
+  amount: number;
   currency: string;
-  description: string;
-  paymentType: 'milestone' | 'bonus' | 'refund';
+  status: string; // Stripe status: 'requires_payment_method', 'requires_confirmation', etc.
+  metadata: {
+    userId: string;
+    contractId: string;
+    freelancerId: string;
+    stripeCustomerId: string;
+  };
+  paymentId: string; // Backend Payment record ID - use this for tracking!
 }
 
 // Payment API services
@@ -219,6 +269,21 @@ class PaymentService {
   // Get user balance
   getUserBalance(userId: string): Promise<UserBalanceResponse> {
     return apiClient.get(API_ENDPOINTS.PAYMENTS.USER_BALANCE(userId));
+  }
+
+  // Get saved payment methods
+  getPaymentMethods(): Promise<PaymentMethodsResponse> {
+    return apiClient.get('/payment-methods');
+  }
+
+  // Confirm payment method after setup intent
+  confirmPaymentMethod(contractId: string, data: ConfirmPaymentMethodRequest): Promise<ConfirmPaymentMethodResponse> {
+    return apiClient.post(`/contracts/${contractId}/confirm-payment-method`, data);
+  }
+
+  // Create payment intent for checkout
+  createPaymentIntent(data: CreatePaymentIntentRequest): Promise<PaymentIntentResponse> {
+    return apiClient.post('/payments/create-intent', data);
   }
 }
 

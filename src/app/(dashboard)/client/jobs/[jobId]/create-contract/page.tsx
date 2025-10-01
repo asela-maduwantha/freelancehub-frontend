@@ -10,7 +10,8 @@ import Button from '../../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../../components/ui/Card';
 import { Spinner } from '../../../../../../components/ui/Feedback';
 import { Badge } from '../../../../../../components/ui/Display';
-import { formatCurrency } from '../../../../../../lib/utils/formatting';
+import { PaymentMethod, paymentService } from '../../../../../../lib/api/payments';
+import { PaymentMethodSelector, StripeCardForm } from './components/PaymentComponents';
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { ContractHeader } from './components/ContractHeader';
@@ -42,6 +43,7 @@ import {
   useDroppable,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+import { formatCurrency } from '../../../../../../lib/utils/formatting';
 
 // Add Milestone Modal Component
 interface AddMilestoneModalProps {
@@ -511,12 +513,41 @@ function CreateContractPage() {
   const jobId = params.jobId as string;
   const proposalId = searchParams.get('proposalId');
 
+  // Handle payment method refresh (called when payment method becomes invalid)
+  const refreshPaymentMethods = async () => {
+    setLoadingCards(true);
+    await checkSavedCards();
+  };
+
+  // Validate payment selection
+  const validatePaymentSelection = (): string | null => {
+    if (!paymentOption) {
+      return 'Please select a payment method';
+    }
+
+    if (paymentOption === 'saved') {
+      if (!selectedPaymentMethod) {
+        return 'Please select a saved payment method';
+      }
+      // Check if the selected payment method is still valid
+      const methodExists = savedCards.some(card => card.id === selectedPaymentMethod.id);
+      if (!methodExists) {
+        return 'Selected payment method is no longer available. Please choose another method.';
+      }
+    }
+
+    return null;
+  };
+
   // State variables
   const [job, setJob] = useState<JobResponse | null>(null);
   const [proposal, setProposal] = useState<ProposalResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize Stripe
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
   // Form data
   const [startDate, setStartDate] = useState('');
@@ -527,13 +558,74 @@ function CreateContractPage() {
   // Modal state
   const [isAddMilestoneModalOpen, setIsAddMilestoneModalOpen] = useState(false);
 
-  // Payment state for new upfront payment system
+  // Payment state
+  const [savedCards, setSavedCards] = useState<PaymentMethod[]>([]);
+  const [loadingCards, setLoadingCards] = useState(true);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentOption, setPaymentOption] = useState<'saved' | 'new' | 'checkout' | ''>('');
+
+  // Setup intent state for saving new cards
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [setupIntent, setSetupIntent] = useState<any>(null);
+
+  // Legacy payment state (keeping for backward compatibility)
   const [paymentStep, setPaymentStep] = useState(false);
   const [paymentIntent, setPaymentIntent] = useState<any>(null);
   const [createdContract, setCreatedContract] = useState<any>(null);
 
-  // Initialize Stripe
-  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+  // Global error handler for API errors
+  const handleApiError = (error: any, defaultMessage: string = 'An error occurred') => {
+    console.error('API Error:', error);
+
+    if (error.response?.status === 402) {
+      return 'Payment failed: Insufficient funds or card declined';
+    }
+
+    if (error.response?.status === 400) {
+      if (error.response.data?.error === 'INVALID_PAYMENT_METHOD') {
+        // Refresh payment methods and show error
+        checkSavedCards();
+        return 'Selected payment method is invalid or expired. Please choose another method.';
+      }
+      if (error.response.data?.error === 'SETUP_INTENT_FAILED') {
+        return 'Failed to set up payment method. Please try again.';
+      }
+    }
+
+    if (error.response?.status === 429) {
+      return 'Too many requests. Please wait a moment and try again.';
+    }
+
+    if (error.response?.status === 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+
+    return error.response?.data?.message || error.message || defaultMessage;
+  };
+
+  // Check for saved payment methods
+  const checkSavedCards = async () => {
+    try {
+      setLoadingCards(true);
+      const response = await paymentService.getPaymentMethods();
+      setSavedCards(response.paymentMethods || []);
+
+      // Auto-select default payment method if available
+      const defaultMethod = response.paymentMethods?.find(card => card.isDefault);
+      if (defaultMethod) {
+        setSelectedPaymentMethod(defaultMethod);
+        setPaymentOption('saved');
+      }
+    } catch (error) {
+      console.error('Failed to load payment methods:', error);
+      // Clear any selected payment method if loading failed
+      setSelectedPaymentMethod(null);
+      setPaymentOption('');
+      // Don't show error for payment methods, just continue without them
+    } finally {
+      setLoadingCards(false);
+    }
+  };
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -677,6 +769,9 @@ function CreateContractPage() {
         // Initialize milestones from proposal
         initializeMilestones(proposalData.proposedMilestones);
 
+        // Check for saved payment methods
+        await checkSavedCards();
+
         // Set default dates (start tomorrow, end in 3 months)
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -780,6 +875,13 @@ function CreateContractPage() {
       return;
     }
 
+    // Validate payment selection
+    const paymentValidationError = validatePaymentSelection();
+    if (paymentValidationError) {
+      setError(paymentValidationError);
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -799,23 +901,32 @@ function CreateContractPage() {
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         terms: terms.trim() || undefined,
-        milestones: selectedMilestones
+        milestones: selectedMilestones,
+        paymentMethodId: paymentOption === 'saved' ? selectedPaymentMethod?.id : undefined,
+        savePaymentMethod: paymentOption === 'new'
       };
 
       const result = await contractService.createContract(contractData);
 
-      // Store contract data and payment intent for payment step
-      setCreatedContract(result);
-      if (result.paymentIntent) {
-        setPaymentIntent(result.paymentIntent);
-        setPaymentStep(true);
+      // Handle response based on payment choice
+      if (paymentOption === 'checkout') {
+        // Redirect to checkout page for one-time payment
+        router.push(`/checkout/contract/${result._id}`);
+      } else if (paymentOption === 'new' && result.setupIntent) {
+        // Show card form for saving new payment method
+        setSetupIntent(result.setupIntent);
+        setShowCardForm(true);
+        setCreatedContract(result);
+      } else if (paymentOption === 'saved' || result.status === 'active') {
+        // Contract created successfully with saved card or no payment needed
+        router.push(`/client/contracts/${result._id}`);
       } else {
-        // If no payment intent, redirect directly (shouldn't happen in new system)
+        // Fallback - redirect to contract page
         router.push(`/client/contracts/${result._id}`);
       }
 
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to create contract');
+      setError(handleApiError(err, 'Failed to create contract'));
     } finally {
       setIsSubmitting(false);
     }
@@ -965,6 +1076,24 @@ function CreateContractPage() {
             isSubmitting={isSubmitting}
           />
 
+          {/* Payment Method Selection */}
+          <Card variant="default">
+            <CardHeader>
+              <h2 className="text-lg font-semibold text-primary">Payment Method</h2>
+              <p className="text-sm text-secondary">Choose how you'd like to pay for this contract</p>
+            </CardHeader>
+            <CardBody>
+              <PaymentMethodSelector
+                savedCards={savedCards}
+                selectedMethod={selectedPaymentMethod}
+                paymentOption={paymentOption}
+                onMethodSelect={setSelectedPaymentMethod}
+                onOptionChange={setPaymentOption}
+                loading={loadingCards}
+              />
+            </CardBody>
+          </Card>
+
           {/* Submit Actions */}
           <ContractSubmitActions
             error={error}
@@ -990,6 +1119,34 @@ function CreateContractPage() {
           isSubmitting={isSubmitting}
           formatCurrency={formatCurrency}
         />
+
+        {/* Stripe Card Form Modal for saving new cards */}
+        {showCardForm && setupIntent && createdContract && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <Elements stripe={stripePromise} options={{ clientSecret: setupIntent.clientSecret }}>
+                  <StripeCardForm
+                    setupIntent={setupIntent}
+                    contractId={createdContract._id}
+                    onSuccess={() => {
+                      setShowCardForm(false);
+                      router.push(`/client/contracts/${createdContract._id}`);
+                    }}
+                    onError={(error: string) => {
+                      setError(error);
+                      setShowCardForm(false);
+                    }}
+                    onCancel={() => {
+                      setShowCardForm(false);
+                      setSetupIntent(null);
+                    }}
+                  />
+                </Elements>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

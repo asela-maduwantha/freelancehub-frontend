@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { usePayments } from '@/lib/hooks/usePayments';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Feedback';
-import { contractService } from '@/lib/api/contracts';
 import { formatCurrency } from '@/lib/utils/formatting';
 import {
   CreditCard,
@@ -19,140 +18,102 @@ import {
   Clock,
   ArrowUpDown,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Eye,
+  RefreshCw
 } from 'lucide-react';
 
-interface TransactionHistoryProps {
+interface PaymentHistoryProps {
   userType: 'client' | 'freelancer';
 }
 
-interface TransactionItem {
-  id: string;
-  type: 'contract_payment' | 'fund_release' | 'refund' | 'adjustment';
-  amount: number;
-  currency: string;
-  description: string;
-  contractTitle: string;
-  milestoneTitle?: string;
-  status: 'completed' | 'pending' | 'failed';
-  createdAt: string;
-  completedAt?: string;
-}
+type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+type PaymentFilter = 'all' | 'completed' | 'pending' | 'failed';
 
-const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userType }) => {
-  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10,
-    sortBy: 'createdAt',
-    sortOrder: 'desc' as 'asc' | 'desc',
-    type: undefined as 'contract_payment' | 'fund_release' | 'refund' | undefined,
-    status: undefined as 'completed' | 'pending' | 'failed' | undefined
-  });
-  const [totalPages, setTotalPages] = useState(1);
+const PaymentHistory: React.FC<PaymentHistoryProps> = ({ userType }) => {
+  const [filter, setFilter] = useState<PaymentFilter>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  const user = useSelector((state: any) => state.auth.user);
+  const {
+    payments,
+    total,
+    page,
+    limit,
+    totalPages,
+    isLoading,
+    error,
+    filters,
+    setFilters,
+    refetch,
+    getPaymentById
+  } = usePayments({
+    status: filter === 'all' ? undefined : filter,
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  });
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [filters]);
+  const handleFilterChange = (newFilter: PaymentFilter) => {
+    setFilter(newFilter);
+    setFilters({
+      status: newFilter === 'all' ? undefined : newFilter,
+      page: 1
+    });
+  };
 
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const handlePageChange = (newPage: number) => {
+    setFilters({ page: newPage });
+  };
 
-      // For upfront payment system, get contracts and their transaction history
-      const contractsResponse = await contractService.getContracts(filters.page, filters.limit);
-
-      // Transform contract data into transaction items
-      const transactionItems: TransactionItem[] = [];
-
-      contractsResponse.contracts.forEach((contract: any) => {
-        // Add initial contract payment
-        transactionItems.push({
-          id: `contract-${contract._id}`,
-          type: 'contract_payment',
-          amount: contract.totalPaid,
-          currency: contract.currency,
-          description: `Upfront payment for contract: ${contract.title}`,
-          contractTitle: contract.title,
-          status: 'completed',
-          createdAt: contract.createdAt || contract.startDate
-        });
-
-        // Add fund releases for approved milestones
-        contract.milestones?.forEach((milestone: any) => {
-          if (milestone.status === 'approved') {
-            transactionItems.push({
-              id: `release-${milestone._id}`,
-              type: 'fund_release',
-              amount: milestone.amount,
-              currency: contract.currency,
-              description: `Funds released for milestone: ${milestone.title}`,
-              contractTitle: contract.title,
-              milestoneTitle: milestone.title,
-              status: 'completed',
-              createdAt: milestone.updatedAt || milestone.createdAt
-            });
-          }
-        });
-      });
-
-      // Sort transactions by date
-      transactionItems.sort((a, b) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return filters.sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
-      });
-
-      setTransactions(transactionItems);
-      setTotalPages(Math.ceil(transactionItems.length / filters.limit));
-    } catch (err: any) {
-      setError(err.message || 'Failed to load transactions');
-    } finally {
-      setLoading(false);
+  const handleViewDetails = async (paymentId: string) => {
+    const paymentDetails = await getPaymentById(paymentId);
+    if (paymentDetails) {
+      // In a real app, you might open a modal or navigate to a detail page
+      console.log('Payment details:', paymentDetails);
     }
   };
 
-  const handleFilterChange = (newFilters: any) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
-  };
-
-  const handlePageChange = (page: number) => {
-    setFilters(prev => ({ ...prev, page }));
-  };
-
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'contract_payment':
-        return <CreditCard className="h-4 w-4 text-blue-600" />;
-      case 'fund_release':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'refund':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
+  const getStatusIcon = (status: PaymentStatus) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600 bg-green-50';
-      case 'failed':
-        return 'text-red-600 bg-red-50';
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'pending':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
       case 'processing':
-        return 'text-yellow-600 bg-yellow-50';
+        return <RefreshCw className="w-4 h-4 text-blue-600" />;
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'refunded':
+        return <TrendingDown className="w-4 h-4 text-orange-600" />;
       default:
-        return 'text-gray-600 bg-gray-50';
+        return <Clock className="w-4 h-4 text-gray-600" />;
     }
   };
 
-  if (loading && transactions.length === 0) {
+  const getStatusColor = (status: PaymentStatus) => {
+    switch (status) {
+      case 'completed':
+        return 'text-green-800 bg-green-100';
+      case 'pending':
+        return 'text-yellow-800 bg-yellow-100';
+      case 'processing':
+        return 'text-blue-800 bg-blue-100';
+      case 'failed':
+        return 'text-red-800 bg-red-100';
+      case 'refunded':
+        return 'text-orange-800 bg-orange-100';
+      default:
+        return 'text-gray-800 bg-gray-100';
+    }
+  };
+
+  const filteredPayments = payments.filter(payment =>
+    searchTerm === '' ||
+    payment.contractId.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    payment.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (isLoading && payments.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
         <Spinner size="lg" />
@@ -165,9 +126,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userType }) => 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Transaction History</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            View fund movements and releases for your contracts
+          <h2 className="text-2xl font-bold text-gray-900">Payment History</h2>
+          <p className="text-gray-600 mt-1">
+            Track all your payment transactions and their status
           </p>
         </div>
         <div className="flex gap-3">
@@ -176,11 +137,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userType }) => 
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2"
           >
-            <Filter className="h-4 w-4" />
+            <Filter className="w-4 h-4" />
             Filters
           </Button>
           <Button variant="secondary" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
+            <Download className="w-4 h-4" />
             Export
           </Button>
         </div>
@@ -189,179 +150,196 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userType }) => 
       {/* Filters */}
       {showFilters && (
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Status Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Transaction Type
-              </label>
-              <select
-                value={filters.type || ''}
-                onChange={(e) => handleFilterChange({
-                  type: e.target.value as any || undefined
-                })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">All Types</option>
-                <option value="contract_payment">Contract Payment</option>
-                <option value="fund_release">Fund Release</option>
-                <option value="refund">Refund</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Status
               </label>
               <select
-                value={filters.status || ''}
-                onChange={(e) => handleFilterChange({
-                  status: e.target.value as any || undefined
-                })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                value={filter}
+                onChange={(e) => handleFilterChange(e.target.value as PaymentFilter)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">All Status</option>
+                <option value="all">All Payments</option>
                 <option value="completed">Completed</option>
                 <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
                 <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
               </select>
             </div>
 
+            {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search
+              </label>
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search payments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Sort */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Sort By
               </label>
               <select
-                value={filters.sortBy || 'createdAt'}
-                onChange={(e) => handleFilterChange({ sortBy: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                value={`${filters.sortBy}_${filters.sortOrder}`}
+                onChange={(e) => {
+                  const [sortBy, sortOrder] = e.target.value.split('_');
+                  setFilters({ sortBy, sortOrder: sortOrder as 'asc' | 'desc' });
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="createdAt">Date</option>
-                <option value="amount">Amount</option>
-                <option value="type">Type</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Order
-              </label>
-              <select
-                value={filters.sortOrder || 'desc'}
-                onChange={(e) => handleFilterChange({
-                  sortOrder: e.target.value as 'asc' | 'desc'
-                })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="desc">Newest First</option>
-                <option value="asc">Oldest First</option>
+                <option value="createdAt_desc">Newest First</option>
+                <option value="createdAt_asc">Oldest First</option>
+                <option value="amount_desc">Highest Amount</option>
+                <option value="amount_asc">Lowest Amount</option>
               </select>
             </div>
           </div>
         </Card>
       )}
 
-      {/* Error State */}
+      {/* Error Display */}
       {error && (
-        <Card className="p-4 border-red-200 bg-red-50">
-          <div className="flex items-center gap-2 text-red-600">
-            <XCircle className="h-5 w-5" />
-            <span>{error}</span>
-          </div>
-        </Card>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
       )}
 
-      {/* Transactions List */}
-      <Card>
-        {transactions.length === 0 && !loading ? (
-          <div className="text-center py-12">
-            <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {filters.status || filters.type
-                ? 'Try adjusting your filters to see more results.'
-                : 'Your transaction history will appear here once you have contracts with fund movements.'
-              }
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {transactions.map((transaction) => (
-              <div key={transaction.id} className="p-4 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {getTransactionIcon(transaction.type)}
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                        {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+      {/* Payments List */}
+      {filteredPayments.length > 0 ? (
+        <div className="space-y-4">
+          {filteredPayments.map((payment) => (
+            <Card key={payment.id} className="p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {/* Status Icon */}
+                  <div className="flex-shrink-0">
+                    {getStatusIcon(payment.status)}
+                  </div>
+
+                  {/* Payment Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">
+                        {payment.contractId.title}
+                      </h3>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
+                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                       </span>
                     </div>
 
-                    <div>
-                      <div className="flex items-center gap-2">
-                        {transaction.type === 'contract_payment' ? (
-                          <TrendingUp className="h-4 w-4 text-red-600" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-green-600" />
-                        )}
-                        <span className="font-medium text-gray-900">
-                          {formatCurrency(transaction.amount, transaction.currency)}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {transaction.description}
-                        {transaction.milestoneTitle && (
-                          <span> • {transaction.milestoneTitle}</span>
-                        )}
-                      </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {new Date(payment.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center">
+                        <DollarSign className="w-4 h-4 mr-1" />
+                        {formatCurrency(payment.amount, payment.currency)}
+                      </span>
+                      <span className="font-mono text-xs">
+                        ID: {payment.id.slice(0, 8)}...
+                      </span>
                     </div>
-                  </div>
 
-                  <div className="text-right">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(transaction.createdAt).toLocaleDateString()}
-                    </div>
-                    {transaction.completedAt && (
-                      <div className="text-xs text-gray-400 mt-1">
-                        Completed: {new Date(transaction.completedAt).toLocaleDateString()}
+                    {payment.milestoneId && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        Milestone: {payment.milestoneId.title}
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Page {filters.page} of {totalPages}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={filters.page === 1}
-                onClick={() => handlePageChange((filters.page || 1) - 1)}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={filters.page === totalPages}
-                onClick={() => handlePageChange((filters.page || 1) + 1)}
-              >
-                Next
-              </Button>
-            </div>
+                {/* Actions */}
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewDetails(payment.id)}
+                    className="flex items-center"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Details
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        /* Empty State */
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+            <CreditCard className="w-12 h-12 text-gray-400" />
           </div>
-        )}
-      </Card>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No payments found
+          </h3>
+          <p className="text-gray-600 max-w-md mx-auto">
+            {searchTerm || filter !== 'all'
+              ? 'Try adjusting your filters or search terms.'
+              : 'You haven\'t made any payments yet. Payments will appear here once you start working with freelancers.'
+            }
+          </p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} payments
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+            >
+              Previous
+            </Button>
+
+            {/* Page Numbers */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pageNum === page ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default TransactionHistory;
+export default PaymentHistory;
