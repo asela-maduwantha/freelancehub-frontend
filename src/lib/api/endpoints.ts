@@ -102,6 +102,24 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/payment-methods/${id}`,
   },
 
+  // Withdrawals endpoints
+  WITHDRAWALS: {
+    LIST: '/withdrawals',
+    CREATE: '/withdrawals',
+    DETAIL: (id: string) => `/withdrawals/${id}`,
+    PROCESS: (id: string) => `/withdrawals/${id}/process`,
+    COMPLETE: (id: string) => `/withdrawals/${id}/complete`,
+    FAIL: (id: string) => `/withdrawals/${id}/fail`,
+  },
+
+  // Stripe Connected Account endpoints
+  STRIPE_ACCOUNT: {
+    CREATE: '/users/stripe-account',
+    ONBOARD: '/users/stripe-account/onboard',
+    STATUS: '/users/stripe-account/status',
+    DELETE: '/users/stripe-account',
+  },
+
   // Messages endpoints
   MESSAGES: {
     CONVERSATIONS: '/messages/conversations',

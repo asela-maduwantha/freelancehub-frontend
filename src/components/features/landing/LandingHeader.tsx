@@ -3,6 +3,7 @@
 import React from 'react';
 import { Menu, X, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import Button from '../../ui/Button';
 
 interface NavItem {
   label: string;
@@ -65,9 +66,9 @@ const LandingHeader: React.FC = () => {
   }, [isMenuOpen]);
 
   const navItems: NavItem[] = [
-    { label: 'Find Talent', href: '#find-talent' },
-    { label: 'Find Work', href: '#find-work' },
-    { label: 'How it Works', href: '#how-it-works' }
+    { label: 'For Clients', href: '#find-talent' },
+    { label: 'For Freelancers', href: '#find-talent' },
+    { label: 'How It Works', href: '#how-it-works' }
   ];
 
   const scrollToSection = (href: string) => {
@@ -81,12 +82,12 @@ const LandingHeader: React.FC = () => {
   return (
     <>
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm z-40 lg:hidden" 
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden animate-fade-in" 
              onClick={() => setIsMenuOpen(false)} />
       )}
 
       <header
-        className={`site-header fixed top-0 left-0 right-0 z-[100] py-4 transition-all duration-700 ease-out ${
+        className={`site-header fixed top-0 left-0 right-0 z-[100] py-2 transition-all duration-700 ease-out ${
           isScrolled 
             ? 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-100' 
             : 'bg-white/80 backdrop-blur-md'
@@ -98,7 +99,7 @@ const LandingHeader: React.FC = () => {
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-20"
+              className="absolute w-2 h-2 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full opacity-20"
               style={{
                 left: `${20 + i * 15}%`,
                 top: `${30 + i * 10}%`,
@@ -110,74 +111,81 @@ const LandingHeader: React.FC = () => {
           ))}
         </div>
 
-        <nav className="nav-content relative max-w-6xl mx-auto px-4 lg:px-6 flex justify-center" role="navigation" aria-label="Main navigation">
-          <div className="flex items-center justify-between h-16">
+        <nav className="nav-content relative max-w-7xl mx-auto px-4 lg:px-8 flex justify-between items-center" role="navigation" aria-label="Main navigation">
+          <div className="flex items-center justify-between w-full h-16">
             
-            {/* Simple Logo */}
+            {/* Enhanced Logo */}
             <Link
               href="/"
-              className="logo group flex items-center space-x-2"
+              className="logo group flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
               aria-label="Frevo homepage"
             >
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <Sparkles className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Sparkles className="w-6 h-6 text-white relative z-10 group-hover:rotate-12 transition-transform duration-300" />
               </div>
-              <span className="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors duration-300">
+              <span className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">
                 Frevo
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <ul className="hidden lg:flex items-center space-x-1">
+            {/* Enhanced Desktop Navigation */}
+            <ul className="hidden lg:flex items-center space-x-2">
               {navItems.map((item, index) => (
                 <li key={item.label}>
                   <button
                     onClick={() => scrollToSection(item.href)}
-                    className="nav-link group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-orange-600 transition-all duration-300 rounded-lg hover:bg-orange-50"
+                    className="nav-link group relative px-5 py-3 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <span className="relative z-10">{item.label}</span>
-                    <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-orange-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-full" />
+                    <span className="relative z-10 font-medium">{item.label}</span>
+                    <div className="absolute bottom-2 left-5 right-5 h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                   </button>
                 </li>
               ))}
             </ul>
 
-            {/* Desktop CTA */}
-            <div className="hidden lg:flex items-center space-x-3">
+            {/* Enhanced Desktop CTA */}
+            <div className="hidden lg:flex items-center space-x-4">
               <Link href="/login">
-                <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-300 rounded-lg hover:bg-gray-50">
-                  Login
+                <button className="group relative px-6 py-3 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-all duration-300 rounded-xl hover:bg-blue-50 hover:shadow-md transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2">
+                  <span className="relative z-10">Sign In</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
               </Link>
               <Link href="/register">
-                <button className="group px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/25 transform hover:scale-105 flex items-center space-x-2">
-                  <span>Get Started</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                <button className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 transform hover:scale-110 hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 overflow-hidden">
+                  <span className="relative z-10 flex items-center space-x-2">
+                    <span>Get Started</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </button>
               </Link>
             </div>
 
-            {/* Mobile menu button */}
+            {/* Enhanced Mobile menu button */}
             <div className="mobile-menu-container lg:hidden">
               <button
-                className="relative p-2 rounded-lg bg-white shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                className="relative p-3 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 group"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-expanded={isMenuOpen}
                 aria-controls="mobile-menu"
                 aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
               >
-                <div className="relative w-5 h-5">
-                  <span className={`absolute block w-5 h-0.5 bg-gray-700 transform transition-all duration-300 ${
-                    isMenuOpen ? 'rotate-45 translate-y-2' : 'translate-y-0'
+                <div className="relative w-6 h-6">
+                  <span className={`absolute block w-6 h-0.5 bg-gray-700 transform transition-all duration-300 rounded-full ${
+                    isMenuOpen ? 'rotate-45 translate-y-2.5 bg-white' : 'translate-y-1'
                   }`} />
-                  <span className={`absolute block w-5 h-0.5 bg-gray-700 transform transition-all duration-300 ${
-                    isMenuOpen ? 'opacity-0' : 'translate-y-2'
+                  <span className={`absolute block w-6 h-0.5 bg-gray-700 transform transition-all duration-300 rounded-full ${
+                    isMenuOpen ? 'opacity-0' : 'translate-y-2.5'
                   }`} />
-                  <span className={`absolute block w-5 h-0.5 bg-gray-700 transform transition-all duration-300 ${
-                    isMenuOpen ? '-rotate-45 translate-y-2' : 'translate-y-4'
+                  <span className={`absolute block w-6 h-0.5 bg-gray-700 transform transition-all duration-300 rounded-full ${
+                    isMenuOpen ? '-rotate-45 translate-y-2.5 bg-white' : 'translate-y-4'
                   }`} />
                 </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </div>
           </div>
@@ -185,7 +193,7 @@ const LandingHeader: React.FC = () => {
 
         {/* Enhanced Mobile Navigation */}
         <div
-          className={`mobile-menu-panel fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-all duration-500 ease-out border-l border-gray-100 ${
+          className={`mobile-menu-panel fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] bg-white/95 backdrop-blur-xl shadow-2xl transform transition-all duration-500 ease-out border-l border-white/20 ${
             isMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
           id="mobile-menu"
@@ -195,14 +203,14 @@ const LandingHeader: React.FC = () => {
         >
           <div className="flex flex-col h-full">
             {/* Enhanced Mobile Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-red-50">
+            <div className="flex items-center justify-between p-6 border-b border-white/20 bg-gradient-to-r from-blue-50/80 to-blue-100/80 backdrop-blur-sm">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <Link
                   href="/"
-                  className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
+                  className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Frevo
@@ -210,7 +218,7 @@ const LandingHeader: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                className="p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 aria-label="Close menu"
               >
                 <X size={24} className="text-gray-600" />
@@ -219,18 +227,19 @@ const LandingHeader: React.FC = () => {
 
             {/* Enhanced Mobile Navigation Links */}
             <div className="flex-1 px-6 py-8">
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {navItems.map((item, index) => (
                   <li key={item.label}>
                     <button
                       onClick={() => scrollToSection(item.href)}
-                      className="group w-full text-left py-4 px-4 text-lg font-medium text-gray-700 hover:text-gray-900 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all duration-300 transform hover:translate-x-2 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                      className="group w-full text-left py-4 px-5 text-lg font-semibold text-gray-700 hover:text-blue-600 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 relative overflow-hidden"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between relative z-10">
                         <span>{item.label}</span>
-                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                        <ArrowRight className="w-5 h-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                       </div>
+                      <div className="absolute bottom-2 left-5 right-5 h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                     </button>
                   </li>
                 ))}
@@ -238,23 +247,27 @@ const LandingHeader: React.FC = () => {
             </div>
 
             {/* Enhanced Mobile CTA */}
-            <div className="p-6 border-t border-gray-100 bg-gray-50 space-y-4">
+            <div className="p-6 border-t border-white/20 bg-gradient-to-br from-blue-50/50 to-blue-100/50 space-y-4">
               <Link href="/login" className="block">
-                <button
-                  className="w-full btn-ghost py-3 text-base font-medium text-gray-700 hover:text-gray-900 rounded-xl hover:bg-white transition-all duration-300 transform hover:scale-105"
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="w-full py-4 text-base font-semibold rounded-xl hover:bg-white/90 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Login
-                </button>
+                  Sign In
+                </Button>
               </Link>
               <Link href="/register" className="block">
-                <button
-                  className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center space-x-2"
+                <Button
+                  variant="accent"
+                  size="lg"
+                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30 flex items-center justify-center space-x-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </Button>
               </Link>
             </div>
           </div>

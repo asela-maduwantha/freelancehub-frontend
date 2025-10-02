@@ -9,6 +9,8 @@ import messagesReducer from './slices/messages';
 import notificationsReducer from './slices/notifications';
 import uiReducer from './slices/ui';
 import adminReducer from './slices/admin';
+import withdrawalsReducer from './slices/withdrawals';
+import stripeAccountReducer from './slices/stripe';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -21,6 +23,8 @@ const rootReducer = combineReducers({
   notifications: notificationsReducer,
   ui: uiReducer,
   admin: adminReducer,
+  withdrawals: withdrawalsReducer,
+  stripeAccount: stripeAccountReducer,
 });
 
 export default rootReducer;

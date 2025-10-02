@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary Colors - Deep Blue (Trust, Professionalism, Stability) */
+  /* Primary Colors - Blue (Trust, Professionalism, Stability) */
   --color-primary: #1e40af; /* blue-700 - conveys trust and professionalism */
-  --color-primary-hover: #1e3a8a; /* blue-800 */
-  --color-primary-active: #1e3a8a; /* blue-900 */
+  --color-primary-hover: #1d4ed8; /* blue-700 */
+  --color-primary-active: #1e3a8a; /* blue-800 */
   --color-primary-light: rgba(30, 64, 175, 0.1); /* primary with low opacity */
   --color-primary-lighter: rgba(30, 64, 175, 0.05); /* very light */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
+  --color-primary-600: #2563eb; /* blue-600 for gradients */
+  --color-primary-700: #1e40af; /* blue-700 main */
 
   /* Secondary Colors - Emerald (Growth, Success, Money) */
   --color-secondary: #10b981; /* emerald-500 - represents growth and success */
@@ -16,11 +18,13 @@
   --color-secondary-active: #047857; /* emerald-700 */
   --color-secondary-light: rgba(16, 185, 129, 0.1);
 
-  /* Accent Colors - Amber (Energy, Optimism, Action) */
-  --accent: #f59e0b; /* amber-500 - creates energy and calls to action */
+  /* Accent Colors - Amber (Energy, Ratings, Highlights) */
+  --accent: #f59e0b; /* amber-500 - for ratings and selective highlights */
   --accent-hover: #d97706; /* amber-600 */
   --accent-active: #b45309; /* amber-700 */
   --accent-light: rgba(245, 158, 11, 0.1);
+  --accent-600: #d97706; /* amber-600 */
+  --accent-500: #f59e0b; /* amber-500 */
 
   /* Status Colors */
   --color-success: #10b981; /* emerald-500 */
@@ -35,11 +39,12 @@
   --color-text-placeholder: #d1d5db; /* gray-300 */
   --color-text-white: #FFFFFF;
 
-  /* Background Colors - Clean and modern */
+  /* Background Colors - Clean and modern (almost white) */
   --color-bg-primary: #FFFFFF; /* pure white */
-  --color-bg-secondary: #f9fafb; /* gray-50 - subtle background */
-  --color-bg-tertiary: #f3f4f6; /* gray-100 - card backgrounds */
+  --color-bg-secondary: #FAFBFC; /* almost white with slight gray tint */
+  --color-bg-tertiary: #F8FAFC; /* very light gray - card backgrounds */
   --color-bg-hover: #f9fafb; /* subtle hover state */
+  --color-bg-section: #FEFEFE; /* section backgrounds - almost white */
 
   /* Border Colors - Subtle and refined */
   --color-border-light: #f3f4f6; /* gray-100 */
@@ -60,13 +65,15 @@
   --color-hero-bg-middle: #1e3a8a; /* blue-900 */
   --color-hero-bg-end: #1e293b; /* slate-800 */
   --color-hero-particle: rgba(255, 255, 255, 0.1);
-  --color-hero-glow-start: rgba(245, 101, 101, 0.2); /* accent / 20 */
-  --color-hero-glow-end: rgba(42, 74, 91, 0.2); /* primary / 20 */
+  --color-hero-glow-start: rgba(37, 99, 235, 0.2); /* blue-600 / 20 */
+  --color-hero-glow-end: rgba(30, 64, 175, 0.2); /* blue-700 / 20 */
+  --color-hero-accent: rgba(245, 158, 11, 0.3); /* amber for "Our Network" */
 
-  /* Light Section Colors (for landing page sections) */
-  --color-dark-bg-1: #FFFFFF; /* white */
-  --color-dark-bg-2: #F8FAFC; /* very light gray */
-  --color-dark-bg-3: #E2E8F0; /* light gray */
+  /* Light Section Colors (for landing page sections - almost white) */
+  --color-section-bg-1: #FFFFFF; /* pure white */
+  --color-section-bg-2: #FEFEFE; /* almost white */
+  --color-section-bg-3: #FAFBFC; /* very subtle gray */
+  --color-section-bg-4: #F8FAFC; /* light blue-gray tint */
 
   /* Radius */
   --radius-sm: 0.25rem;    /* 4px */
@@ -155,6 +162,48 @@
   }
   .btn-accent:active {
     transform: translateY(0);
+  }
+
+  /* Outline Button */
+  .btn-outline {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    padding: calc(var(--spacing-sm) - 1px) calc(var(--spacing-lg) - 1px);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    background-color: var(--color-primary);
+    color: var(--color-text-white);
+  }
+  .btn-outline:active {
+    background-color: var(--color-primary-active);
+    color: var(--color-text-white);
+  }
+
+  /* Hero Outline Button - White text for dark background */
+  .btn-outline-hero {
+    background-color: transparent !important;
+    color: var(--color-text-white) !important;
+    border: 2px solid var(--color-text-white) !important;
+    padding: calc(var(--spacing-sm) - 1px) calc(var(--spacing-lg) - 1px) !important;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-outline-hero:hover {
+    background-color: var(--color-text-white) !important;
+    color: var(--color-primary) !important;
+    border-color: var(--color-text-white) !important;
+  }
+  .btn-outline-hero:active {
+    background-color: var(--color-bg-secondary) !important;
+    color: var(--color-primary) !important;
+    border-color: var(--color-text-white) !important;
   }
 
   /* Ghost Button */
@@ -689,8 +738,8 @@ body {
 }
 
 .nav-link:hover {
-  color: rgba(234, 88, 12, 1); /* orange-600 */
-  background-color: rgba(255, 237, 213, 1); /* orange-50 */
+  color: rgba(37, 99, 235, 1); /* blue-600 */
+  background-color: transparent;
 }
 
 .nav-link:focus {
@@ -762,4 +811,20 @@ body {
   border-radius: 50%;
   opacity: 0.2;
   transition: transform 0.5s ease-out;
+}
+
+/* Toast Animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
 }
