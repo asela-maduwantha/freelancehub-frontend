@@ -20,7 +20,7 @@ class SocketService {
       return;
     }
 
-    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000';
+    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'https://frevo-backend-gpfagahnd2ehgke5.centralindia-01.azurewebsites.net';
 
     console.log('Connecting to WebSocket server:', `${WS_BASE_URL}/notifications`);
 

@@ -2,7 +2,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { store } from '../../store';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://frevo-backend-gpfagahnd2ehgke5.centralindia-01.azurewebsites.net/api';
 
 class ApiClient {
   private axiosInstance: AxiosInstance;
