@@ -1,11 +1,27 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { PaymentMethod, PaymentMethodsResponse } from '../../../lib/api/payments';
 
+export interface ContractCreationFlow {
+  jobId: string;
+  proposalId: string;
+  contractData: any;
+  selectedPaymentMethodId: string | null;
+  returnUrl: string;
+}
+
+export interface PaymentProcessing {
+  status: 'idle' | 'processing' | 'success' | 'failed';
+  message: string | null;
+  contractId: string | null;
+}
+
 export interface PaymentState {
   paymentMethods: PaymentMethod[];
   loading: boolean;
   error: string | null;
   defaultPaymentMethodId: string | null;
+  contractCreationFlow: ContractCreationFlow | null;
+  paymentProcessing: PaymentProcessing;
 }
 
 // Initial state
@@ -14,6 +30,12 @@ const initialState: PaymentState = {
   loading: false,
   error: null,
   defaultPaymentMethodId: null,
+  contractCreationFlow: null,
+  paymentProcessing: {
+    status: 'idle',
+    message: null,
+    contractId: null,
+  },
 };
 
 // Async thunks
@@ -57,6 +79,31 @@ const paymentsSlice = createSlice({
         state.paymentMethods[index] = action.payload;
       }
     },
+    // Contract creation flow actions
+    setContractCreationFlow: (state, action: PayloadAction<ContractCreationFlow>) => {
+      state.contractCreationFlow = action.payload;
+    },
+    clearContractCreationFlow: (state) => {
+      state.contractCreationFlow = null;
+    },
+    setSelectedPaymentMethod: (state, action: PayloadAction<string>) => {
+      if (state.contractCreationFlow) {
+        state.contractCreationFlow.selectedPaymentMethodId = action.payload;
+      }
+    },
+    // Payment processing actions
+    setPaymentProcessing: (state, action: PayloadAction<{ status: PaymentProcessing['status']; message?: string; contractId?: string }>) => {
+      state.paymentProcessing.status = action.payload.status;
+      state.paymentProcessing.message = action.payload.message || null;
+      state.paymentProcessing.contractId = action.payload.contractId || null;
+    },
+    resetPaymentProcessing: (state) => {
+      state.paymentProcessing = {
+        status: 'idle',
+        message: null,
+        contractId: null,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -82,6 +129,11 @@ export const {
   addPaymentMethod,
   removePaymentMethod,
   updatePaymentMethod,
+  setContractCreationFlow,
+  clearContractCreationFlow,
+  setSelectedPaymentMethod,
+  setPaymentProcessing,
+  resetPaymentProcessing,
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

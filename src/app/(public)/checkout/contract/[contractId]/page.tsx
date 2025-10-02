@@ -103,7 +103,7 @@ const StripeCheckoutForm: React.FC<StripeCheckoutFormProps> = ({
       const { error, paymentIntent: confirmedPayment } = await stripe.confirmPayment({
         clientSecret: paymentIntent.clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/payment/success?contractId=${contractId}`,
+          return_url: `${window.location.origin}/client/contracts/${contractId}`,
           payment_method: paymentMethod.id,
         },
         redirect: 'if_required'
@@ -231,7 +231,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   const handlePaymentSuccess = () => {
-    router.push(`/contracts/${contractId}?payment=success`);
+    router.push(`/client/contracts/${contractId}`);
   };
 
   const handlePaymentError = (error: string) => {

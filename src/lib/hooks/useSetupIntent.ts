@@ -24,20 +24,8 @@ export function useSetupIntent(): UseSetupIntentReturn {
     setError(null);
 
     try {
-      // This would call a backend endpoint to create a setup intent
-      // For now, we'll simulate this
-      const response = await fetch('/api/setup-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create setup intent');
-      }
-
-      const data = await response.json();
+      // Call backend API to create a setup intent
+      const data = await paymentService.createSetupIntent();
 
       if (!data.clientSecret) {
         throw new Error('No client secret received from server');

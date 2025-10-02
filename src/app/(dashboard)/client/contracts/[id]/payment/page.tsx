@@ -8,20 +8,9 @@ import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { StripePaymentForm } from '@/components/features/payments/StripePaymentForm';
 import { PaymentBreakdown } from '@/components/features/payments/PaymentBreakdown';
 import { usePaymentMethods } from '@/lib/hooks/usePaymentMethods';
+import { contractService, ContractResponse } from '@/lib/api/contracts';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, AlertCircle, Loader } from 'lucide-react';
-
-// Mock contract data - in real app, this would come from an API
-interface Contract {
-  id: string;
-  title: string;
-  amount: number;
-  currency: string;
-  platformFeePercentage: number;
-  clientId: string;
-  freelancerId: string;
-  status: string;
-}
 
 const ContractPaymentPage: React.FC = () => {
   const params = useParams();
@@ -29,30 +18,31 @@ const ContractPaymentPage: React.FC = () => {
   const contractId = params.id as string;
 
   const { paymentMethods, isLoading: methodsLoading } = usePaymentMethods();
-  const [contract, setContract] = useState<Contract | null>(null);
+  const [contract, setContract] = useState<ContractResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<any>(null);
 
-  // Mock contract fetching - replace with actual API call
+  // Fetch contract from API
   useEffect(() => {
     const fetchContract = async () => {
       try {
         setLoading(true);
-        // Mock data - replace with actual API call
-        const mockContract: Contract = {
-          id: contractId,
-          title: 'Build a Real Estate Platform',
-          amount: 100000, // $1,000.00 in cents
-          currency: 'USD',
-          platformFeePercentage: 10,
-          clientId: 'client123',
-          freelancerId: 'freelancer456',
-          status: 'active'
-        };
-        setContract(mockContract);
-      } catch (err) {
-        setError('Failed to load contract details');
+        setError(null);
+        
+        // Fetch contract data from backend
+        const contractData = await contractService.getContract(contractId);
+        
+        // Verify contract is in a payable state
+        if (contractData.status === 'completed' || contractData.status === 'cancelled') {
+          setError('This contract is no longer available for payment');
+          return;
+        }
+        
+        setContract(contractData);
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message || err.message || 'Failed to load contract details';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -74,7 +64,7 @@ const ContractPaymentPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    router.push(`/contracts/${contractId}`);
+    router.push(`/client/contracts/${contractId}`);
   };
 
   if (loading || methodsLoading) {
@@ -112,15 +102,16 @@ const ContractPaymentPage: React.FC = () => {
     <DashboardLayout userRole="client">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
+        <div className="mb-8">
+          <button
             onClick={handleCancel}
-            className="mr-4"
+            className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all mb-4"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Contract
-          </Button>
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Contract</span>
+          </button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Make Payment</h1>
             <p className="mt-2 text-gray-600">
@@ -134,8 +125,8 @@ const ContractPaymentPage: React.FC = () => {
           <div>
             <Elements stripe={stripePromise} options={STRIPE_CONFIG.elementsOptions}>
               <StripePaymentForm
-                contractId={contract.id}
-                amount={contract.amount}
+                contractId={contract._id}
+                amount={contract.totalAmount}
                 currency={contract.currency}
                 description={`Payment for contract: ${contract.title}`}
                 savedMethods={paymentMethods}
@@ -150,7 +141,7 @@ const ContractPaymentPage: React.FC = () => {
           {/* Payment Breakdown */}
           <div>
             <PaymentBreakdown
-              contractAmount={contract.amount / 100} // Convert cents to dollars
+              contractAmount={contract.totalAmount / 100} // Convert cents to dollars
               platformFeePercentage={contract.platformFeePercentage}
               currency={contract.currency}
               showFreelancerAmount={true}
@@ -165,7 +156,7 @@ const ContractPaymentPage: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Contract ID</span>
                   <span className="font-mono text-sm text-gray-900">
-                    {contract.id.slice(0, 8)}...
+                    {contract._id.slice(0, 8)}...
                   </span>
                 </div>
                 <div className="flex justify-between">

@@ -93,6 +93,15 @@ export const API_ENDPOINTS = {
     WITHDRAW: '/payments/withdraw',
   },
 
+  // Payment Methods endpoints
+  PAYMENT_METHODS: {
+    LIST: '/payment-methods',
+    CREATE_SETUP_INTENT: '/payment-methods/setup-intent',
+    SAVE: '/payment-methods',
+    SET_DEFAULT: (id: string) => `/payment-methods/${id}/default`,
+    DELETE: (id: string) => `/payment-methods/${id}`,
+  },
+
   // Messages endpoints
   MESSAGES: {
     CONVERSATIONS: '/messages/conversations',

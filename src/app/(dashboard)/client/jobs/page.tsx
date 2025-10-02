@@ -45,10 +45,26 @@ export default function ClientJobsPage() {
   const getJobStats = () => {
     const draft = jobs.filter(job => job.status === 'draft').length;
     const open = jobs.filter(job => job.status === 'open').length;
+    const awaitingContract = jobs.filter(job => job.status === 'awaiting-contract').length;
+    const contracted = jobs.filter(job => job.status === 'contracted').length;
     const inProgress = jobs.filter(job => job.status === 'in-progress').length;
+    const underReview = jobs.filter(job => job.status === 'under-review').length;
     const completed = jobs.filter(job => job.status === 'completed').length;
+    const closed = jobs.filter(job => job.status === 'closed').length;
+    const cancelled = jobs.filter(job => job.status === 'cancelled').length;
     
-    return { draft, open, inProgress, completed };
+    return { 
+      draft, 
+      open, 
+      awaitingContract, 
+      contracted, 
+      inProgress, 
+      underReview, 
+      completed, 
+      closed, 
+      cancelled,
+      active: open + awaitingContract + contracted + inProgress + underReview
+    };
   };
 
   const stats = getJobStats();
@@ -57,91 +73,104 @@ export default function ClientJobsPage() {
     <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="relative overflow-hidden bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-transparent rounded-full -mr-32 -mt-32" />
+          <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-accent-light rounded-lg flex items-center justify-center mr-4">
-                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
+                <h1 className="text-3xl font-bold text-gray-900">My Jobs</h1>
                 <p className="text-gray-600 mt-1">
                   Manage and track all your posted jobs
                 </p>
               </div>
             </div>
             <div className="flex space-x-3">
-              <Button
-                variant="outline"
+              <button
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="px-4 py-2"
+                className="px-5 py-2.5 bg-white border-2 border-gray-300 hover:border-blue-500 text-gray-700 hover:text-blue-700 font-semibold rounded-xl transition-all disabled:opacity-50"
               >
                 {isLoading ? 'Refreshing...' : 'Refresh'}
-              </Button>
-              <Button variant="primary" className="px-6 py-2 btn-accent">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              </button>
+              <button className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Post a Job
-              </Button>
+              </button>
             </div>
           </div>
         </div>
 
         {/* Stats Cards */}
         {total > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-3xl font-bold text-gray-900">{stats.draft}</div>
-                  <div className="text-sm text-gray-600 mt-1">Draft</div>
+                  <div className="text-xs font-semibold text-gray-500 mt-1">Draft</div>
                 </div>
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold text-green-600">{stats.open}</div>
-                  <div className="text-sm text-gray-600 mt-1">Open</div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent">{stats.open}</div>
+                  <div className="text-xs font-semibold text-gray-500 mt-1">Open</div>
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold text-orange-600">{stats.inProgress}</div>
-                  <div className="text-sm text-gray-600 mt-1">In Progress</div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{stats.contracted}</div>
+                  <div className="text-xs font-semibold text-gray-500 mt-1">Contracted</div>
                 </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-orange-600">{stats.active}</div>
+                  <div className="text-xs text-gray-600 mt-1">Active</div>
+                </div>
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold text-blue-600">{stats.completed}</div>
-                  <div className="text-sm text-gray-600 mt-1">Completed</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.completed}</div>
+                  <div className="text-xs text-gray-600 mt-1">Completed</div>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               </div>

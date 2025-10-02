@@ -3,6 +3,7 @@ import { JobResponse } from '../../../lib/api/jobs';
 import { Card, CardHeader, CardBody, CardFooter } from '../../ui/Card';
 import Button from '../../ui/Button';
 import { Badge } from '../../ui/Display';
+import { getJobStatusLabel, getJobStatusBadgeVariant } from '../../../lib/utils/formatting';
 
 interface DraftJobCardProps {
   job: JobResponse;
@@ -49,23 +50,6 @@ const DraftJobCard: React.FC<DraftJobCardProps> = ({ job, onOpenJob, isLoading =
     });
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return 'secondary';
-      case 'open':
-        return 'success';
-      case 'in-progress':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'cancelled':
-        return 'error';
-      default:
-        return 'secondary';
-    }
-  };
-
   return (
     <Card variant="default" className="h-full">
       <CardHeader>
@@ -74,8 +58,8 @@ const DraftJobCard: React.FC<DraftJobCardProps> = ({ job, onOpenJob, isLoading =
             {job.title}
           </h3>
           <div className="flex gap-2 flex-shrink-0 ml-3">
-            <Badge variant={getStatusBadgeVariant(job.status)}>
-              {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+            <Badge variant={getJobStatusBadgeVariant(job.status)}>
+              {getJobStatusLabel(job.status)}
             </Badge>
             {job.isUrgent && (
               <Badge variant="warning">Urgent</Badge>

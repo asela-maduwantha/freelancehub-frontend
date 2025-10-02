@@ -172,7 +172,7 @@ export interface SearchParams extends PaginationParams {
 
 // Filter parameters for different entities
 export interface JobFilters extends SearchParams {
-  status?: 'open' | 'in-progress' | 'completed' | 'cancelled';
+  status?: string; // Use JobStatus enum values from index.ts
   clientId?: string;
 }
 

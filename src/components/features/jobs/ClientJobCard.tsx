@@ -4,6 +4,7 @@ import { JobResponse } from '../../../lib/api/jobs';
 import { Card, CardHeader, CardBody, CardFooter } from '../../ui/Card';
 import Button from '../../ui/Button';
 import { Badge } from '../../ui/Display';
+import { getJobStatusLabel, getJobStatusBadgeVariant } from '../../../lib/utils/formatting';
 
 interface ClientJobCardProps {
   job: JobResponse;
@@ -40,33 +41,16 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
     });
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return 'secondary';
-      case 'open':
-        return 'success';
-      case 'in-progress':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'cancelled':
-        return 'error';
-      default:
-        return 'secondary';
-    }
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-accent transition-all duration-300 p-4 group cursor-pointer h-full" onClick={() => router.push(`/client/jobs/${job.id}`)}>
+    <div className="group bg-white rounded-xl border border-gray-200 hover:border-blue-300 p-5 h-full cursor-pointer transition-all duration-200 hover:shadow-xl" onClick={() => router.push(`/client/jobs/${job.id}`)}>
       {/* Header with Title and Status */}
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-base font-semibold text-gray-900 group-hover:text-accent transition-colors line-clamp-2 leading-tight flex-1 pr-2">
+        <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-700 line-clamp-2 leading-tight flex-1 pr-2 transition-colors">
           {job.title}
         </h3>
         <div className="flex flex-col items-end gap-1">
-          <Badge variant={getStatusBadgeVariant(job.status)} className="text-xs px-2 py-0.5 font-medium">
-            {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+          <Badge variant={getJobStatusBadgeVariant(job.status)} className="text-xs px-2 py-0.5 font-medium">
+            {getJobStatusLabel(job.status)}
           </Badge>
           {job.isUrgent && (
             <Badge variant="warning" className="text-xs px-2 py-0.5">Urgent</Badge>
@@ -75,9 +59,9 @@ const ClientJobCard: React.FC<ClientJobCardProps> = ({
       </div>
 
       {/* Budget and Category */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="font-semibold text-green-600 text-sm">{formatBudget()}</span>
-        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{job.category}</span>
+      <div className="flex items-center justify-between mb-4">
+        <span className="font-bold text-emerald-600 text-lg">{formatBudget()}</span>
+        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">{job.category}</span>
       </div>
 
       {/* Skills and Experience Level */}

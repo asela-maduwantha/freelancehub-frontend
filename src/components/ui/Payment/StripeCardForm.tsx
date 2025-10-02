@@ -52,7 +52,7 @@ const StripeCardForm: React.FC<StripeCardFormProps> = ({
       const { error, setupIntent: confirmedSetupIntent } = await stripe.confirmSetup({
         clientSecret: setupIntent.clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/contracts/${contractId}`,
+          return_url: `${window.location.origin}/client/contracts/${contractId}`,
           payment_method: paymentMethod.id,
         },
         redirect: 'if_required'

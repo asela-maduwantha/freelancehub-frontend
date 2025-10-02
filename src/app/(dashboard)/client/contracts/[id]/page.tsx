@@ -140,10 +140,16 @@ export default function ClientContractDetailPage() {
     return (
       <DashboardLayout userRole="client">
         <div className="space-y-6">
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="secondary" onClick={handleBackToContracts}>
-              ← Back to Contracts
-            </Button>
+          <div className="mb-6">
+            <button 
+              onClick={handleBackToContracts}
+              className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all mb-4"
+            >
+              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Back to Contracts</span>
+            </button>
             <h1 className="text-2xl font-bold text-primary">Contract Details</h1>
           </div>
           <div className="alert-error rounded-lg p-6">
@@ -166,11 +172,17 @@ export default function ClientContractDetailPage() {
     <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="secondary" onClick={handleBackToContracts}>
-              ← Back to Contracts
-            </Button>
+        <div className="space-y-4">
+          <button 
+            onClick={handleBackToContracts}
+            className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all"
+          >
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Contracts</span>
+          </button>
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-primary">{contract.title}</h1>
               <div className="flex items-center gap-2 mt-1">

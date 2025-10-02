@@ -4,7 +4,12 @@ export interface MilestoneFormData {
   description: string;
   amount: number;
   durationDays: number;
-  isSelected: boolean;
-  column: 'proposal' | 'custom' | 'contract';
   isFromProposal?: boolean;
+}
+
+export interface MilestoneInput {
+  title: string;
+  description: string;
+  amount: number;
+  durationDays: number;
 }

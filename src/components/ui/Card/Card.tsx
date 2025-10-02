@@ -26,7 +26,7 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`${cardClass} ${className} ${onClick && variant !== 'interactive' ? 'cursor-pointer hover:transform hover:scale-[1.01]' : ''}`}
+      className={`${cardClass} ${className} ${onClick && variant !== 'interactive' ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       {children}

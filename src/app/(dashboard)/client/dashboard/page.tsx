@@ -87,7 +87,7 @@ export default function ClientDashboard() {
     return (
       <DashboardLayout userRole="client">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </DashboardLayout>
     );
@@ -98,11 +98,11 @@ export default function ClientDashboard() {
       <DashboardLayout userRole="client">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-red-600 mb-4">{error}</p>
+            <AlertCircle className="h-12 w-12 text-error mx-auto mb-4" />
+            <p className="text-error mb-4">{error}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+              className="btn-primary px-6 py-2 rounded-lg"
             >
               Try Again
             </button>
@@ -116,9 +116,13 @@ export default function ClientDashboard() {
     <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, {displayName}! 👋</h1>
-          <p className="text-gray-600">Here's what's happening with your projects today.</p>
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-8 shadow-xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24" />
+          <div className="relative z-10">
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {displayName}! 👋</h1>
+            <p className="text-blue-100 text-lg">Here's what's happening with your projects today.</p>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -162,52 +166,55 @@ export default function ClientDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href="/client/jobs/create">
-              <button className="w-full flex items-center justify-center px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors duration-200">
-                <Plus size={20} className="mr-2" />
-                Post New Job
+              <button className="w-full group relative overflow-hidden bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-4 rounded-xl font-semibold shadow-md hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                <Plus size={20} />
+                <span>Post New Job</span>
               </button>
             </Link>
             <Link href="/client/jobs">
-              <button className="w-full flex items-center justify-center px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200">
-                <Eye size={20} className="mr-2" />
-                Browse Freelancers
+              <button className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-xl font-semibold shadow-md hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                <Eye size={20} />
+                <span>Browse Freelancers</span>
               </button>
             </Link>
             <Link href="/client/messages">
-              <button className="w-full flex items-center justify-center px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200">
-                <MessageSquare size={20} className="mr-2" />
-                View Messages
+              <button className="w-full group relative overflow-hidden bg-white border-2 border-gray-300 hover:border-blue-500 text-gray-700 hover:text-blue-700 px-6 py-4 rounded-xl font-semibold hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2">
+                <MessageSquare size={20} />
+                <span>View Messages</span>
               </button>
             </Link>
           </div>
         </div>
 
         {/* Recent Jobs */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Jobs</h2>
+              <h2 className="text-xl font-bold text-gray-900">Recent Jobs</h2>
               <Link href="/client/jobs">
-                <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
-                  View All
+                <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1 group">
+                  <span>View All</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </Link>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-100">
             {recentJobs.map((job) => (
               <div key={job.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       {job.title}
                     </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <span className="flex items-center">
                         <FileText size={16} className="mr-1" />
                         {job.proposalsCount} proposals
@@ -227,7 +234,7 @@ export default function ClientDashboard() {
                     </span>
 
                     <Link href={`/client/jobs/${job.id}`}>
-                      <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
+                      <button className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-sm rounded-lg transition-colors">
                         View Details
                       </button>
                     </Link>
@@ -239,33 +246,38 @@ export default function ClientDashboard() {
         </div>
 
         {/* Recent Contracts */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Contracts</h2>
+              <h2 className="text-xl font-bold text-gray-900">Recent Contracts</h2>
               <Link href="/client/contracts">
-                <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
-                  View All
+                <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1 group">
+                  <span>View All</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </Link>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-100">
             {recentContracts.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <Briefcase size={24} className="mx-auto mb-2" />
-                <p>No recent contracts found</p>
+              <div className="p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Briefcase size={28} className="text-gray-400" />
+                </div>
+                <p className="text-gray-600 font-medium">No recent contracts found</p>
               </div>
             ) : (
               recentContracts.map((contract) => (
                 <div key={contract.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         {contract.jobTitle}
                       </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
                         <span className="flex items-center">
                           <Users size={16} className="mr-1" />
                           {contract.freelancerName}
@@ -285,7 +297,7 @@ export default function ClientDashboard() {
                       </span>
 
                       <Link href={`/client/contracts/${contract.id}`}>
-                        <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
+                        <button className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-sm rounded-lg transition-colors">
                           View Details
                         </button>
                       </Link>
@@ -303,29 +315,29 @@ export default function ClientDashboard() {
         )}
 
         {/* Getting Started Guide */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Getting Started Guide</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-blue-600 font-bold text-lg">1</span>
+        <div className="bg-gradient-to-br from-blue-50 via-white to-amber-50 rounded-2xl border border-gray-200 p-8 shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Getting Started Guide</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center group">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">1</span>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Post Your Job</h3>
-              <p className="text-sm text-gray-600">Create a detailed job posting to attract the right freelancers.</p>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Post Your Job</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Create a detailed job posting to attract the right freelancers.</p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-blue-600 font-bold text-lg">2</span>
+            <div className="text-center group">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">2</span>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Review Proposals</h3>
-              <p className="text-sm text-gray-600">Evaluate freelancer proposals and portfolios to find the best match.</p>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Review Proposals</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Evaluate freelancer proposals and portfolios to find the best match.</p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-blue-600 font-bold text-lg">3</span>
+            <div className="text-center group">
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">3</span>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Start Working</h3>
-              <p className="text-sm text-gray-600">Collaborate with your chosen freelancer and track project progress.</p>
+              <h3 className="font-bold text-gray-900 mb-2 text-lg">Start Working</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Collaborate with your chosen freelancer and track project progress.</p>
             </div>
           </div>
         </div>

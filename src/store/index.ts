@@ -1,23 +1,21 @@
-import { createStore } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './rootReducer';
 
-// Redux DevTools Extension type declaration
-declare global {
-  interface Window {
-    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: any;
-    __REDUX_DEVTOOLS_EXTENSION__?: any;
-  }
-}
-
-// Redux DevTools Extension support
-const composeEnhancers = 
-  (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || 
-  ((x: any) => x);
-
-export const store = createStore(
-  rootReducer,
-  composeEnhancers()
-);
+export const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore these action types
+        ignoredActions: ['payments/setContractCreationFlow'],
+        // Ignore these field paths in all actions
+        ignoredActionPaths: ['payload.contractData'],
+        // Ignore these paths in the state
+        ignoredPaths: ['payments.contractCreationFlow.contractData'],
+      },
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
+});
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

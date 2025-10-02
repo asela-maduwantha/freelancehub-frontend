@@ -109,8 +109,9 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ userType }) => {
 
   const filteredPayments = payments.filter(payment =>
     searchTerm === '' ||
-    payment.contractId.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    payment.id.toLowerCase().includes(searchTerm.toLowerCase())
+    (payment.contractId?.title && payment.contractId.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (payment.id && payment.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (payment.description && payment.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (isLoading && payments.length === 0) {
@@ -233,7 +234,7 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ userType }) => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
                       <h3 className="font-semibold text-gray-900">
-                        {payment.contractId.title}
+                        {payment.contractId?.title || payment.description || 'Payment'}
                       </h3>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
                         {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
@@ -243,20 +244,43 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ userType }) => {
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <span className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(payment.createdAt).toLocaleDateString()}
+                        {new Date(payment.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
                       </span>
                       <span className="flex items-center">
                         <DollarSign className="w-4 h-4 mr-1" />
                         {formatCurrency(payment.amount, payment.currency)}
                       </span>
-                      <span className="font-mono text-xs">
-                        ID: {payment.id.slice(0, 8)}...
-                      </span>
+                      {payment.id && (
+                        <span className="font-mono text-xs">
+                          ID: {payment.id.slice(0, 8)}...
+                        </span>
+                      )}
                     </div>
+
+                    {payment.description && !payment.contractId && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        {payment.description}
+                      </div>
+                    )}
 
                     {payment.milestoneId && (
                       <div className="text-sm text-gray-500 mt-1">
                         Milestone: {payment.milestoneId.title}
+                      </div>
+                    )}
+
+                    {payment.platformFee !== undefined && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        Platform Fee: {formatCurrency(payment.platformFee, payment.currency)}
+                        {userType === 'freelancer' && payment.freelancerAmount && (
+                          <span className="ml-2 text-green-600 font-medium">
+                            You receive: {formatCurrency(payment.freelancerAmount, payment.currency)}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -264,15 +288,17 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ userType }) => {
 
                 {/* Actions */}
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewDetails(payment.id)}
-                    className="flex items-center"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Details
-                  </Button>
+                  {payment.id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewDetails(payment.id!)}
+                      className="flex items-center"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Details
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>

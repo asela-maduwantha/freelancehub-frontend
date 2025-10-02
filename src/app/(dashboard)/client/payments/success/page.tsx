@@ -27,6 +27,7 @@ const PaymentSuccessPageContent: React.FC = () => {
   const router = useRouter();
   const [contractDetails, setContractDetails] = useState<any>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [countdown, setCountdown] = useState(10); // 10 seconds countdown
 
   // Get paymentId from URL params
   const paymentId = searchParams.get('payment_id');
@@ -47,6 +48,19 @@ const PaymentSuccessPageContent: React.FC = () => {
     pollInterval: 2000, // Poll every 2 seconds
     maxAttempts: 30 // Try for up to 60 seconds
   });
+
+  // Auto-navigate to contract page after successful payment
+  useEffect(() => {
+    if (isCompleted && contractId && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    } else if (isCompleted && contractId && countdown === 0) {
+      router.push(`/client/contracts/${contractId}`);
+    }
+  }, [isCompleted, contractId, countdown, router]);
 
   useEffect(() => {
     const initializePage = async () => {
@@ -331,11 +345,43 @@ const PaymentSuccessPageContent: React.FC = () => {
             </div>
           </div>
 
-          {/* Back to Dashboard */}
-          <div className="text-center mt-8">
+          {/* Auto-navigation Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="text-center">
+              <p className="text-sm text-blue-800 mb-2">
+                You will be automatically redirected to your contract in <span className="font-semibold">{countdown}</span> seconds.
+              </p>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+                  style={{ width: `${(countdown / 10) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Options */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {contractId && (
+              <Link href={`/client/contracts/${contractId}`}>
+                <Button className="w-full flex items-center justify-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  View Contract
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
+
+            <Link href="/client/payments">
+              <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                View All Payments
+              </Button>
+            </Link>
+
             <Link href="/(dashboard)/client">
-              <Button variant="ghost" className="flex items-center mx-auto">
-                <Home className="w-4 h-4 mr-2" />
+              <Button variant="ghost" className="w-full flex items-center justify-center gap-2">
+                <Home className="w-4 h-4" />
                 Back to Dashboard
               </Button>
             </Link>

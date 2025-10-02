@@ -52,3 +52,51 @@ export const slugify = (text: string): string => {
     .replace(/[^\w ]+/g, '')
     .replace(/ +/g, '-');
 };
+
+// Job Status helpers
+export type BadgeVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'error';
+
+export const getJobStatusLabel = (status: string): string => {
+  const labels: Record<string, string> = {
+    'draft': 'Draft',
+    'open': 'Open',
+    'awaiting-contract': 'Awaiting Contract',
+    'contracted': 'Contracted',
+    'in-progress': 'In Progress',
+    'under-review': 'Under Review',
+    'completed': 'Completed',
+    'closed': 'Closed',
+    'cancelled': 'Cancelled',
+  };
+  return labels[status] || status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+export const getJobStatusBadgeVariant = (status: string): BadgeVariant => {
+  const variants: Record<string, BadgeVariant> = {
+    'draft': 'secondary',
+    'open': 'success',
+    'awaiting-contract': 'primary',
+    'contracted': 'primary',
+    'in-progress': 'warning',
+    'under-review': 'warning',
+    'completed': 'success',
+    'closed': 'secondary',
+    'cancelled': 'error',
+  };
+  return variants[status] || 'secondary';
+};
+
+export const getJobStatusColor = (status: string): string => {
+  const colors: Record<string, string> = {
+    'draft': 'bg-gray-100 text-gray-600',
+    'open': 'bg-green-100 text-green-600',
+    'awaiting-contract': 'bg-blue-100 text-blue-600',
+    'contracted': 'bg-purple-100 text-purple-600',
+    'in-progress': 'bg-orange-100 text-orange-600',
+    'under-review': 'bg-yellow-100 text-yellow-600',
+    'completed': 'bg-green-100 text-green-600',
+    'closed': 'bg-gray-100 text-gray-600',
+    'cancelled': 'bg-red-100 text-red-600',
+  };
+  return colors[status] || 'bg-gray-100 text-gray-600';
+};

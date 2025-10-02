@@ -42,11 +42,26 @@ export function usePayments(initialFilters: PaymentFilters = {}): UsePaymentsRet
       setIsLoading(true);
       setError(null);
       const response: PaymentListResponse = await paymentService.getPayments(filters);
-      setPayments(response.payments);
+      
+      // Transform payment items to add computed id fields
+      const transformedPayments = response.payments.map(payment => ({
+        ...payment,
+        id: payment._id, // _id is always present from API
+        contractId: payment.contractId ? {
+          ...payment.contractId,
+          id: payment.contractId._id
+        } : null,
+        milestoneId: payment.milestoneId ? {
+          ...payment.milestoneId,
+          id: payment.milestoneId._id
+        } : undefined
+      }));
+      
+      setPayments(transformedPayments);
       setTotal(response.total);
-      setPage(response.page);
-      setLimit(response.limit);
-      setTotalPages(Math.ceil(response.total / response.limit));
+      setPage(response.page || filters.page || 1);
+      setLimit(response.limit || filters.limit || 10);
+      setTotalPages(response.totalPages || Math.ceil(response.total / (response.limit || filters.limit || 10)));
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err.message || 'Failed to load payments';
       setError(errorMessage);

@@ -203,9 +203,15 @@ export default function JobDetailPage() {
                   View Proposals ({job.proposalCount})
                 </Button>
               )}
-              <Button variant="outline" onClick={() => router.back()}>
-                Back to Jobs
-              </Button>
+              <button 
+                onClick={() => router.back()}
+                className="group inline-flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-700 font-medium transition-all"
+              >
+                <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>Back to Jobs</span>
+              </button>
             </div>
           </div>
         </div>

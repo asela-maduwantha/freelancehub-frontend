@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PaymentMethod } from '../../../lib/api/payments';
+import AddCardForm from './AddCardForm';
 
 interface PaymentMethodSelectorProps {
   savedCards: PaymentMethod[];
@@ -7,6 +8,7 @@ interface PaymentMethodSelectorProps {
   paymentOption: 'saved' | 'new' | 'checkout' | '';
   onMethodSelect: (method: PaymentMethod) => void;
   onOptionChange: (option: 'saved' | 'new' | 'checkout' | '') => void;
+  onCardAdded?: (paymentMethodId: string) => void;
   loading?: boolean;
 }
 
@@ -16,8 +18,26 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   paymentOption,
   onMethodSelect,
   onOptionChange,
+  onCardAdded,
   loading = false
 }) => {
+  const [showAddCardForm, setShowAddCardForm] = useState(false);
+
+  const handleCardAddSuccess = (paymentMethodId: string) => {
+    setShowAddCardForm(false);
+    if (onCardAdded) {
+      onCardAdded(paymentMethodId);
+    }
+  };
+
+  const handleCancelAddCard = () => {
+    setShowAddCardForm(false);
+    // If user cancels and has saved cards, switch back to saved option
+    if (savedCards.length > 0) {
+      onOptionChange('saved');
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
@@ -99,12 +119,28 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
               type="radio"
               value="new"
               checked={paymentOption === 'new'}
-              onChange={(e) => onOptionChange(e.target.value as 'new')}
+              onChange={(e) => {
+                onOptionChange(e.target.value as 'new');
+                setShowAddCardForm(true);
+              }}
               className="w-4 h-4 text-accent focus:ring-accent border-gray-300"
             />
-            <span className="text-primary font-medium">Save card for future payments</span>
+            <span className="text-primary font-medium">Add new payment method</span>
           </label>
-          {paymentOption === 'new' && (
+          
+          {/* Show Add Card Form when 'new' is selected */}
+          {paymentOption === 'new' && showAddCardForm && (
+            <div className="ml-7 mt-4">
+              <AddCardForm
+                onSuccess={handleCardAddSuccess}
+                onCancel={handleCancelAddCard}
+                setAsDefault={savedCards.length === 0}
+              />
+            </div>
+          )}
+          
+          {/* Info message when new is selected but form not shown yet */}
+          {paymentOption === 'new' && !showAddCardForm && (
             <div className="ml-7 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-700">
                 Your card will be securely saved for future payments. You can manage saved cards in your account settings.

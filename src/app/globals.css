@@ -1,50 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #F56565; /* dark blue-gray */
-  --color-primary-hover: #E53E3E; /* slightly darker */
-  --color-primary-active: #C53030; /* darkest */
-  --color-primary-light: rgba(245, 101, 101, 0.1); /* primary with low opacity */
-  --color-primary-lighter: rgba(42, 74, 91, 0.05); /* very light */
+  /* Primary Colors - Deep Blue (Trust, Professionalism, Stability) */
+  --color-primary: #1e40af; /* blue-700 - conveys trust and professionalism */
+  --color-primary-hover: #1e3a8a; /* blue-800 */
+  --color-primary-active: #1e3a8a; /* blue-900 */
+  --color-primary-light: rgba(30, 64, 175, 0.1); /* primary with low opacity */
+  --color-primary-lighter: rgba(30, 64, 175, 0.05); /* very light */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
 
+  /* Secondary Colors - Emerald (Growth, Success, Money) */
+  --color-secondary: #10b981; /* emerald-500 - represents growth and success */
+  --color-secondary-hover: #059669; /* emerald-600 */
+  --color-secondary-active: #047857; /* emerald-700 */
+  --color-secondary-light: rgba(16, 185, 129, 0.1);
 
+  /* Accent Colors - Amber (Energy, Optimism, Action) */
+  --accent: #f59e0b; /* amber-500 - creates energy and calls to action */
+  --accent-hover: #d97706; /* amber-600 */
+  --accent-active: #b45309; /* amber-700 */
+  --accent-light: rgba(245, 158, 11, 0.1);
 
-  /* Accent Colors - Coral (same as dark theme) */
-  --accent: #F56565; /* coral */
-  --accent-hover: #E53E3E; /* darker coral */
-  --accent-active: #C53030; /* darkest coral */
-  --accent-light: rgba(245, 101, 101, 0.1); /* coral with opacity */
+  /* Status Colors */
+  --color-success: #10b981; /* emerald-500 */
+  --color-warning: #f59e0b; /* amber-500 */
+  --color-error: #ef4444; /* red-500 */
+  --color-info: #3b82f6; /* blue-500 */
 
-  /* Success, Warning, Error Colors */
-  --color-success: #38A169;
-  --color-warning: #F56565;
-  --color-error: #E53E3E;
-  --color-info: #2B6CB0;
+  /* Text Colors - Professional and readable */
+  --color-text-primary: #1f2937; /* gray-800 - strong readability */
+  --color-text-secondary: #6b7280; /* gray-500 - secondary text */
+  --color-text-muted: #9ca3af; /* gray-400 - muted text */
+  --color-text-placeholder: #d1d5db; /* gray-300 */
+  --color-text-white: #FFFFFF;
 
-  /* Text Colors - Now dark for light backgrounds */
-  --color-text-primary: #2A4A5B; /* dark blue-gray text */
-  --color-text-secondary: rgba(42, 74, 91, 0.8); /* slightly muted */
-  --color-text-muted: rgba(42, 74, 91, 0.6); /* more muted */
-  --color-text-placeholder: rgba(42, 74, 91, 0.5);
-  --color-text-white: #FFFFFF; /* keep white for buttons/highlights */
-
-  /* Background Colors - Light theme */
+  /* Background Colors - Clean and modern */
   --color-bg-primary: #FFFFFF; /* pure white */
-  --color-bg-secondary: #F8FAFC; /* very light gray */
-  --color-bg-tertiary: #E2E8F0; /* light gray */
-  --color-bg-periwinkle: rgba(42, 74, 91, 0.05); /* very light primary */
+  --color-bg-secondary: #f9fafb; /* gray-50 - subtle background */
+  --color-bg-tertiary: #f3f4f6; /* gray-100 - card backgrounds */
+  --color-bg-hover: #f9fafb; /* subtle hover state */
 
-  /* Border Colors - Light theme */
-  --color-border-light: rgba(42, 74, 91, 0.1);
-  --color-border-default: rgba(42, 74, 91, 0.2);
-  --color-border-strong: rgba(42, 74, 91, 0.3);
+  /* Border Colors - Subtle and refined */
+  --color-border-light: #f3f4f6; /* gray-100 */
+  --color-border-default: #e5e7eb; /* gray-200 */
+  --color-border-strong: #d1d5db; /* gray-300 */
 
-  /* Shadow Colors - Adjusted for light backgrounds */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-default: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  /* Modern Shadow System - Soft and elegant */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-primary: 0 4px 6px -1px rgba(42, 74, 91, 0.15), 0 2px 4px -2px rgba(42, 74, 91, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-primary: 0 4px 14px 0 rgba(30, 64, 175, 0.15);
+  --shadow-accent: 0 4px 14px 0 rgba(245, 158, 11, 0.2);
 
   /* Hero Section Colors (keep dark for hero) */
   --color-hero-bg-start: #0f172a; /* slate-900 */
@@ -75,34 +84,31 @@
 }
 
 @layer utilities {
-  /* Primary Button (Blue-Gray on white) */
+  /* Primary Button - Modern with subtle gradient */
   .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
     color: var(--color-text-white);
     border: none;
     padding: var(--spacing-sm) var(--spacing-lg);
     border-radius: var(--radius-md);
     font-weight: 600;
     box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     cursor: pointer;
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, var(--color-primary-hover), var(--color-primary-active));
     box-shadow: var(--shadow-primary);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
   .btn-primary:active {
-    background: linear-gradient(135deg, var(--color-primary-active), var(--color-primary));
     transform: translateY(0);
-    box-shadow: var(--shadow-sm);
   }
   .btn-primary:disabled {
     background: var(--color-bg-tertiary);
     color: var(--color-text-muted);
     cursor: not-allowed;
-    transform: none;
     box-shadow: none;
+    transform: none;
   }
 
   /* Secondary Button (White with blue-gray border) */
@@ -113,53 +119,42 @@
     padding: calc(var(--spacing-sm) - 1px) calc(var(--spacing-lg) - 1px);
     border-radius: var(--radius-md);
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
   }
   .btn-secondary:hover {
     background-color: var(--color-primary);
-    border-color: var(--color-primary-hover);
     color: var(--color-text-white);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-primary);
   }
   .btn-secondary:active {
     background-color: var(--color-primary-active);
-    border-color: var(--color-primary-active);
     color: var(--color-text-white);
-    transform: translateY(0);
   }
   .btn-secondary:disabled {
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-muted);
     border-color: var(--color-border-default);
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
   }
 
-  /* Accent Button (Coral) */
+  /* Accent Button - Vibrant amber for CTAs */
   .btn-accent {
-    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
     color: var(--color-text-white);
     border: none;
     padding: var(--spacing-sm) var(--spacing-lg);
     border-radius: var(--radius-md);
     font-weight: 600;
     box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     cursor: pointer;
   }
   .btn-accent:hover {
-    background: linear-gradient(135deg, var(--accent-hover), var(--accent-active));
-    box-shadow: 0 4px 14px 0 rgba(245, 101, 101, 0.25);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-accent);
+    transform: translateY(-1px);
   }
   .btn-accent:active {
-    background: linear-gradient(135deg, var(--accent-active), var(--accent));
     transform: translateY(0);
-    box-shadow: var(--shadow-sm);
   }
 
   /* Ghost Button */
@@ -170,72 +165,58 @@
     padding: var(--spacing-sm) var(--spacing-lg);
     border-radius: var(--radius-md);
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     cursor: pointer;
   }
   .btn-ghost:hover {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-bg-secondary);
     color: var(--color-text-primary);
   }
   .btn-ghost:active {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-bg-tertiary);
   }
   
-  /* Card Styles */
+  /* Card Styles - Modern and clean */
   .card-default {
     background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
   }
   .card-default:hover {
     box-shadow: var(--shadow-md);
-    border-color: var(--color-border-default);
-    transform: translateY(-2px);
   }
 
   .card-elevated {
     background-color: var(--color-bg-primary);
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     border: 1px solid var(--color-border-light);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
   }
   .card-elevated:hover {
-    box-shadow: 0 20px 40px rgba(42, 74, 91, 0.15);
-    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   .card-interactive {
     background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
   }
   .card-interactive:hover {
-    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-primary);
     transform: translateY(-2px);
-    border-color: var(--accent);
-  }
-  .card-interactive:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
   }
 
-  .card-periwinkle {
+  .card-flat {
     background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-  }
-  .card-periwinkle:hover {
-    box-shadow: var(--shadow-primary);
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
   }
 
   /* Card Sections */
@@ -283,62 +264,61 @@
     cursor: not-allowed;
   }
 
-  /* Badge Styles */
+  /* Badge Styles - Modern and colorful */
   .badge-primary {
-    background-color: var(--color-primary);
-    color: var(--color-text-white);
+    background-color: var(--color-primary-100);
+    color: var(--color-primary);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
   }
 
   .badge-secondary {
-    background-color: var(--color-secondary);
-    color: var(--color-text-secondary);
+    background-color: #d1fae5;
+    color: var(--color-secondary);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--color-border-default);
   }
 
   .badge-success {
-    background-color: #E6FFFA;
-    color: #38A169;
+    background-color: #d1fae5;
+    color: var(--color-success);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
   }
 
   .badge-warning {
-    background-color: var(--accent-light);
-    color: var(--accent-active);
+    background-color: #fef3c7;
+    color: var(--accent-hover);
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
   }
 
-    .badge-error {
-      background-color: var(--color-error, #F56565);
-      color: var(--color-text-white);
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-    }
+  .badge-error {
+    background-color: #fee2e2;
+    color: var(--color-error);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+  }
 
   /* Navigation Styles */
   .nav-primary {

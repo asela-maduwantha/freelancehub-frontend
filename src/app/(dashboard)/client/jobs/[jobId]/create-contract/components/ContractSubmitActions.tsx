@@ -9,13 +9,17 @@ interface ContractSubmitActionsProps {
   isSubmitting: boolean;
   startDate: string;
   endDate: string;
+  hasPaymentMethod?: boolean;
+  isAddingCard?: boolean;
 }
 
 export function ContractSubmitActions({
   error,
   isSubmitting,
   startDate,
-  endDate
+  endDate,
+  hasPaymentMethod = false,
+  isAddingCard = false
 }: ContractSubmitActionsProps) {
   const router = useRouter();
 
@@ -46,18 +50,33 @@ export function ContractSubmitActions({
         <Button
           type="submit"
           variant="primary"
-          disabled={isSubmitting || !startDate || !endDate}
+          disabled={isSubmitting || !startDate || !endDate || !hasPaymentMethod || isAddingCard}
         >
           {isSubmitting ? (
             <>
               <Spinner size="sm" className="mr-2" />
               Creating Contract...
             </>
+          ) : isAddingCard ? (
+            'Complete Payment Method Setup'
+          ) : !hasPaymentMethod ? (
+            'Select Payment Method First'
           ) : (
-            'Create Contract'
+            'Create Contract & Pay'
           )}
         </Button>
       </div>
+      
+      {/* Helper text for payment method */}
+      {!hasPaymentMethod && !isSubmitting && (
+        <div className="w-full mt-3 text-center">
+          <p className="text-sm text-secondary">
+            {isAddingCard 
+              ? '↑ Please complete adding your payment method above'
+              : '↑ Please select or add a payment method above to continue'}
+          </p>
+        </div>
+      )}
     </CardFooter>
   );
 }

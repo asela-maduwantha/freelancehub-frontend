@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -18,6 +18,7 @@ import {
 
 const PaymentErrorPageContent: React.FC = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [errorDetails, setErrorDetails] = useState<any>(null);
 
   useEffect(() => {
@@ -118,24 +119,29 @@ const PaymentErrorPageContent: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="space-y-4">
-            <Button className="w-full flex items-center justify-center gap-2">
+            <Button
+              onClick={() => router.back()}
+              className="w-full flex items-center justify-center gap-2"
+            >
               <RefreshCw className="h-4 w-4" />
               Try Payment Again
               <ArrowRight className="h-4 w-4" />
             </Button>
 
             <div className="grid grid-cols-2 gap-4">
-              <Link href="/dashboard/client/payments">
+              <Link href="/client/payments">
                 <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
                   <Home className="h-4 w-4" />
                   View Payments
                 </Button>
               </Link>
 
-              <Button variant="secondary" className="flex items-center justify-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Contact Support
-              </Button>
+              <Link href="/(dashboard)/client">
+                <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
             </div>
           </div>
 

@@ -10,6 +10,7 @@ import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Display';
 import Dropdown from '@/components/ui/Dropdown';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { useAuth } from '@/lib/hooks/useAuth';
 import {
   DndContext,
   closestCorners,
@@ -256,11 +257,15 @@ const MilestoneTrackerPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [userRole, setUserRole] = useState<'client' | 'freelancer'>('freelancer');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectMilestoneId, setRejectMilestoneId] = useState<string | null>(null);
   const [rejectFeedback, setRejectFeedback] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Get user role from auth context
+  const { userRole: authUserRole } = useAuth();
+  // Ensure userRole is either 'client' or 'freelancer' (default to 'freelancer' if admin or undefined)
+  const userRole: 'client' | 'freelancer' = authUserRole === 'client' ? 'client' : 'freelancer';
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -271,14 +276,6 @@ const MilestoneTrackerPage = () => {
   );
 
   useEffect(() => {
-    // Determine user role from URL or auth context
-    const path = window.location.pathname;
-    if (path.includes('/client/')) {
-      setUserRole('client');
-    } else if (path.includes('/freelancer/')) {
-      setUserRole('freelancer');
-    }
-
     fetchContracts();
   }, []);
 

@@ -572,10 +572,16 @@ const ContractMilestonesPage = () => {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="secondary" onClick={handleGoBack}>
-            ← Back to Contract
-          </Button>
+        <div className="mb-6">
+          <button
+            onClick={handleGoBack}
+            className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all mb-4"
+          >
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Contract</span>
+          </button>
           <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -596,20 +602,28 @@ const ContractMilestonesPage = () => {
     <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Button variant="secondary" size="sm" onClick={handleGoBack}>
-                ← Back to Contract
-              </Button>
-              <h1 className="text-2xl font-bold text-primary">Project Milestones</h1>
+        <div className="space-y-4">
+          <button
+            onClick={handleGoBack}
+            className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all"
+          >
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Contract</span>
+          </button>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-primary mb-2">Project Milestones</h1>
+              {contractTitle && (
+                <p className="text-secondary text-sm">{contractTitle}</p>
+              )}
             </div>
-            {contractTitle && (
-              <p className="text-secondary text-sm">{contractTitle}</p>
-            )}
           </div>
+        </div>
 
-          {/* Stats Summary */}
+        {/* Stats Summary */}
+        <div className="space-y-4">
           <div className="flex items-center gap-4 text-sm">
             <div className="text-center">
               <div className="font-semibold text-primary">{stats.total}</div>

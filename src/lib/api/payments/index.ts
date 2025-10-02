@@ -36,27 +36,54 @@ export interface PaymentResponse {
 export interface PaymentListResponse {
   payments: PaymentListItem[];
   total: number;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
   totalPages: number;
 }
 
 export interface PaymentListItem {
-  id: string;
+  _id: string;
+  id: string; // Always present after transformation
   amount: number;
   currency: string;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
   paymentType: 'milestone' | 'bonus' | 'refund';
   contractId: {
-    id: string;
+    _id: string;
+    id?: string; // Computed field
     title: string;
-  };
+    status?: string;
+    totalAmount?: number;
+    currency?: string;
+  } | null;
   milestoneId?: {
-    id: string;
+    _id: string;
+    id?: string; // Computed field
     title: string;
+  } | null;
+  payerId?: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+  payeeId?: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
   };
   createdAt: string;
   completedAt?: string;
+  updatedAt?: string;
+  description?: string;
+  platformFee?: number;
+  stripeFee?: number;
+  freelancerAmount?: number;
 }
 
 export interface PaymentFilters {
@@ -154,6 +181,26 @@ export interface PaymentMethod {
 export interface PaymentMethodsResponse {
   paymentMethods: PaymentMethod[];
   defaultPaymentMethodId?: string;
+}
+
+export interface SetupIntentRequest {
+  // No body required - just needs auth
+}
+
+export interface SetupIntentResponse {
+  clientSecret: string;
+  setupIntentId: string;
+}
+
+export interface SavePaymentMethodRequest {
+  paymentMethodId: string;
+  isDefault?: boolean;
+}
+
+export interface SavePaymentMethodResponse {
+  success: boolean;
+  data: PaymentMethod;
+  message: string;
 }
 
 export interface ConfirmPaymentMethodRequest {
@@ -274,6 +321,26 @@ class PaymentService {
   // Get saved payment methods
   getPaymentMethods(): Promise<PaymentMethodsResponse> {
     return apiClient.get('/payment-methods');
+  }
+
+  // Create setup intent for adding new payment method
+  createSetupIntent(): Promise<SetupIntentResponse> {
+    return apiClient.post('/payment-methods/setup-intent');
+  }
+
+  // Save payment method after Stripe confirmation
+  savePaymentMethod(data: SavePaymentMethodRequest): Promise<SavePaymentMethodResponse> {
+    return apiClient.post('/payment-methods', data);
+  }
+
+  // Set default payment method
+  setDefaultPaymentMethod(paymentMethodId: string): Promise<PaymentMethod> {
+    return apiClient.patch(`/payment-methods/${paymentMethodId}/default`);
+  }
+
+  // Delete payment method
+  deletePaymentMethod(paymentMethodId: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.delete(`/payment-methods/${paymentMethodId}`);
   }
 
   // Confirm payment method after setup intent

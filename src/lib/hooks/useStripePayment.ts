@@ -90,7 +90,7 @@ export function useStripePayment(): UseStripePaymentReturn {
       const result = await stripe.confirmPayment({
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/payments/success`,
+          return_url: `${window.location.origin}/client/payments/success`,
         },
       });
 

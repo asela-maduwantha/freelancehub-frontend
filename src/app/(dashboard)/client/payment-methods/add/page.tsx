@@ -2,23 +2,37 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise, STRIPE_CONFIG } from '@/lib/stripe';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { AddPaymentMethodForm } from '@/components/features/payments/AddPaymentMethodForm';
+import { RootState } from '@/store';
+import { addPaymentMethod, fetchPaymentMethods } from '@/store/slices/payments';
+import { AppDispatch } from '@/store';
 
 const AddPaymentMethodPage: React.FC = () => {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { contractCreationFlow } = useSelector((state: RootState) => state.payments);
 
   const handleSuccess = async (paymentMethodId: string) => {
     setIsSubmitting(true);
     try {
-      // Here you would typically save the payment method to your backend
-      // For now, we'll just redirect back to the payment methods list
-      router.push('/(dashboard)/client/payment-methods');
+      // Refetch payment methods to get the newly added card
+      await dispatch(fetchPaymentMethods());
+      
+      // If we're in a contract creation flow, go back to payment selection
+      if (contractCreationFlow) {
+        router.push('/client/payment-methods/select');
+      } else {
+        // Otherwise, go to the payment methods list
+        router.push('/client/payment-methods');
+      }
     } catch (error) {
-      console.error('Failed to save payment method:', error);
+      console.error('Failed to refresh payment methods:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -30,13 +44,25 @@ const AddPaymentMethodPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    router.push('/(dashboard)/client/payment-methods');
+    // If we're in a contract creation flow, go back to payment selection
+    if (contractCreationFlow) {
+      router.push('/client/payment-methods/select');
+    } else {
+      router.push('/client/payment-methods');
+    }
   };
 
   return (
     <DashboardLayout userRole="client">
       <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-primary mb-2">Add Payment Method</h1>
+            <p className="text-secondary">
+              Add a new credit or debit card to your account
+            </p>
+          </div>
+          
           <Elements stripe={stripePromise} options={STRIPE_CONFIG.elementsOptions}>
             <AddPaymentMethodForm
               onSuccess={handleSuccess}
