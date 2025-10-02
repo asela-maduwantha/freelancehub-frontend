@@ -11,7 +11,6 @@ import {
   User,
   Settings,
   LogOut,
-  Bell,
   Search,
   Plus,
   FileText,
@@ -24,6 +23,7 @@ import Sidebar from '../common/Sidebar/Sidebar';
 import Button from '../ui/Button';
 import { authService } from '../../lib/api/auth';
 import { useUserDisplay } from '../../lib/hooks/useAuth';
+import NotificationBell from '../common/Notifications/NotificationBell';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -203,9 +203,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
 
             {/* Notifications */}
-            <button className="p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-blue-50">
-              <Bell size={20} />
-            </button>
+            <NotificationBell />
 
             {/* User Menu */}
             <div className="flex items-center space-x-3">
