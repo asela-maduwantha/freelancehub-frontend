@@ -120,7 +120,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoading}
                 autoComplete="email"
-                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
                 onChange={handleInputChange('password')}
                 required
                 disabled={isLoading}
-                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
               />
               <button
                 type="button"
@@ -166,7 +166,7 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={formData.rememberMe}
                 onChange={handleInputChange('rememberMe')}
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-slate-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
                 disabled={isLoading}
               />
               <label htmlFor="rememberMe" className="ml-2 block text-sm text-slate-700">
@@ -176,7 +176,7 @@ export default function LoginPage() {
 
             <Link
               href="/forgot-password"
-              className="text-sm font-medium text-orange-600 hover:text-orange-500 transition-colors duration-300"
+              className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors duration-300"
             >
               Forgot password?
             </Link>
@@ -185,7 +185,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-orange-500/25"
+            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-amber-500 hover:from-blue-700 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-blue-500/25"
           >
             {isLoading ? (
               <>
@@ -214,9 +214,9 @@ export default function LoginPage() {
         </div>
 
         <Link href="/register">
-          <button className="w-full flex justify-center items-center py-2.5 px-4 border-2 border-orange-200 rounded-xl shadow-sm text-sm font-semibold text-gray-700 bg-white/90 backdrop-blur-sm hover:bg-orange-50 hover:border-orange-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-300 transform hover:scale-105 group">
+          <button className="w-full flex justify-center items-center py-2.5 px-4 border-2 border-blue-200 rounded-xl shadow-sm text-sm font-semibold text-gray-700 bg-white/90 backdrop-blur-sm hover:bg-blue-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 group">
             Create Account
-            <ArrowRight className="ml-2 h-4 w-4 text-orange-600 group-hover:translate-x-1 transition-transform duration-300" />
+            <ArrowRight className="ml-2 h-4 w-4 text-blue-600 group-hover:translate-x-1 transition-transform duration-300" />
           </button>
         </Link>
       </div>

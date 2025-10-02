@@ -84,8 +84,8 @@ function ResetPasswordContent() {
     return (
       <AuthLayout>
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-4">
+            <CheckCircle className="h-6 w-6 text-blue-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Password reset successful</h2>
           <p className="text-gray-600 mb-6">
@@ -106,8 +106,8 @@ function ResetPasswordContent() {
     <AuthLayout>
       <div className="space-y-6">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 mb-4">
-            <KeyRound className="h-6 w-6 text-indigo-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-4">
+            <KeyRound className="h-6 w-6 text-blue-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Reset your password</h2>
           <p className="text-gray-600 mt-2">

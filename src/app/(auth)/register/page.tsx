@@ -124,7 +124,7 @@ export default function RegisterPage() {
               onClick={() => handleRoleChange('freelancer')}
               className={`flex items-center justify-center py-2.5 px-3 text-sm font-medium rounded-md transition-all duration-300 ${
                 formData.role === 'freelancer'
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg transform scale-105'
+                  ? 'bg-gradient-to-r from-blue-600 to-amber-500 text-white shadow-lg transform scale-105'
                   : 'text-slate-600 hover:text-slate-800 bg-white/50 hover:bg-white/70'
               }`}
               disabled={isLoading}
@@ -137,7 +137,7 @@ export default function RegisterPage() {
               onClick={() => handleRoleChange('client')}
               className={`flex items-center justify-center py-2.5 px-3 text-sm font-medium rounded-md transition-all duration-300 ${
                 formData.role === 'client'
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg transform scale-105'
+                  ? 'bg-gradient-to-r from-blue-600 to-amber-500 text-white shadow-lg transform scale-105'
                   : 'text-slate-600 hover:text-slate-800 bg-white/50 hover:bg-white/70'
               }`}
               disabled={isLoading}
@@ -151,22 +151,22 @@ export default function RegisterPage() {
         {/* Trust Indicators */}
         <div className="flex justify-center space-x-8 py-4">
           <div className="flex flex-col items-center group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center mb-2 shadow-md group-hover:shadow-orange-500/30 transform group-hover:scale-110 transition-all duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-amber-400 flex items-center justify-center mb-2 shadow-md group-hover:shadow-blue-500/30 transform group-hover:scale-110 transition-all duration-300">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-slate-500 group-hover:text-orange-600 transition-colors duration-300">Secure</span>
+            <span className="text-xs text-slate-500 group-hover:text-blue-600 transition-colors duration-300">Secure</span>
           </div>
           <div className="flex flex-col items-center group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-2 shadow-md group-hover:shadow-orange-500/30 transform group-hover:scale-110 transition-all duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-amber-500 flex items-center justify-center mb-2 shadow-md group-hover:shadow-blue-500/30 transform group-hover:scale-110 transition-all duration-300">
               <CheckCircle className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-slate-500 group-hover:text-orange-600 transition-colors duration-300">Verified</span>
+            <span className="text-xs text-slate-500 group-hover:text-blue-600 transition-colors duration-300">Verified</span>
           </div>
           <div className="flex flex-col items-center group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-orange-500 flex items-center justify-center mb-2 shadow-md group-hover:shadow-orange-500/30 transform group-hover:scale-110 transition-all duration-300">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-blue-500 flex items-center justify-center mb-2 shadow-md group-hover:shadow-blue-500/30 transform group-hover:scale-110 transition-all duration-300">
               <Star className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-slate-500 group-hover:text-orange-600 transition-colors duration-300">Trusted</span>
+            <span className="text-xs text-slate-500 group-hover:text-blue-600 transition-colors duration-300">Trusted</span>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export default function RegisterPage() {
                   required
                   disabled={isLoading}
                   autoComplete="given-name"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function RegisterPage() {
                   required
                   disabled={isLoading}
                   autoComplete="family-name"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
                 />
               </div>
             </div>
@@ -263,7 +263,7 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
                 autoComplete="email"
-                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange('phone')}
                 disabled={isLoading}
                 autoComplete="tel"
-                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -305,7 +305,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange('password')}
                 required
                 disabled={isLoading}
-                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
               />
               <button
                 type="button"
@@ -361,7 +361,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange('confirmPassword')}
                 required
                 disabled={isLoading}
-                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm bg-white transition-all duration-200"
+                className="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white transition-all duration-200"
               />
               <button
                 type="button"
@@ -385,18 +385,18 @@ export default function RegisterPage() {
               type="checkbox"
               checked={formData.termsAccepted}
               onChange={handleInputChange('termsAccepted')}
-              className="mt-0.5 h-4 w-4 text-orange-600 focus:ring-orange-500 border-slate-300 rounded"
+              className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
               disabled={isLoading}
               required
             />
             <div className="text-sm">
               <label htmlFor="terms" className="text-slate-700 leading-relaxed">
                 I agree to the{' '}
-                <Link href="/terms" className="font-medium text-orange-600 hover:text-orange-500 transition-colors duration-300">
+                <Link href="/terms" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-300">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="font-medium text-orange-600 hover:text-orange-500 transition-colors duration-300">
+                <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-300">
                   Privacy Policy
                 </Link>
               </label>
@@ -406,7 +406,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-orange-500/25"
+            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-amber-500 hover:from-blue-700 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-blue-500/25"
           >
             {isLoading ? (
               <>
@@ -428,7 +428,7 @@ export default function RegisterPage() {
         <div className="text-center">
           <p className="text-sm text-slate-600">
             Already have an account?{' '}
-            <Link href="/login" className="font-medium text-orange-600 hover:text-orange-500 transition-colors duration-300">
+            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-300">
               Sign in here
             </Link>
           </p>

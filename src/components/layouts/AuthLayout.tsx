@@ -44,10 +44,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
 
         <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-900/5 p-8 relative overflow-hidden">
           {/* Subtle inner gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-blue-50/30 rounded-2xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-amber-50/30 rounded-2xl"></div>
           
           {/* Professional accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-600 rounded-t-2xl"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-amber-500 to-slate-600 rounded-t-2xl"></div>
 
           <div className="relative z-10">
             {children}
