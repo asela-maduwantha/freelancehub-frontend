@@ -63,8 +63,8 @@ export default function FreelancerDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'accepted': return 'text-green-600 bg-green-100';
+      case 'pending': return 'text-amber-600 bg-amber-100';
+      case 'accepted': return 'text-blue-600 bg-blue-100';
       case 'rejected': return 'text-red-600 bg-red-100';
       case 'active': return 'text-blue-600 bg-blue-100';
       case 'completed': return 'text-gray-600 bg-gray-100';
@@ -104,7 +104,7 @@ export default function FreelancerDashboard() {
             <p className="text-red-600 mb-4">{error}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
             >
               Try Again
             </button>
@@ -118,19 +118,20 @@ export default function FreelancerDashboard() {
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="card-default p-6">
-          <h1 className="text-2xl font-bold text-primary mb-2">Welcome back, {displayName}! 👋</h1>
-          <p className="text-secondary">Here's your freelance performance overview.</p>
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back, {displayName}</h1>
+              <p className="text-gray-600">Here's your freelance performance overview.</p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatsCard
-            title="Total Proposals"
-            value={stats.totalProposals.toString()}
-            change="Submitted overall"
-            changeType="increase"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Active Proposals"
             value={stats.activeProposals.toString()}
@@ -140,68 +141,59 @@ export default function FreelancerDashboard() {
           <StatsCard
             title="Active Contracts"
             value={stats.activeContracts.toString()}
-            change="Currently working"
+            change="In progress"
             changeType="increase"
           />
           <StatsCard
             title="Completed Projects"
             value={stats.completedProjects.toString()}
-            change="Successfully finished"
+            change="All time"
             changeType="increase"
           />
           <StatsCard
-            title="Funds Released"
+            title="Total Earnings"
             value={`$${stats.totalEarnings.toLocaleString()}`}
-            change="From approved milestones"
-            changeType="increase"
-          />
-          <StatsCard
-            title="Monthly Releases"
-            value={`$${stats.monthlyEarnings.toLocaleString()}`}
-            change="This month"
-            changeType="increase"
-          />
-          <StatsCard
-            title="Average Rating"
-            value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
-            change={`${stats.totalReviews} reviews`}
+            change="All time"
             changeType="increase"
           />
         </div>
 
         {/* Quick Actions */}
-        <div className="card-default p-6">
-          <h2 className="text-xl font-semibold text-primary mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Link href="/freelancer/jobs">
-              <button className="btn-accent w-full flex items-center justify-center">
-                <Search size={20} className="mr-2" />
-                Browse Projects
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <Search size={18} />
+                <span>Browse Projects</span>
               </button>
             </Link>
-            <Link href="/proposals">
-              <button className="btn-primary w-full flex items-center justify-center">
-                <FileText size={20} className="mr-2" />
-                My Proposals
+            <Link href="/freelancer/proposals">
+              <button className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 hover:border-gray-400 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <FileText size={18} />
+                <span>My Proposals</span>
               </button>
             </Link>
             <Link href="/freelancer/messages">
-              <button className="btn-secondary w-full flex items-center justify-center">
-                <MessageSquare size={20} className="mr-2" />
-                Messages
+              <button className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 hover:border-gray-400 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <MessageSquare size={18} />
+                <span>Messages</span>
               </button>
             </Link>
           </div>
         </div>
 
         {/* Recent Proposals */}
-        <div className="card-default">
-          <div className="card-header">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-primary">Recent Proposals</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Recent Proposals</h2>
               <Link href="/freelancer/proposals">
-                <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
-                  View All
+                <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 group">
+                  <span>View All</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </Link>
             </div>
@@ -209,34 +201,32 @@ export default function FreelancerDashboard() {
 
           <div className="divide-y divide-gray-200">
             {recentProposals.map((proposal) => (
-              <div key={proposal.id} className="p-6 hover:bg-secondary transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-primary mb-1">
+              <div key={proposal.id} className="p-5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-gray-900 mb-2 truncate">
                       {proposal.jobTitle}
                     </h3>
-                    <div className="flex items-center space-x-4 text-sm text-muted mb-2">
-                      <span className="flex items-center">
-                        <Briefcase size={16} className="mr-1" />
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <Briefcase size={14} />
                         {proposal.clientName}
                       </span>
                       <span>Submitted {new Date(proposal.submittedAt).toLocaleDateString()}</span>
-                      <span className="flex items-center">
-                        <DollarSign size={16} className="mr-1" />
+                      <span className="font-medium text-gray-900">
                         ${proposal.proposedAmount.toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}>
-                      {getStatusIcon(proposal.status)}
-                      <span className="ml-1 capitalize">{proposal.status}</span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(proposal.status)}`}>
+                      <span className="capitalize">{proposal.status}</span>
                     </span>
 
                     <Link href={`/freelancer/proposals/${proposal.id}`}>
-                      <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
-                        View Details
+                      <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium text-sm rounded-lg transition-colors">
+                        View
                       </button>
                     </Link>
                   </div>
@@ -247,64 +237,66 @@ export default function FreelancerDashboard() {
         </div>
 
         {/* Active Contracts */}
-        <div className="card-default">
-          <div className="card-header">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-primary">Active Contracts</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Active Contracts</h2>
               <Link href="/freelancer/contracts">
-                <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
-                  View All
+                <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 group">
+                  <span>View All</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </Link>
             </div>
           </div>
 
-          <div className="divide-y divide-accent">
+          <div className="divide-y divide-gray-200">
             {activeContracts.length === 0 ? (
-              <div className="p-6 text-center text-muted">
-                <Briefcase size={24} className="mx-auto mb-2" />
-                <p>No active contracts found</p>
+              <div className="p-12 text-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Briefcase size={24} className="text-gray-400" />
+                </div>
+                <p className="text-gray-600 text-sm">No active contracts</p>
               </div>
             ) : (
               activeContracts.map((contract) => (
-                <div key={contract.id} className="p-6 hover:bg-secondary/30 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-medium text-primary mb-1">
+                <div key={contract.id} className="p-5 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 mb-2 truncate">
                         {contract.jobTitle}
                       </h3>
-                      <div className="flex items-center space-x-4 text-sm text-muted mb-2">
-                        <span className="flex items-center">
-                          <Briefcase size={16} className="mr-1" />
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                        <span className="flex items-center gap-1">
+                          <Briefcase size={14} />
                           {contract.clientName}
                         </span>
-                        <span className="flex items-center">
-                          <DollarSign size={16} className="mr-1" />
+                        <span className="font-medium text-gray-900">
                           ${contract.contractValue.toLocaleString()}
-                        </span>
-                        <span className="flex items-center">
-                          <TrendingUp size={16} className="mr-1" />
-                          {contract.progress}% complete
                         </span>
                       </div>
                       {/* Progress bar */}
-                      <div className="w-full bg-secondary rounded-full h-2 mt-2">
-                        <div
-                          className="bg-accent h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${contract.progress}%` }}
-                        ></div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${contract.progress}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 flex-shrink-0">{contract.progress}%</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3 ml-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
-                        {getStatusIcon(contract.status)}
-                        <span className="ml-1 capitalize">{contract.status}</span>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(contract.status)}`}>
+                        <span className="capitalize">{contract.status}</span>
                       </span>
 
                       <Link href={`/freelancer/contracts/${contract.id}`}>
-                        <button className="text-orange-500 hover:text-orange-600 font-medium text-sm">
-                          View Details
+                        <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium text-sm rounded-lg transition-colors">
+                          View
                         </button>
                       </Link>
                     </div>
@@ -318,63 +310,61 @@ export default function FreelancerDashboard() {
         {/* Skills & Achievements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Skills */}
-          <div className="card-default p-6">
-            <h2 className="text-xl font-semibold text-primary mb-4">Your Top Skills</h2>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Top Skills</h2>
+            <div className="space-y-4">
               {[
                 { skill: 'React Development', level: 95, projects: 12 },
                 { skill: 'Node.js', level: 88, projects: 8 },
                 { skill: 'UI/UX Design', level: 82, projects: 6 },
                 { skill: 'TypeScript', level: 90, projects: 10 }
               ].map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-primary">{item.skill}</span>
-                      <span className="text-sm text-muted">{item.level}%</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div
-                        className="bg-accent h-2 rounded-full"
-                        style={{ width: `${item.level}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-muted mt-1">{item.projects} projects completed</p>
+                <div key={index}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-900">{item.skill}</span>
+                    <span className="text-sm text-gray-600">{item.level}%</span>
                   </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${item.level}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{item.projects} projects completed</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Recent Achievements */}
-          <div className="card-default p-6">
-            <h2 className="text-xl font-semibold text-primary mb-4">Recent Achievements</h2>
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Achievements</h2>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <Award className="h-6 w-6 text-accent" />
+                  <Award className="h-5 w-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-primary">Top Rated Freelancer</p>
-                  <p className="text-sm text-muted">Achieved 4.8+ star rating</p>
+                  <p className="text-sm font-medium text-gray-900">Top Rated Freelancer</p>
+                  <p className="text-sm text-gray-600">Achieved 4.8+ star rating</p>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <TrendingUp className="h-6 w-6 text-success" />
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-primary">Rising Star</p>
-                  <p className="text-sm text-muted">15 projects completed this quarter</p>
+                  <p className="text-sm font-medium text-gray-900">Rising Star</p>
+                  <p className="text-sm text-gray-600">15 projects completed this quarter</p>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <Star className="h-6 w-6 text-info" />
+                  <Star className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-primary">Client Favorite</p>
-                  <p className="text-sm text-muted">92% client satisfaction rate</p>
+                  <p className="text-sm font-medium text-gray-900">Client Favorite</p>
+                  <p className="text-sm text-gray-600">92% client satisfaction rate</p>
                 </div>
               </div>
             </div>
@@ -382,29 +372,35 @@ export default function FreelancerDashboard() {
         </div>
 
         {/* Getting Started Guide */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold text-primary mb-4">Boost Your Profile</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary-lighter rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-primary font-bold text-lg">1</span>
+        <div className="bg-blue-50 rounded-lg border border-blue-100 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Boost Your Profile</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">1</span>
               </div>
-              <h3 className="font-medium text-primary mb-1">Complete Your Profile</h3>
-              <p className="text-sm text-secondary">Add your portfolio, skills, and experience to attract more clients.</p>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Complete Your Profile</h3>
+                <p className="text-sm text-gray-600">Add your portfolio, skills, and experience to attract more clients.</p>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary-lighter rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-primary font-bold text-lg">2</span>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">2</span>
               </div>
-              <h3 className="font-medium text-primary mb-1">Submit Quality Proposals</h3>
-              <p className="text-sm text-secondary">Write personalized proposals that showcase your understanding of client needs.</p>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Submit Quality Proposals</h3>
+                <p className="text-sm text-gray-600">Write personalized proposals that showcase your understanding of client needs.</p>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary-lighter rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-primary font-bold text-lg">3</span>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">3</span>
               </div>
-              <h3 className="font-medium text-primary mb-1">Deliver Excellence</h3>
-              <p className="text-sm text-secondary">Complete projects on time and maintain high communication standards.</p>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Deliver Excellence</h3>
+                <p className="text-sm text-gray-600">Complete projects on time and maintain high communication standards.</p>
+              </div>
             </div>
           </div>
         </div>

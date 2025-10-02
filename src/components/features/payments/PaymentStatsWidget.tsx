@@ -80,11 +80,11 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
   const getPaymentIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-blue-600" />;
       case 'failed':
         return <XCircle className="h-4 w-4 text-red-600" />;
       case 'processing':
-        return <Clock className="h-4 w-4 text-yellow-600" />;
+        return <Clock className="h-4 w-4 text-amber-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
     }
@@ -93,11 +93,11 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
   const getPaymentColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600 bg-green-50';
+        return 'text-blue-600 bg-blue-50';
       case 'failed':
         return 'text-red-600 bg-red-50';
       case 'processing':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-amber-600 bg-amber-50';
       default:
         return 'text-gray-600 bg-gray-50';
     }
@@ -109,8 +109,8 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">
@@ -139,8 +139,8 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
 
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Completed</p>
@@ -153,8 +153,8 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
 
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <XCircle className="h-5 w-5 text-red-600" />
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <XCircle className="h-5 w-5 text-amber-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Failed</p>
@@ -175,7 +175,7 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
           </h3>
           <Link
             href="/dashboard/client/payments"
-            className="text-orange-600 hover:text-orange-700 font-medium text-sm flex items-center gap-1"
+            className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1"
           >
             View All
             <ArrowRight className="h-4 w-4" />

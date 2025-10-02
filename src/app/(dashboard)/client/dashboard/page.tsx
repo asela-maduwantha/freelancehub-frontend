@@ -63,8 +63,8 @@ export default function ClientDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'text-green-600 bg-green-100';
-      case 'in-progress': return 'text-blue-600 bg-blue-100';
+      case 'open': return 'text-blue-600 bg-blue-100';
+      case 'in-progress': return 'text-amber-600 bg-amber-100';
       case 'completed': return 'text-gray-600 bg-gray-100';
       case 'active': return 'text-blue-600 bg-blue-100';
       case 'cancelled': return 'text-red-600 bg-red-100';
@@ -116,39 +116,30 @@ export default function ClientDashboard() {
     <DashboardLayout userRole="client">
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-8 shadow-xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24" />
-          <div className="relative z-10">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {displayName}! 👋</h1>
-            <p className="text-blue-100 text-lg">Here's what's happening with your projects today.</p>
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back, {displayName}</h1>
+              <p className="text-gray-600">Here's an overview of your projects and activities.</p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatsCard
-            title="Total Jobs Posted"
-            value={stats.totalJobs.toString()}
-            change="+12%"
-            changeType="increase"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Active Jobs"
             value={stats.activeJobs.toString()}
-            change="Currently open"
-            changeType="increase"
-          />
-          <StatsCard
-            title="Completed Jobs"
-            value={stats.completedJobs.toString()}
-            change="Successfully finished"
+            change="Open positions"
             changeType="increase"
           />
           <StatsCard
             title="Active Contracts"
             value={stats.activeContracts.toString()}
-            change="Currently active"
+            change="In progress"
             changeType="increase"
           />
           <StatsCard
@@ -160,30 +151,30 @@ export default function ClientDashboard() {
           <StatsCard
             title="Total Invested"
             value={`$${stats.totalSpent.toLocaleString()}`}
-            change="Upfront payments made"
+            change="All time"
             changeType="increase"
           />
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Link href="/client/jobs/create">
-              <button className="w-full group relative overflow-hidden bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-4 rounded-xl font-semibold shadow-md hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
-                <Plus size={20} />
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <Plus size={18} />
                 <span>Post New Job</span>
               </button>
             </Link>
             <Link href="/client/jobs">
-              <button className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-xl font-semibold shadow-md hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
-                <Eye size={20} />
+              <button className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 hover:border-gray-400 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <Eye size={18} />
                 <span>Browse Freelancers</span>
               </button>
             </Link>
             <Link href="/client/messages">
-              <button className="w-full group relative overflow-hidden bg-white border-2 border-gray-300 hover:border-blue-500 text-gray-700 hover:text-blue-700 px-6 py-4 rounded-xl font-semibold hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2">
-                <MessageSquare size={20} />
+              <button className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 hover:border-gray-400 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <MessageSquare size={18} />
                 <span>View Messages</span>
               </button>
             </Link>
@@ -191,12 +182,12 @@ export default function ClientDashboard() {
         </div>
 
         {/* Recent Jobs */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Recent Jobs</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Recent Jobs</h2>
               <Link href="/client/jobs">
-                <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1 group">
+                <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 group">
                   <span>View All</span>
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -206,36 +197,34 @@ export default function ClientDashboard() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-200">
             {recentJobs.map((job) => (
-              <div key={job.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div key={job.id} className="p-5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-gray-900 mb-2 truncate">
                       {job.title}
                     </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span className="flex items-center">
-                        <FileText size={16} className="mr-1" />
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <FileText size={14} />
                         {job.proposalsCount} proposals
                       </span>
                       <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
-                      <span className="flex items-center">
-                        <TrendingUp size={16} className="mr-1" />
+                      <span className="font-medium text-gray-900">
                         ${job.budget.toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(job.status)}`}>
-                      {getStatusIcon(job.status)}
-                      <span className="ml-1 capitalize">{job.status.replace('-', ' ')}</span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(job.status)}`}>
+                      <span className="capitalize">{job.status.replace('-', ' ')}</span>
                     </span>
 
                     <Link href={`/client/jobs/${job.id}`}>
-                      <button className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold text-sm rounded-lg transition-colors">
-                        View Details
+                      <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium text-sm rounded-lg transition-colors">
+                        View
                       </button>
                     </Link>
                   </div>
@@ -246,12 +235,12 @@ export default function ClientDashboard() {
         </div>
 
         {/* Recent Contracts */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Recent Contracts</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Active Contracts</h2>
               <Link href="/client/contracts">
-                <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1 group">
+                <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 group">
                   <span>View All</span>
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -261,44 +250,42 @@ export default function ClientDashboard() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-200">
             {recentContracts.length === 0 ? (
               <div className="p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Briefcase size={28} className="text-gray-400" />
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Briefcase size={24} className="text-gray-400" />
                 </div>
-                <p className="text-gray-600 font-medium">No recent contracts found</p>
+                <p className="text-gray-600 text-sm">No active contracts</p>
               </div>
             ) : (
               recentContracts.map((contract) => (
-                <div key={contract.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <div key={contract.id} className="p-5 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 mb-2 truncate">
                         {contract.jobTitle}
                       </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <span className="flex items-center">
-                          <Users size={16} className="mr-1" />
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <Users size={14} />
                           {contract.freelancerName}
                         </span>
-                        <span className="flex items-center">
-                          <TrendingUp size={16} className="mr-1" />
+                        <span className="font-medium text-gray-900">
                           ${contract.contractValue.toLocaleString()}
                         </span>
                         <span>Started {new Date(contract.startDate).toLocaleDateString()}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
-                        {getStatusIcon(contract.status)}
-                        <span className="ml-1 capitalize">{contract.status}</span>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(contract.status)}`}>
+                        <span className="capitalize">{contract.status}</span>
                       </span>
 
                       <Link href={`/client/contracts/${contract.id}`}>
-                        <button className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-sm rounded-lg transition-colors">
-                          View Details
+                        <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium text-sm rounded-lg transition-colors">
+                          View
                         </button>
                       </Link>
                     </div>
@@ -315,29 +302,35 @@ export default function ClientDashboard() {
         )}
 
         {/* Getting Started Guide */}
-        <div className="bg-gradient-to-br from-blue-50 via-white to-amber-50 rounded-2xl border border-gray-200 p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Getting Started Guide</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-white font-bold text-2xl">1</span>
+        <div className="bg-blue-50 rounded-lg border border-blue-100 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">1</span>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">Post Your Job</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Create a detailed job posting to attract the right freelancers.</p>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Post Your Job</h3>
+                <p className="text-sm text-gray-600">Create a detailed job posting to attract qualified freelancers.</p>
+              </div>
             </div>
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-white font-bold text-2xl">2</span>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">2</span>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">Review Proposals</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Evaluate freelancer proposals and portfolios to find the best match.</p>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Review Proposals</h3>
+                <p className="text-sm text-gray-600">Evaluate proposals and select the best freelancer for your project.</p>
+              </div>
             </div>
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-white font-bold text-2xl">3</span>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-sm">3</span>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">Start Working</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Collaborate with your chosen freelancer and track project progress.</p>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Track Progress</h3>
+                <p className="text-sm text-gray-600">Collaborate and monitor project milestones in real-time.</p>
+              </div>
             </div>
           </div>
         </div>

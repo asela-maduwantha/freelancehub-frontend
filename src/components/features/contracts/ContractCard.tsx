@@ -82,7 +82,7 @@ const ContractCard: React.FC<ContractCardProps> = ({
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xl font-bold text-emerald">
+            <div className="text-xl font-bold text-blue-600">
               {formatCurrency(contract.totalAmount, contract.currency)}
             </div>
             {contract.hourlyRate && contract.hourlyRate > 0 && (

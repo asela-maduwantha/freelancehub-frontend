@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
         <button
           onClick={onToggle}
-          className="p-1 rounded-md bg-orange-100 hover:bg-orange-200 text-orange-600 transition-colors duration-200"
+          className="p-1 rounded-md bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors duration-200"
         >
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -49,8 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <div
                     className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer ${
                       item.isActive
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
                     } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
                   >
                     {item.icon && (
@@ -70,8 +70,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={item.onClick}
                   className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
                     item.isActive
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
                   } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
                 >
                   {item.icon && (

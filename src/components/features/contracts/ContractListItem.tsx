@@ -113,7 +113,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-emerald-500 h-2 rounded-full transition-all duration-300" 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${getProgressPercentage()}%` }}
                   ></div>
                 </div>
@@ -125,7 +125,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({
             
             {/* Amount */}
             <div className="text-right">
-              <div className="text-xl font-bold text-emerald-600">
+              <div className="text-xl font-bold text-blue-600">
                 {formatCurrency(contract.totalAmount, contract.currency)}
               </div>
               <div className="text-sm text-gray-500">
