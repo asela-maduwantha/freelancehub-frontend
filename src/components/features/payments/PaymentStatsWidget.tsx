@@ -193,7 +193,7 @@ const PaymentStatsWidget: React.FC<PaymentStatsWidgetProps> = ({ userId, userTyp
         ) : (
           <div className="space-y-3">
             {recentPayments.map((payment) => (
-              <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={payment._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className={`p-1.5 rounded-full ${getPaymentColor(payment.status)}`}>
                     {getPaymentIcon(payment.status)}

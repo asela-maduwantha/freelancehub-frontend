@@ -1,1 +1,10 @@
 export { default as SubmitWorkModal } from './SubmitWorkModal';
+export { default as TimelineView } from './TimelineView';
+export { default as TimelineHeader } from './TimelineHeader';
+export { default as ProjectSwimlane } from './ProjectSwimlane';
+export { default as MilestoneBar } from './MilestoneBar';
+export { default as MilestoneDetailPanel } from './MilestoneDetailPanel';
+export { default as StatsCard } from './StatsCard';
+export { default as CalendarView } from './CalendarView';
+export { default as TableView } from './TableView';
+export { default as DashboardView } from './DashboardView';

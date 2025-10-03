@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../../../../components/layouts/DashboardLayout';
 import {
   BalanceCard,
@@ -9,10 +10,17 @@ import {
   StripeAccountSetup,
 } from '../../../../../components/features/payments';
 import { useStripeAccount } from '../../../../../lib/hooks/useStripeAccount';
+import Button from '../../../../../components/ui/Button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function WithdrawalsPage() {
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false);
   const { account, accountState } = useStripeAccount();
+  const router = useRouter();
+
+  const handleBackToPayments = () => {
+    router.push('/freelancer/payments');
+  };
 
   const handleWithdrawalSuccess = () => {
     setShowWithdrawalForm(false);
@@ -24,11 +32,17 @@ export default function WithdrawalsPage() {
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
         {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Withdrawals</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your earnings and withdrawal requests
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Withdrawals</h1>
+            <p className="text-gray-600 mt-1">
+              Manage your earnings and withdrawal requests
+            </p>
+          </div>
+          <Button variant="secondary" onClick={handleBackToPayments}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Payments
+          </Button>
         </div>
 
         {/* Stripe Account Setup (if needed) */}

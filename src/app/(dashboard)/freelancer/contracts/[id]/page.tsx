@@ -9,6 +9,7 @@ import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
 import { Modal } from '../../../../../components/ui/Modal';
+import { ArrowLeft } from 'lucide-react';
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -138,7 +139,8 @@ export default function ContractDetailPage() {
         <div className="space-y-6">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="secondary" onClick={handleBackToContracts}>
-              ← Back to Contracts
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Contracts
             </Button>
             <h1 className="text-2xl font-bold text-gray-900">Contract Details</h1>
           </div>
@@ -165,7 +167,8 @@ export default function ContractDetailPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="secondary" onClick={handleBackToContracts}>
-              ← Back to Contracts
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Contracts
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{contract.title}</h1>

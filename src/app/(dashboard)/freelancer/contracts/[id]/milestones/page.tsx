@@ -9,6 +9,7 @@ import { Card, CardHeader, CardBody, CardFooter } from '../../../../../../compon
 import { Badge } from '../../../../../../components/ui/Display';
 import { milestoneApi, MilestoneResponse } from '../../../../../../lib/api/milestones';
 import { SubmitWorkModal } from '../../../../../../components/features/milestones';
+import { ArrowLeft } from 'lucide-react';
 
 export default function ContractMilestonesPage() {
   const params = useParams();
@@ -66,6 +67,10 @@ export default function ContractMilestonesPage() {
       style: 'currency',
       currency,
     }).format(amount);
+  };
+
+  const handleBackToContracts = () => {
+    router.push('/freelancer/contracts');
   };
 
   const formatDate = (dateString: string) => {
@@ -134,7 +139,8 @@ export default function ContractMilestonesPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
-            <Button variant="secondary" onClick={() => router.back()}>
+            <Button variant="secondary" onClick={handleBackToContracts}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Contracts
             </Button>
           </div>
@@ -152,7 +158,8 @@ export default function ContractMilestonesPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
-            <Button variant="secondary" onClick={() => router.back()}>
+            <Button variant="secondary" onClick={handleBackToContracts}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Contracts
             </Button>
           </div>
@@ -177,7 +184,8 @@ export default function ContractMilestonesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
-          <Button variant="secondary" onClick={() => router.back()}>
+          <Button variant="secondary" onClick={handleBackToContracts}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Contracts
           </Button>
         </div>

@@ -15,7 +15,7 @@ export interface MilestoneResponse {
   deliverables: Deliverable[];
   createdAt: string;
   updatedAt: string;
-  contractId: string;
+  contractId: string | { _id: string; id: string; title: string; [key: string]: any }; // Can be string ID or populated contract object
   paymentId: string | null;
   contract: any[]; // Contract data
   payment: any[]; // Payment data

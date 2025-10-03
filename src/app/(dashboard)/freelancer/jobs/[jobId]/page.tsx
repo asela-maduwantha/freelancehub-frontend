@@ -147,8 +147,9 @@ export default function FreelancerJobDetailPage() {
             </div>
             <h3 className="text-xl font-semibold text-red-900 mb-2">Error Loading Job</h3>
             <p className="text-red-700 mb-6">{error || 'Job not found'}</p>
-            <Button variant="outline" onClick={() => router.back()}>
-              Go Back
+            <Button variant="outline" onClick={() => router.push('/freelancer/jobs')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Jobs
             </Button>
           </div>
         </div>
@@ -165,7 +166,7 @@ export default function FreelancerJobDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.back()}
+              onClick={() => router.push('/freelancer/jobs')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
