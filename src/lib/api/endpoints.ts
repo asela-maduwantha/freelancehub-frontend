@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
     APPLY: (id: string) => `/jobs/${id}/apply`,
     FEATURED: '/jobs/featured',
     RECENT: '/jobs/recent',
+    STATS: '/jobs/stats',
   },
 
   CATEGORIES: {

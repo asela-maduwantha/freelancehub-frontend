@@ -95,6 +95,9 @@ export interface JobFilters {
   projectType?: 'fixed-price';
   minBudget?: number;
   maxBudget?: number;
+  isUrgent?: boolean;
+  isFeatured?: boolean;
+  maxProposals?: number;
 }
 
 class JobService {
@@ -143,6 +146,9 @@ class JobService {
         if (filters.projectType) params.append('projectType', filters.projectType);
         if (filters.minBudget !== undefined) params.append('minBudget', filters.minBudget.toString());
         if (filters.maxBudget !== undefined) params.append('maxBudget', filters.maxBudget.toString());
+        if (filters.isUrgent !== undefined) params.append('isUrgent', filters.isUrgent.toString());
+        if (filters.isFeatured !== undefined) params.append('isFeatured', filters.isFeatured.toString());
+        if (filters.maxProposals !== undefined) params.append('maxProposals', filters.maxProposals.toString());
       }
 
       const response = await apiClient.get(`${API_ENDPOINTS.JOBS.LIST}?${params}`);
@@ -287,9 +293,21 @@ class JobService {
     }
   }
 
-  // Clear error
-  clearError(): void {
-    store.dispatch(jobsActions.clearError());
+  // Get job statistics for dashboard
+  async getJobStats(): Promise<{
+    totalProjects: number;
+    projectsToday: number;
+    avgBudget: number;
+    topSkills: string[];
+    avgBudgetsByCategory: Record<string, number>;
+  }> {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.JOBS.STATS);
+      return response;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to fetch job stats';
+      throw new Error(errorMessage);
+    }
   }
 
   // Set loading

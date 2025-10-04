@@ -1,3 +1,4 @@
 export { default as Alert } from './Alert';
 export { default as Loader } from './Loader';
 export { default as Spinner } from './Spinner';
+export { default as Skeleton } from './Skeleton';

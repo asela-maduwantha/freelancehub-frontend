@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
 import Button from '../../../../components/ui/Button';
 import { Card, CardHeader, CardBody } from '../../../../components/ui/Card';
@@ -9,6 +10,10 @@ import { Loader, Alert } from '../../../../components/ui/Feedback';
 import { Modal } from '../../../../components/ui/Modal';
 import { proposalService, ProposalResponse, ProposalListResponse } from '../../../../lib/api/proposals';
 import { jobService, JobResponse } from '../../../../lib/api/jobs';
+import ProposalCardSkeleton from '../../../../components/animations/ProposalCardSkeleton';
+import StatusBadge from '../../../../components/ui/Display/StatusBadge';
+import EmptyState from '../../../../components/animations/EmptyState';
+import EnhancedProposalCard from '../../../../components/animations/EnhancedProposalCard';
 import {
   Eye,
   DollarSign,
@@ -21,7 +26,9 @@ import {
   ChevronRight,
   Filter,
   X,
-  Calendar
+  Calendar,
+  Search,
+  Plus
 } from 'lucide-react';
 
 interface ProposalFilters {
@@ -133,8 +140,33 @@ const MyProposalsPage: React.FC = () => {
   if (loading && proposals.length === 0) {
     return (
       <DashboardLayout userRole="freelancer">
-        <div className="flex items-center justify-center h-64">
-          <Loader size="lg" />
+        <div className="max-w-7xl mx-auto p-6">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-9 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-lg w-48 mb-2 animate-pulse" />
+            <div className="h-5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded w-64 animate-pulse" />
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="mb-6">
+            <div className="card-elevated p-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="h-5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded w-16 animate-pulse" />
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-8 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-md w-20 animate-pulse" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Proposal Cards Skeleton */}
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <ProposalCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -187,130 +219,52 @@ const MyProposalsPage: React.FC = () => {
 
         {/* Proposals List */}
         {proposals.length === 0 ? (
-          <Card>
-            <CardBody>
-              <div className="text-center py-12">
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals found</h3>
-                <p className="text-gray-600">
-                  {filters.status
-                    ? `You don't have any ${filters.status} proposals yet.`
-                    : "You haven't submitted any proposals yet."
-                  }
-                </p>
-              </div>
-            </CardBody>
-          </Card>
+          <EmptyState
+            title="No proposals found"
+            description={
+              filters.status
+                ? `You don't have any ${filters.status} proposals yet. ${filters.status === 'pending' ? 'Keep applying to jobs that match your skills!' : 'Your proposals will appear here once you start applying.'}`
+                : "You haven't submitted any proposals yet. Start exploring jobs and submit your first proposal!"
+            }
+            variant={filters.status ? 'search' : 'create'}
+            action={{
+              label: filters.status ? 'Browse Jobs' : 'Find Jobs',
+              onClick: () => {
+                // Navigate to browse jobs page
+                window.location.href = '/browse-jobs';
+              }
+            }}
+          />
         ) : (
-          <div className="space-y-6">
-            {proposals.map((proposal) => (
-              <Card key={proposal._id} variant="elevated">
-                <CardBody>
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                    {/* Proposal Info */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            Proposal for Job #{proposal.job ? proposal.job.id.slice(-8) : 'Unknown'}
-                          </h3>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                            <Badge variant={getStatusBadgeVariant(proposal.status)}>
-                              {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
-                            </Badge>
-                            <span>Submitted {formatDate(proposal.createdAt)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Cover Letter Preview */}
-                      <div className="mb-4">
-                        <h4 className="font-medium text-gray-900 mb-2">Cover Letter</h4>
-                        <p className="text-gray-600 line-clamp-3">
-                          {proposal.coverLetter.length > 200
-                            ? `${proposal.coverLetter.substring(0, 200)}...`
-                            : proposal.coverLetter
-                          }
-                        </p>
-                      </div>
-
-                      {/* Proposal Details */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="h-5 w-5 text-green-600" />
-                          <div>
-                            <span className="text-sm text-gray-600">Proposed Rate</span>
-                            <p className="font-medium text-gray-900">
-                              ${proposal.proposedRate.amount.toLocaleString()} {proposal.proposedRate.type}
-                            </p>
-                          </div>
-                        </div>
-
-                        {proposal.estimatedDuration && (
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-5 w-5 text-blue-600" />
-                            <div>
-                              <span className="text-sm text-gray-600">Estimated Duration</span>
-                              <p className="font-medium text-gray-900">
-                                {proposal.estimatedDuration.value} {proposal.estimatedDuration.unit}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Milestones */}
-                      {proposal.proposedMilestones && proposal.proposedMilestones.length > 0 && (
-                        <div className="mb-4">
-                          <h4 className="font-medium text-gray-900 mb-2">Milestones ({proposal.proposedMilestones.length})</h4>
-                          <div className="space-y-2">
-                            {proposal.proposedMilestones.slice(0, 2).map((milestone: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div>
-                                  <p className="font-medium text-gray-900">{milestone.title}</p>
-                                  <p className="text-sm text-gray-600">
-                                    ${milestone.amount.toLocaleString()} • {milestone.durationDays} days
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            {proposal.proposedMilestones.length > 2 && (
-                              <p className="text-sm text-gray-500">
-                                +{proposal.proposedMilestones.length - 2} more milestones
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col gap-3 lg:min-w-[200px]">
-                      <Button
-                        variant="primary"
-                        onClick={() => proposal.job && handleViewJob(proposal.job.id)}
-                        disabled={!proposal.job}
-                        className="w-full"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Job
-                      </Button>
-
-                      {proposal.status === 'pending' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                        >
-                          Withdraw Proposal
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-6"
+          >
+            {proposals.map((proposal, index) => (
+              <EnhancedProposalCard
+                key={proposal._id}
+                proposal={proposal}
+                index={index}
+                onViewJob={handleViewJob}
+                onEdit={(id) => {
+                  // Handle edit - could navigate to edit page or open modal
+                  console.log('Edit proposal:', id);
+                }}
+                onWithdraw={(id) => {
+                  // Handle withdraw with confirmation
+                  if (window.confirm('Are you sure you want to withdraw this proposal?')) {
+                    console.log('Withdraw proposal:', id);
+                  }
+                }}
+                onMessageClient={(id) => {
+                  // Handle message client
+                  console.log('Message client for proposal:', id);
+                }}
+              />
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Pagination */}
@@ -486,9 +440,7 @@ const MyProposalsPage: React.FC = () => {
 
                         <div className="bg-white/60 rounded-xl p-6 border border-gray-200/50 shadow-sm">
                           <span className="text-sm text-gray-600 font-medium block mb-2">Status</span>
-                          <Badge variant={selectedJob.status === 'open' ? 'success' : 'secondary'} className="px-3 py-1 text-sm">
-                            {selectedJob.status.charAt(0).toUpperCase() + selectedJob.status.slice(1)}
-                          </Badge>
+                          <StatusBadge status={selectedJob.status} />
                         </div>
                       </div>
                     </div>
