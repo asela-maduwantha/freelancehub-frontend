@@ -193,7 +193,7 @@ const PaymentCollectionPage: React.FC<PaymentCollectionPageProps> = () => {
   useEffect(() => {
     const fetchPayment = async () => {
       try {
-        const paymentData = await paymentService.getPaymentById(paymentId);
+        const paymentData = await paymentService.getPayment(paymentId);
         setPayment(paymentData);
       } catch (err: any) {
         setError(err.message || 'Failed to load payment details');

@@ -7,22 +7,49 @@ type SocketEventCallback = (data: any) => void;
 class SocketService {
   private socket: Socket | null = null;
   private isConnected: boolean = false;
+  private isConnecting: boolean = false;
   private listeners: Map<string, SocketEventCallback[]> = new Map();
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
+  private currentToken: string | null = null;
 
   /**
    * Connect to the notification WebSocket server
    */
   connect(token: string): void {
-    if (this.socket?.connected) {
-      console.log('Socket already connected');
+    // Prevent duplicate connections
+    if (this.isConnecting) {
+      console.log('⏳ Connection already in progress, skipping...');
       return;
     }
 
-    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'https://frevo-backend-gpfagahnd2ehgke5.centralindia-01.azurewebsites.net';
+    if (this.socket?.connected) {
+      console.log('✅ Socket already connected');
+      // If token changed, reconnect with new token
+      if (this.currentToken !== token) {
+        console.log('🔄 Token changed, reconnecting...');
+        this.disconnect();
+      } else {
+        return;
+      }
+    }
 
-    console.log('Connecting to WebSocket server:', `${WS_BASE_URL}/notifications`);
+    // If socket exists but is disconnected, clean it up first
+    if (this.socket && !this.socket.connected) {
+      console.log('🧹 Cleaning up disconnected socket...');
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.isConnecting = true;
+    this.currentToken = token;
+
+    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000';
+
+    console.log('🔌 Connecting to WebSocket server:', `${WS_BASE_URL}/notifications`);
+    console.log('🔑 Using token for auth:', token ? 'Token present' : 'No token');
+    console.log('🌐 Environment WS_URL:', process.env.NEXT_PUBLIC_WS_URL);
 
     this.socket = io(`${WS_BASE_URL}/notifications`, {
       auth: { token },
@@ -31,6 +58,9 @@ class SocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: this.maxReconnectAttempts,
+      timeout: 20000, // 20 second connection timeout
+      autoConnect: true,
+      withCredentials: false,
     });
 
     this.setupSocketListeners();
@@ -45,25 +75,53 @@ class SocketService {
     // Connection events
     this.socket.on('connect', () => {
       console.log('✅ Connected to notification server');
+      console.log('🔗 Socket ID:', this.socket?.id);
       this.isConnected = true;
+      this.isConnecting = false;
       this.reconnectAttempts = 0;
       this.emit('connected', { connected: true });
     });
 
     this.socket.on('disconnect', (reason) => {
       console.log('❌ Disconnected from notification server:', reason);
+      console.log('🔌 Socket ID:', this.socket?.id);
       this.isConnected = false;
       this.emit('disconnected', { connected: false, reason });
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+      console.error('❌ Socket connection error:', error);
+      console.error('🔍 Connection details:', {
+        auth: !!this.socket?.auth,
+        transport: this.socket?.io?.engine?.transport?.name
+      });
+      this.isConnecting = false;
       this.reconnectAttempts++;
-      
+
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('Max reconnection attempts reached');
+        console.error('🚫 Max reconnection attempts reached');
         this.emit('connection_failed', { error: 'Failed to connect after maximum attempts' });
       }
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log('🔄 Reconnected to notification server after', attemptNumber, 'attempts');
+      this.isConnected = true;
+      this.reconnectAttempts = 0;
+      this.emit('reconnected', { attemptNumber });
+    });
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('🔄 Reconnection attempt', attemptNumber);
+    });
+
+    this.socket.on('reconnect_error', (error) => {
+      console.error('❌ Reconnection error:', error);
+    });
+
+    this.socket.on('reconnect_failed', () => {
+      console.error('🚫 Reconnection failed');
+      this.emit('reconnection_failed', { error: 'Reconnection failed' });
     });
 
     // Notification events from server
@@ -98,12 +156,31 @@ class SocketService {
    */
   disconnect(): void {
     if (this.socket) {
-      console.log('Disconnecting from notification server');
+      console.log('🔌 Disconnecting from notification server');
+      this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      this.isConnecting = false;
+      this.currentToken = null;
       this.listeners.clear();
     }
+  }
+
+  /**
+   * Check if socket should reconnect (not connected but should be)
+   */
+  shouldReconnect(token: string): boolean {
+    return !this.isConnected && !!token;
+  }
+
+  /**
+   * Reconnect with new token (useful when auth state is restored)
+   */
+  reconnect(token: string): void {
+    console.log('🔄 Reconnecting socket with new token...');
+    this.disconnect();
+    this.connect(token);
   }
 
   /**

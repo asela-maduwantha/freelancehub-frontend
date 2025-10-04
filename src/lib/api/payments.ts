@@ -7,6 +7,7 @@
  */
 
 import { apiClient } from './client';
+import { API_ENDPOINTS } from './endpoints';
 
 // =====================================================
 // Type Definitions
@@ -72,20 +73,131 @@ export interface Payment {
   updatedAt: Date;
 }
 
+export interface PaymentResponse {
+  id: string;
+  contractId: string;
+  milestoneId: string;
+  payerId: string;
+  payeeId: string;
+  amount: number;
+  currency: string;
+  paymentType: 'milestone' | 'bonus' | 'refund';
+  platformFee: number;
+  stripeFee: number;
+  freelancerAmount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+  stripePaymentIntentId?: string;
+  stripeChargeId?: string;
+  stripeTransferId?: string;
+  errorMessage?: string;
+  createdAt: string;
+  completedAt?: string;
+  updatedAt: string;
+}
+
+export interface PaymentListItem {
+  _id: string;
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+  paymentType: 'milestone' | 'bonus' | 'refund';
+  contractId: {
+    _id: string;
+    id?: string;
+    title: string;
+    status?: string;
+    totalAmount?: number;
+    currency?: string;
+  } | null;
+  milestoneId?: {
+    _id: string;
+    id?: string;
+    title: string;
+  } | null;
+  payerId?: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+  payeeId?: {
+    _id: string;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+  description?: string;
+  createdAt: string;
+  platformFee?: number;
+  stripeFee?: number;
+  freelancerAmount?: number;
+}
+
+export interface UserPaymentStatsResponse {
+  totalEarned: number;
+  totalSpent: number;
+  pendingPayments: number;
+  completedPayments: number;
+  failedPayments: number;
+  currency: string;
+}
+
 export interface PaymentMethod {
   id: string;
-  type: string;
-  card?: {
+  stripePaymentMethodId: string;
+  type: 'card';
+  card: {
     brand: string;
     last4: string;
     expMonth: number;
     expYear: number;
   };
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface PaymentMethodsResponse {
   paymentMethods: PaymentMethod[];
   defaultPaymentMethodId?: string;
+}
+
+export interface SetupIntentResponse {
+  clientSecret?: string | null;
+  setupIntentId: string;
+}
+
+export interface CreatePaymentMethodDto {
+  paymentMethodId: string;
+  isDefault?: boolean;
+}
+
+export interface PaymentListResponse {
+  payments: PaymentListItem[];
+  total: number;
+  totalPages: number;
+}
+
+export interface PaymentFilters {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  contractId?: string;
+  milestoneId?: string;
+  payerId?: string;
+  payeeId?: string;
+  status?: string;
+  paymentType?: string;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
 }
 
 // =====================================================
@@ -130,7 +242,7 @@ export const createPayment = async (data: CreatePaymentDto): Promise<Payment> =>
 /**
  * Get payment details by ID
  */
-export const getPayment = async (paymentId: string): Promise<Payment> => {
+export const getPayment = async (paymentId: string): Promise<PaymentResponse> => {
   try {
     const response = await apiClient.get(`/payments/${paymentId}`);
     return response.data;
@@ -232,6 +344,24 @@ export const failPayment = async (
 };
 
 /**
+ * Get user payment statistics
+ */
+export const getUserPaymentStats = async (
+  userId: string,
+  userType: 'client' | 'freelancer'
+): Promise<UserPaymentStatsResponse> => {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.PAYMENTS.USER_STATS(userId, userType));
+    return response.data;
+  } catch (error: any) {
+    console.error('[PaymentService] Failed to get user payment stats:', error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to get user payment stats'
+    );
+  }
+};
+
+/**
  * Request a refund for a completed payment (admin only)
  */
 export const refundPayment = async (
@@ -251,6 +381,89 @@ export const refundPayment = async (
   }
 };
 
+/**
+ * Get payments with pagination and filters
+ */
+export const getPayments = async (params: {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  filters?: {
+    contractId?: string;
+    milestoneId?: string;
+    payerId?: string;
+    payeeId?: string;
+    status?: string;
+    paymentType?: string;
+    dateRange?: {
+      start: Date;
+      end: Date;
+    };
+  };
+}): Promise<{ payments: PaymentListItem[]; total: number; totalPages: number }> => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    // Add filters
+    if (params.filters) {
+      if (params.filters.contractId) queryParams.append('contractId', params.filters.contractId);
+      if (params.filters.milestoneId) queryParams.append('milestoneId', params.filters.milestoneId);
+      if (params.filters.payerId) queryParams.append('payerId', params.filters.payerId);
+      if (params.filters.payeeId) queryParams.append('payeeId', params.filters.payeeId);
+      if (params.filters.status) queryParams.append('status', params.filters.status);
+      if (params.filters.paymentType) queryParams.append('paymentType', params.filters.paymentType);
+      if (params.filters.dateRange) {
+        queryParams.append('startDate', params.filters.dateRange.start.toISOString());
+        queryParams.append('endDate', params.filters.dateRange.end.toISOString());
+      }
+    }
+
+    const response = await apiClient.get(`/payments?${queryParams.toString()}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('[PaymentService] Failed to get payments:', error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to retrieve payments'
+    );
+  }
+};
+
+/**
+ * Create a setup intent for saving payment methods
+ */
+export const createSetupIntent = async (): Promise<SetupIntentResponse> => {
+  try {
+    const response = await apiClient.post('/payment-methods/setup-intent');
+    return response.data;
+  } catch (error: any) {
+    console.error('[PaymentService] Failed to create setup intent:', error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to create setup intent'
+    );
+  }
+};
+
+/**
+ * Save a payment method
+ */
+export const savePaymentMethod = async (data: CreatePaymentMethodDto): Promise<PaymentMethod> => {
+  try {
+    const response = await apiClient.post('/payment-methods', data);
+    return response.data;
+  } catch (error: any) {
+    console.error('[PaymentService] Failed to save payment method:', error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to save payment method'
+    );
+  }
+};
+
 // Export all functions as a single service object for backwards compatibility
 export const paymentService = {
   createPaymentIntent,
@@ -262,6 +475,10 @@ export const paymentService = {
   completePayment,
   failPayment,
   refundPayment,
+  getUserPaymentStats,
+  getPayments,
+  createSetupIntent,
+  savePaymentMethod,
 };
 
 export default paymentService;

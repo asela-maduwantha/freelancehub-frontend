@@ -65,6 +65,10 @@ const AddCardForm: React.FC<AddCardFormProps> = ({
       // Step 1: Create setup intent from backend
       const { clientSecret, setupIntentId } = await paymentService.createSetupIntent();
 
+      if (!clientSecret) {
+        throw new Error('Failed to create setup intent - no client secret returned');
+      }
+
       // Step 2: Get card element
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) {
@@ -98,7 +102,7 @@ const AddCardForm: React.FC<AddCardFormProps> = ({
 
       // Step 5: Clear form and notify success
       cardElement.clear();
-      onSuccess(response.data.id);
+      onSuccess(response.id);
 
     } catch (err: any) {
       console.error('Error adding card:', err);

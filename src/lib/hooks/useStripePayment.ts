@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStripe } from '@stripe/react-stripe-js';
-import { paymentService, CreatePaymentIntentRequest, PaymentIntentResponse } from '@/lib/api/payments';
+import { paymentService, CreatePaymentIntentDto, PaymentIntent } from '@/lib/api/payments';
 import { getStripeErrorMessage } from '@/lib/stripe';
 
 interface PaymentIntentResult {
@@ -9,11 +9,11 @@ interface PaymentIntentResult {
   stripePaymentIntentId: string; // Stripe PaymentIntent ID
   amount: number;
   currency: string;
-  metadata: PaymentIntentResponse['metadata'];
+  metadata: PaymentIntent['metadata'];
 }
 
 interface UseStripePaymentReturn {
-  initiatePayment: (data: CreatePaymentIntentRequest) => Promise<PaymentIntentResult>;
+  initiatePayment: (data: CreatePaymentIntentDto) => Promise<PaymentIntentResult>;
   confirmPayment: (clientSecret: string) => Promise<{ success: boolean; error?: string }>;
   isProcessing: boolean;
   error: string | null;
@@ -27,7 +27,7 @@ export function useStripePayment(): UseStripePaymentReturn {
 
   const resetError = () => setError(null);
 
-  const initiatePayment = async (data: CreatePaymentIntentRequest) => {
+  const initiatePayment = async (data: CreatePaymentIntentDto) => {
     setIsProcessing(true);
     setError(null);
 

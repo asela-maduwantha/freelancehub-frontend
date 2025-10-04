@@ -6,7 +6,7 @@ import { ConversationList } from '../../../../components/features/messaging/Conv
 import { ChatInterface } from '../../../../components/features/messaging/ChatInterface';
 import { Conversation } from '../../../../types/messages';
 
-export default function ClientMessagesPage() {
+export default function FreelancerMessagesPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
   const handleConversationSelect = (conversation: Conversation) => {
@@ -14,7 +14,7 @@ export default function ClientMessagesPage() {
   };
 
   return (
-    <DashboardLayout userRole="client">
+    <DashboardLayout userRole="freelancer">
       <div className="h-[calc(100vh-12rem)] bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
         <div className="flex h-full">
           {/* Conversations Sidebar */}
@@ -39,7 +39,7 @@ export default function ClientMessagesPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a conversation</h3>
                   <p className="text-gray-600 text-sm max-w-xs">
-                    Choose a conversation from the list to start messaging with freelancers
+                    Choose a conversation from the list to start messaging with clients
                   </p>
                 </div>
               </div>

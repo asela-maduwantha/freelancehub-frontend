@@ -89,3 +89,29 @@ export interface AccountStateInfo {
   actionMessage?: string;
   nextSteps?: string[];
 }
+
+// Payment Method Types
+export interface PaymentMethod {
+  id: string;
+  stripePaymentMethodId: string;
+  type: 'card';
+  card: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+  };
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface PaymentMethodsResponse {
+  paymentMethods: PaymentMethod[];
+  defaultPaymentMethodId?: string;
+}
+
+export interface SetupIntentResponse {
+  clientSecret: string;
+  setupIntentId: string;
+}

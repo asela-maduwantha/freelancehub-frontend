@@ -1,7 +1,7 @@
 // Custom hook for notifications
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { socketService } from '@/lib/services/socketService';
@@ -12,13 +12,9 @@ import {
   markMultipleNotificationsAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
-  addNotification,
-  updateUnreadCount,
-  updateNotification as updateNotificationAction,
   setFilters,
-  resetNotifications,
 } from '@/store/slices/notifications/notificationsSlice';
-import type { Notification, NotificationFilters } from '@/types/notifications';
+import type { NotificationFilters } from '@/types/notifications';
 
 export const useNotifications = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,88 +34,43 @@ export const useNotifications = () => {
     hasPrev: false,
   });
   
-  // Get auth token from Redux store
-  const token = useSelector((state: RootState) => state.auth?.token);
+  // Get auth state from Redux store
   const isAuthenticated = useSelector((state: RootState) => state.auth?.isAuthenticated);
 
-  // Socket event handlers
-  const handleNewNotification = useCallback((notification: Notification) => {
-    console.log('📬 New notification received:', notification);
-    dispatch(addNotification(notification));
-    
-    // Show browser notification if permission granted
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(notification.title, {
-        body: notification.message,
-        icon: '/icons/notification-icon.png',
-      });
-    }
-  }, [dispatch]);
+  // Socket connection status
+  const [socketStatus, setSocketStatus] = useState(socketService.getStatus());
 
-  const handleUnreadCountUpdate = useCallback((count: number) => {
-    console.log('🔔 Unread count update:', count);
-    dispatch(updateUnreadCount(count));
-  }, [dispatch]);
+  // Track if initial data has been loaded to prevent duplicate calls
+  const initialLoadDone = useRef(false);
 
-  const handleNotificationUpdate = useCallback((data: any) => {
-    console.log('🔄 Notification update:', data);
-    if (data.action === 'marked_read' && data.notificationId) {
-      dispatch(updateNotificationAction({
-        notificationId: data.notificationId,
-        updates: { isRead: true, readAt: new Date().toISOString() },
-      }));
-    }
-  }, [dispatch]);
-
-  const handleAllNotificationsRead = useCallback(() => {
-    console.log('✅ All notifications marked as read');
-    dispatch(updateUnreadCount(0));
-  }, [dispatch]);
-
-  // Initialize socket connection
+  // Socket connection status monitoring
   useEffect(() => {
-    console.log('🔍 useNotifications - Auth State:', { isAuthenticated, hasToken: !!token });
-    
-    if (isAuthenticated && token) {
-      console.log('🔌 Connecting to notification socket with token...');
-      socketService.connect(token);
+    const handleConnected = () => setSocketStatus(socketService.getStatus());
+    const handleDisconnected = () => setSocketStatus(socketService.getStatus());
+    const handleConnectionFailed = () => setSocketStatus(socketService.getStatus());
 
-      // Subscribe to socket events
-      socketService.on('notification', handleNewNotification);
-      socketService.on('unread_count', handleUnreadCountUpdate);
-      socketService.on('notification_updated', handleNotificationUpdate);
-      socketService.on('all_notifications_read', handleAllNotificationsRead);
+    socketService.on('connected', handleConnected);
+    socketService.on('disconnected', handleDisconnected);
+    socketService.on('connection_failed', handleConnectionFailed);
 
-      // Load initial data
+    return () => {
+      socketService.off('connected', handleConnected);
+      socketService.off('disconnected', handleDisconnected);
+      socketService.off('connection_failed', handleConnectionFailed);
+    };
+  }, []);
+
+  // Load initial data when component mounts and user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !initialLoadDone.current) {
       console.log('📡 Loading initial notification data...');
       dispatch(fetchNotifications(filters));
       dispatch(fetchUnreadCount());
-
-      return () => {
-        console.log('🔌 Cleaning up notification socket listeners...');
-        socketService.off('notification', handleNewNotification);
-        socketService.off('unread_count', handleUnreadCountUpdate);
-        socketService.off('notification_updated', handleNotificationUpdate);
-        socketService.off('all_notifications_read', handleAllNotificationsRead);
-      };
-    } else {
-      // Disconnect socket and reset state when user logs out
-      console.log('❌ Not authenticated or no token - disconnecting socket');
-      socketService.disconnect();
-      dispatch(resetNotifications());
+      initialLoadDone.current = true;
+    } else if (!isAuthenticated) {
+      initialLoadDone.current = false;
     }
-  }, [
-    isAuthenticated,
-    token,
-    dispatch,
-    handleNewNotification,
-    handleUnreadCountUpdate,
-    handleNotificationUpdate,
-    handleAllNotificationsRead,
-    filters,
-  ]);
-
-  // Request browser notification permission
+  }, [isAuthenticated, dispatch]);  // Request browser notification permission
   const requestNotificationPermission = useCallback(async () => {
     if ('Notification' in window && Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
@@ -192,6 +143,7 @@ export const useNotifications = () => {
     requestNotificationPermission,
 
     // Socket status
+    socketStatus,
     isSocketConnected: socketService.isSocketConnected(),
   };
 };

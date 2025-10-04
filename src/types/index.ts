@@ -5,6 +5,7 @@ export * from './withdrawals';
 export * from './stripe';
 export * from './balance';
 export * from './milestones';
+export * from './messages';
 export * from './common';
 
 // Enums

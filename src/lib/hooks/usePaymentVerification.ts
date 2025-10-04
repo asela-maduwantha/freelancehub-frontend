@@ -40,7 +40,7 @@ export function usePaymentVerification({
       setIsVerifying(true);
       setError(null);
 
-      const paymentData = await paymentService.getPaymentById(paymentId);
+      const paymentData = await paymentService.getPayment(paymentId);
       setPayment(paymentData);
 
       // Stop polling if payment is completed or failed

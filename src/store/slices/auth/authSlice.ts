@@ -43,6 +43,7 @@ export const AUTH_ACTIONS = {
   UPDATE_PROFILE: 'auth/updateProfile',
   CLEAR_ERROR: 'auth/clearError',
   SET_LOADING: 'auth/setLoading',
+  REHYDRATE_AUTH: 'auth/rehydrateAuth',
 } as const;
 
 // Action creators
@@ -74,6 +75,10 @@ export const authActions = {
   setLoading: (isLoading: boolean) => ({
     type: AUTH_ACTIONS.SET_LOADING,
     payload: isLoading,
+  }),
+  rehydrateAuth: (payload: { token: string; refreshToken: string }) => ({
+    type: AUTH_ACTIONS.REHYDRATE_AUTH,
+    payload,
   }),
 };
 
@@ -154,6 +159,18 @@ const authReducer = (state: AuthState = initialState, action: any): AuthState =>
       return {
         ...state,
         isLoading: action.payload,
+      };
+
+    case AUTH_ACTIONS.REHYDRATE_AUTH:
+      // Restore auth state from stored tokens without user info
+      // The user info will be fetched separately if needed
+      return {
+        ...state,
+        token: action.payload.token,
+        refreshToken: action.payload.refreshToken,
+        isAuthenticated: !!action.payload.token,
+        isLoading: false,
+        error: null,
       };
 
     default:

@@ -59,9 +59,9 @@ export function usePayments(initialFilters: PaymentFilters = {}): UsePaymentsRet
       
       setPayments(transformedPayments);
       setTotal(response.total);
-      setPage(response.page || filters.page || 1);
-      setLimit(response.limit || filters.limit || 10);
-      setTotalPages(response.totalPages || Math.ceil(response.total / (response.limit || filters.limit || 10)));
+      setPage(filters.page || 1);
+      setLimit(filters.limit || 10);
+      setTotalPages(response.totalPages || Math.ceil(response.total / (filters.limit || 10)));
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err.message || 'Failed to load payments';
       setError(errorMessage);
@@ -76,7 +76,7 @@ export function usePayments(initialFilters: PaymentFilters = {}): UsePaymentsRet
 
   const getPaymentById = async (paymentId: string): Promise<PaymentResponse | null> => {
     try {
-      const payment = await paymentService.getPaymentById(paymentId);
+      const payment = await paymentService.getPayment(paymentId);
       return payment;
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || 'Failed to load payment details');

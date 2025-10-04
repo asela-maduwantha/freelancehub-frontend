@@ -1,1 +1,32 @@
-export { default } from './messagesSlice';
+export {
+  default,
+  // Async thunks
+  fetchConversations,
+  fetchConversationDetails,
+  fetchMessages,
+  sendMessage,
+  createMessage,
+  markMessagesAsRead,
+  // Actions
+  setConnected,
+  setConnectionError,
+  setCurrentConversation,
+  addMessage,
+  updateMessage,
+  setTyping,
+  clearTyping,
+  setSidebarOpen,
+  setMessageInputValue,
+  resetMessagesState,
+  updateUnreadCount,
+  // Selectors
+  selectMessagingState,
+  selectConversations,
+  selectCurrentConversation,
+  selectCurrentConversationId,
+  selectConversationsPagination,
+  selectMessages,
+  selectTypingUsers,
+  selectIsConnected,
+  selectConversationsLoading,
+} from './messagesSlice';
