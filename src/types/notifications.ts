@@ -1,6 +1,7 @@
 // Notification types and interfaces
 
 export enum NotificationType {
+  LOGIN = 'login',
   PROPOSAL_RECEIVED = 'proposal_received',
   PROPOSAL_ACCEPTED = 'proposal_accepted',
   PROPOSAL_REJECTED = 'proposal_rejected',

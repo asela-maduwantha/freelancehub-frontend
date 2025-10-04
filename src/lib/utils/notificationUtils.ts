@@ -4,6 +4,7 @@ import type { Notification } from '@/types/notifications';
 
 // Notification type display names
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
+  [NotificationType.LOGIN]: 'Login',
   [NotificationType.PROPOSAL_RECEIVED]: 'New Proposal',
   [NotificationType.PROPOSAL_ACCEPTED]: 'Proposal Accepted',
   [NotificationType.PROPOSAL_REJECTED]: 'Proposal Rejected',
@@ -30,6 +31,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
 
 // Notification type icons
 export const NOTIFICATION_TYPE_ICONS: Record<NotificationType, string> = {
+  [NotificationType.LOGIN]: '🔐',
   [NotificationType.PROPOSAL_RECEIVED]: '📝',
   [NotificationType.PROPOSAL_ACCEPTED]: '✅',
   [NotificationType.PROPOSAL_REJECTED]: '❌',
@@ -56,6 +58,7 @@ export const NOTIFICATION_TYPE_ICONS: Record<NotificationType, string> = {
 
 // Notification type colors (Tailwind classes)
 export const NOTIFICATION_TYPE_COLORS: Record<NotificationType, string> = {
+  [NotificationType.LOGIN]: 'text-indigo-600',
   [NotificationType.PROPOSAL_RECEIVED]: 'text-blue-600',
   [NotificationType.PROPOSAL_ACCEPTED]: 'text-green-600',
   [NotificationType.PROPOSAL_REJECTED]: 'text-red-600',

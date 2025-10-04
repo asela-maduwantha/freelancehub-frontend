@@ -3,15 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { stripePromise } from '../../../../../lib/stripe';
 import { contractService } from '../../../../../lib/api/contracts';
 import { paymentService } from '../../../../../lib/api/payments';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody } from '../../../../../components/ui/Card';
 import { Spinner } from '../../../../../components/ui/Feedback';
-
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface ContractSummaryProps {
   contract: any;
@@ -88,37 +85,41 @@ const StripeCheckoutForm: React.FC<StripeCheckoutFormProps> = ({
     setLoading(true);
 
     try {
-      // First create a payment method from the card element
-      const { error: createError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: elements.getElement(CardElement)!,
-      });
-
-      if (createError) {
-        onError(createError.message || 'Failed to create payment method');
-        return;
-      }
-
-      // Now confirm the payment intent with the payment method
-      const { error, paymentIntent: confirmedPayment } = await stripe.confirmPayment({
-        clientSecret: paymentIntent.clientSecret,
-        confirmParams: {
-          return_url: `${window.location.origin}/client/contracts/${contractId}`,
-          payment_method: paymentMethod.id,
-        },
-        redirect: 'if_required'
-      });
+      // Confirm the payment with Stripe using the card element
+      const { error, paymentIntent: confirmedPayment } = await stripe.confirmCardPayment(
+        paymentIntent.clientSecret,
+        {
+          payment_method: {
+            card: elements.getElement(CardElement)!,
+            billing_details: {
+              // Optional: add billing details here if needed
+            }
+          }
+        }
+      );
 
       if (error) {
+        // Payment failed
         onError(error.message || 'Payment failed');
         return;
       }
 
       if (confirmedPayment.status === 'succeeded') {
-        // Payment was successful - backend will handle payment record creation via webhooks
+        // Payment successful!
+        // Webhook will handle:
+        // - Updating payment record in database
+        // - Activating the contract
+        // - Crediting freelancer's balance
+        // - Sending notifications
+        // Frontend just needs to redirect user
         onSuccess();
+      } else if (confirmedPayment.status === 'requires_action') {
+        // 3D Secure or additional authentication required
+        // Stripe will handle this automatically and redirect back
+        onError('Payment requires additional authentication');
       } else {
-        onError('Payment was not completed');
+        // Unknown status
+        onError('Payment status unknown. Please contact support if funds were deducted.');
       }
     } catch (err: any) {
       onError(err.message || 'An unexpected error occurred');

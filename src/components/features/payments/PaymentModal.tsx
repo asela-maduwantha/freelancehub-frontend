@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
+import { stripePromise } from '@/lib/stripe';
 import {
   Elements,
   CardElement,
@@ -21,9 +21,6 @@ import {
   DollarSign,
   FileText
 } from 'lucide-react';
-
-// Initialize Stripe (replace with your publishable key)
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -67,9 +64,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Calculate fees - client pays milestone amount + platform fee
+  // Stripe fees are deducted from the payment automatically, not added to client's payment
   const platformFee = (milestone.amount * platformFeePercentage) / 100;
-  const stripeFee = milestone.amount * 0.029 + 0.30; // Stripe's fee calculation
-  const totalAmount = milestone.amount + platformFee + stripeFee;
+  const totalAmount = milestone.amount + platformFee;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -90,23 +88,23 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
     try {
       // 1. Create payment intent on backend
-      const paymentData = {
+      const paymentIntentData = {
         contractId: contract.id,
-        milestoneId: milestone.id,
-        payerId: contract.clientId,
-        payeeId: contract.freelancerId,
         amount: milestone.amount,
         currency: milestone.currency,
-        paymentType: 'milestone' as const,
-        platformFeePercentage,
-        description: `Payment for milestone: ${milestone.title}`
+        description: `Payment for milestone: ${milestone.title}`,
+        metadata: {
+          milestoneId: milestone.id,
+          milestoneTitle: milestone.title,
+          contractId: contract.id,
+        }
       };
 
-      const paymentResponse = await paymentService.createPayment(paymentData);
+      const paymentIntent = await paymentService.createPaymentIntent(paymentIntentData);
 
-      // 2. Confirm payment with Stripe
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-        paymentResponse.stripePaymentIntentId!, // This should come from backend
+      // 2. Confirm payment with Stripe using the client secret
+      const { error: stripeError, paymentIntent: confirmedPayment } = await stripe.confirmCardPayment(
+        paymentIntent.clientSecret,
         {
           payment_method: {
             card: cardElement,
@@ -115,24 +113,23 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       );
 
       if (stripeError) {
-        // Handle Stripe error
-        await paymentService.failPayment(paymentResponse.id, {
-          errorMessage: stripeError.message || 'Payment failed'
-        });
+        // Payment failed - show error to user
         setError(stripeError.message || 'Payment failed');
         onError(stripeError.message || 'Payment failed');
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // 3. Update payment status
-        await paymentService.processPayment(paymentResponse.id, {
-          stripePaymentIntentId: paymentIntent.id,
-          stripeFee
-        });
-
-        // 4. Complete payment
-        const completedPayment = await paymentService.completePayment(paymentResponse.id);
-
-        onSuccess(completedPayment);
+      } else if (confirmedPayment && confirmedPayment.status === 'succeeded') {
+        // Payment succeeded! 
+        // Webhook will handle updating the payment record, contract, and balances
+        // Just show success to user
+        onSuccess({ id: paymentIntent.paymentId, status: 'succeeded' });
         onClose();
+      } else if (confirmedPayment && confirmedPayment.status === 'requires_action') {
+        // 3D Secure or other authentication required
+        setError('Payment requires additional authentication');
+        onError('Payment requires additional authentication');
+      } else {
+        // Unknown payment status
+        setError('Payment could not be completed');
+        onError('Payment could not be completed');
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during payment');
@@ -169,10 +166,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           <span className="text-sm text-gray-600">Platform Fee ({platformFeePercentage}%)</span>
           <span className="font-medium">{formatCurrency(platformFee, milestone.currency)}</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Processing Fee</span>
-          <span className="font-medium">{formatCurrency(stripeFee, milestone.currency)}</span>
-        </div>
+        {/* Stripe processing fee is handled automatically - not shown to client */}
         <hr className="border-gray-200" />
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-gray-900">Total</span>
