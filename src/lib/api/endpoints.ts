@@ -19,8 +19,14 @@ export const API_ENDPOINTS = {
 
   USERS: {
     PROFILE: '/users/profile',
-    UPDATE_PROFILE: '/users/profile',
+    UPDATE_PROFILE: '/users/freelancer/profile',
     UPLOAD_AVATAR: '/users/avatar',
+    ADD_SKILLS: '/users/freelancer/skills',
+    ADD_PORTFOLIO: '/users/freelancer/portfolio',
+  },
+
+  CLIENT: {
+    UPDATE_PROFILE: '/users/client/profile',
   },
 
   JOBS: {

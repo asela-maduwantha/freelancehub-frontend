@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { paymentService } from '@/lib/api/payments';
+import { clientApi } from '@/lib/api/clientApi';
 import Button from '../Button';
 import { Spinner } from '../Feedback';
 
@@ -63,7 +63,14 @@ const AddCardForm: React.FC<AddCardFormProps> = ({
 
     try {
       // Step 1: Create setup intent from backend
-      const { clientSecret, setupIntentId } = await paymentService.createSetupIntent();
+      const setupIntentData = await clientApi.createSetupIntent();
+      console.log('Setup Intent Response:', setupIntentData);
+      
+      if (!setupIntentData) {
+        throw new Error('Failed to create setup intent - no response from server');
+      }
+
+      const { clientSecret, setupIntentId } = setupIntentData;
 
       if (!clientSecret) {
         throw new Error('Failed to create setup intent - no client secret returned');
@@ -95,7 +102,7 @@ const AddCardForm: React.FC<AddCardFormProps> = ({
         ? setupIntent.payment_method 
         : setupIntent.payment_method.id;
 
-      const response = await paymentService.savePaymentMethod({
+      const response = await clientApi.savePaymentMethod({
         paymentMethodId,
         isDefault: setAsDefault,
       });

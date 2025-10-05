@@ -2,9 +2,11 @@ import { loadStripe } from '@stripe/stripe-js';
 
 // Initialize Stripe with publishable key
 // This should be your Stripe publishable key (pk_test_... or pk_live_...)
-export const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+export const stripePromise = stripePublishableKey 
+  ? loadStripe(stripePublishableKey)
+  : Promise.resolve(null);
 
 // Stripe configuration
 export const STRIPE_CONFIG = {

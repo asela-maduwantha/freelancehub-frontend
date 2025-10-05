@@ -1,234 +1,304 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useStripeAccount } from '@/lib/hooks/useStripeAccount';
-import { StripeAccountStatusBadge } from '@/components/features/payments';
-import { StripeAccountSetupState } from '@/types/stripe';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { Card } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import { RootState } from '@/types/store';
+import { onboardingActions } from '@/store/slices/onboarding';
 
-/**
- * Stripe Onboarding Complete Page
- * Handles the return from Stripe onboarding success
- * URL: /freelancer/onboarding/complete
- */
-function OnboardingCompletePageContent() {
+const CompletionPage: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { account, status, fetchStatus, accountState } = useStripeAccount();
-  const [checking, setChecking] = useState(true);
+  const dispatch = useDispatch();
+  const { progress } = useSelector((state: RootState) => state.onboarding);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
-    const checkAccountStatus = async () => {
-      try {
-        setChecking(true);
-        // Fetch the latest account status
-        await fetchStatus();
-      } catch (error) {
-        console.error('Error checking account status:', error);
-      } finally {
-        setChecking(false);
-      }
-    };
+    // Clear onboarding progress
+    dispatch(onboardingActions.resetOnboarding());
 
-    // Small delay to ensure Stripe has updated the account
-    const timer = setTimeout(() => {
-      checkAccountStatus();
-    }, 1500);
+    // Show confetti animation
+    setShowConfetti(true);
 
-    return () => clearTimeout(timer);
-  }, [fetchStatus]);
+    // Auto-redirect countdown
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          router.push('/freelancer/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-  const handleContinue = () => {
-    router.push('/freelancer/payments/withdrawals');
+    return () => clearInterval(timer);
+  }, [dispatch, router]);
+
+  const calculateProfileCompletion = () => {
+    if (!progress?.formData) return 0;
+
+    const { formData } = progress;
+    let completed = 0;
+    let total = 6; // Total possible sections
+
+    // Basic Profile (required)
+    if (formData.title && formData.overview && formData.availability && formData.experience && formData.languages?.length) {
+      completed++;
+    }
+
+    // Professional Details (required)
+    if (formData.professionalTitle && formData.hourlyRate && formData.experienceLevel &&
+        formData.availability && formData.languages?.length && formData.professionalOverview) {
+      completed++;
+    }
+
+    // Skills (required)
+    if ((formData.skills?.length ?? 0) >= 3) {
+      completed++;
+    }
+
+    // Portfolio (optional)
+    if ((formData.portfolio?.length ?? 0) > 0) {
+      completed++;
+    }
+
+    // Education (optional)
+    if ((formData.education?.length ?? 0) > 0) {
+      completed++;
+    }
+
+    // Payment Setup (optional)
+    if (formData.stripeConnected) {
+      completed++;
+    }
+
+    return Math.round((completed / total) * 100);
   };
 
-  if (checking) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Verifying Your Account
-          </h2>
-          <p className="text-gray-600">
-            Please wait while we check your account status with Stripe...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const completionPercentage = calculateProfileCompletion();
 
-  // Determine the completion state
-  const isFullyComplete = accountState?.state === StripeAccountSetupState.FULLY_ENABLED;
-  const isUnderReview = accountState?.state === StripeAccountSetupState.UNDER_REVIEW;
-  const needsMoreInfo = accountState?.state === StripeAccountSetupState.ONBOARDING_INCOMPLETE || 
-                        accountState?.state === StripeAccountSetupState.RESTRICTED;
+  const handleBrowseJobs = () => {
+    router.push('/freelancer/jobs/browse');
+  };
+
+  const handleViewProfile = () => {
+    router.push('/freelancer/profile');
+  };
+
+  const handleSetupPayment = () => {
+    router.push('/freelancer/onboarding/payment');
+  };
+
+  const handleGoToDashboard = () => {
+    router.push('/freelancer/dashboard');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full overflow-hidden">
-        {/* Header */}
-        <div className={`px-8 py-6 ${
-          isFullyComplete
-            ? 'bg-gradient-to-r from-green-500 to-green-600'
-            : isUnderReview
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600'
-            : 'bg-gradient-to-r from-amber-500 to-amber-600'
-        }`}>
-          <div className="flex items-center gap-4 text-white">
-            {isFullyComplete ? (
-              <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : isUnderReview ? (
-              <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            )}
-            <div>
-              <h1 className="text-2xl font-bold mb-1">
-                {isFullyComplete
-                  ? 'Account Setup Complete!'
-                  : isUnderReview
-                  ? 'Account Under Review'
-                  : 'Additional Information Required'}
-              </h1>
-              <p className="opacity-90">
-                {isFullyComplete
-                  ? 'Your payout account is ready to use'
-                  : isUnderReview
-                  ? 'We\'re reviewing your account details'
-                  : 'Please complete the remaining steps'}
-              </p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full">
+        {/* Confetti Animation Placeholder */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-10">
+            <div className="absolute top-10 left-10 w-4 h-4 bg-yellow-400 rounded-full animate-bounce"></div>
+            <div className="absolute top-20 right-20 w-3 h-3 bg-pink-400 rounded-full animate-bounce delay-100"></div>
+            <div className="absolute top-32 left-1/4 w-5 h-5 bg-green-400 rounded-full animate-bounce delay-200"></div>
+            <div className="absolute top-16 right-1/3 w-4 h-4 bg-blue-400 rounded-full animate-bounce delay-300"></div>
+            <div className="absolute bottom-20 left-16 w-3 h-3 bg-purple-400 rounded-full animate-bounce delay-400"></div>
+            <div className="absolute bottom-32 right-16 w-4 h-4 bg-red-400 rounded-full animate-bounce delay-500"></div>
           </div>
+        )}
+
+        {/* Success Header */}
+        <div className="text-center mb-8">
+          <div className="inline-block p-4 bg-green-100 rounded-full mb-4">
+            <svg className="w-16 h-16 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Welcome to FreelanceHub! 🎉
+          </h1>
+          <p className="text-xl text-gray-600">
+            Your freelancer profile is ready to go
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="p-8">
-          {/* Account Status Badge */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Current Status:</h3>
-            <StripeAccountStatusBadge showDetails={true} />
+        {/* Profile Completion Card */}
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Completion</h2>
+
+          {/* Progress Circle */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative w-32 h-32">
+              <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#E5E7EB"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#3B82F6"
+                  strokeWidth="3"
+                  strokeDasharray={`${completionPercentage}, 100`}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-bold text-gray-900">{completionPercentage}%</span>
+              </div>
+            </div>
           </div>
 
-          {/* Status-specific messages */}
-          {isFullyComplete && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-green-900 mb-2">✓ Ready for Withdrawals</h3>
-              <p className="text-sm text-green-800">
-                Your payout account is fully set up and verified. You can now request withdrawals
-                from your available balance. Funds will be transferred to your connected account.
-              </p>
-            </div>
-          )}
+          <p className="text-center text-gray-600 mb-4">
+            {completionPercentage === 100
+              ? "Perfect! Your profile is 100% complete."
+              : `Great start! ${100 - completionPercentage}% more to reach perfection.`
+            }
+          </p>
 
-          {isUnderReview && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-blue-900 mb-2">Under Review</h3>
-              <p className="text-sm text-blue-800 mb-3">
-                Stripe is reviewing your account information. This usually takes 1-2 business days.
-                You'll receive an email notification once the review is complete.
-              </p>
-              <p className="text-sm text-blue-800">
-                In the meantime, you can continue earning through completed milestones. Withdrawal
-                functionality will be enabled once your account is approved.
-              </p>
-            </div>
-          )}
-
-          {needsMoreInfo && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-amber-900 mb-2">Action Required</h3>
-              <p className="text-sm text-amber-800 mb-3">
-                Additional information is needed to complete your account setup. Please return to
-                the onboarding process to provide the required details.
-              </p>
-              {status?.requirements?.currentlyDue && status.requirements.currentlyDue.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-xs text-amber-700 font-medium mb-2">Required information:</p>
-                  <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
-                    {status.requirements.currentlyDue.map((req: string, index: number) => (
-                      <li key={index}>{req.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Account Details */}
-          {account && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Account Details:</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Account ID:</span>
-                  <p className="font-mono text-gray-900">...{account.id.slice(-8)}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">Country:</span>
-                  <p className="text-gray-900">{account.country || 'Not specified'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">Charges Enabled:</span>
-                  <p className="text-gray-900">{status?.chargesEnabled ? 'Yes' : 'No'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-600">Payouts Enabled:</span>
-                  <p className="text-gray-900">{status?.payoutsEnabled ? 'Yes' : 'No'}</p>
-                </div>
+          {/* Incomplete Items */}
+          {completionPercentage < 100 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-700">Complete your profile:</h3>
+              <div className="space-y-1 text-sm">
+                {!progress?.formData?.portfolio?.length && (
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    <span>Add portfolio projects</span>
+                    <button
+                      onClick={handleViewProfile}
+                      className="text-blue-600 hover:underline ml-auto"
+                    >
+                      Add now
+                    </button>
+                  </div>
+                )}
+                {!progress?.formData?.education?.length && (
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    <span>Add education</span>
+                    <button
+                      onClick={handleViewProfile}
+                      className="text-blue-600 hover:underline ml-auto"
+                    >
+                      Add now
+                    </button>
+                  </div>
+                )}
+                {!progress?.formData?.stripeConnected && (
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    <span>Set up payment account</span>
+                    <button
+                      onClick={handleSetupPayment}
+                      className="text-blue-600 hover:underline ml-auto"
+                    >
+                      Set up
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
+        </Card>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+        {/* Quick Actions */}
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">What would you like to do next?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
-              onClick={handleContinue}
-              className="flex-1 bg-blue-600 text-white hover:bg-blue-700 transition-colors px-6 py-3 rounded-lg font-medium"
+              onClick={handleBrowseJobs}
+              className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
             >
-              {isFullyComplete ? 'Go to Withdrawals' : 'View Dashboard'}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Browse Jobs</h3>
+                  <p className="text-sm text-gray-600">Find your next project</p>
+                </div>
+              </div>
             </button>
+
             <button
-              onClick={() => router.push('/freelancer/dashboard')}
-              className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors px-6 py-3 rounded-lg font-medium"
+              onClick={handleViewProfile}
+              className="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors text-left"
             >
-              Back to Dashboard
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">View Profile</h3>
+                  <p className="text-sm text-gray-600">See how clients see you</p>
+                </div>
+              </div>
+            </button>
+
+            {!progress?.formData?.stripeConnected && (
+              <button
+                onClick={handleSetupPayment}
+                className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Set Up Payments</h3>
+                    <p className="text-sm text-gray-600">Get paid for your work</p>
+                  </div>
+                </div>
+              </button>
+            )}
+
+            <button
+              onClick={handleGoToDashboard}
+              className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Go to Dashboard</h3>
+                  <p className="text-sm text-gray-600">Manage your account</p>
+                </div>
+              </div>
             </button>
           </div>
-        </div>
+        </Card>
 
-        {/* Footer */}
-        <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
-          <p className="text-xs text-gray-600 text-center">
-            Need help? Contact our support team at{' '}
-            <a href="mailto:support@freelancehub.com" className="text-blue-600 hover:underline">
-              support@freelancehub.com
-            </a>
+        {/* Auto-redirect Notice */}
+        <div className="text-center">
+          <p className="text-gray-600">
+            Auto-redirecting to dashboard in <span className="font-semibold">{countdown}</span> seconds...
           </p>
+          <Button
+            onClick={handleGoToDashboard}
+            variant="outline"
+            className="mt-2"
+          >
+            Go to Dashboard Now
+          </Button>
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default function OnboardingCompletePage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
-          <p className="text-gray-600">Checking your account status...</p>
-        </div>
-      </div>
-    }>
-      <OnboardingCompletePageContent />
-    </Suspense>
-  );
-}
+export default CompletionPage;

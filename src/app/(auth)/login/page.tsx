@@ -70,7 +70,37 @@ export default function LoginPage() {
       if (user?.role === 'client') {
         router.push('/client/dashboard');
       } else if (user?.role === 'freelancer') {
-        router.push('/freelancer/dashboard');
+        // Check if freelancer has completed onboarding
+        const onboardingProgress = localStorage.getItem('freelancer_onboarding_progress');
+        if (onboardingProgress) {
+          try {
+            const progress = JSON.parse(onboardingProgress);
+            // Check if all 6 steps are completed
+            const hasCompletedOnboarding = progress.completedSteps?.includes(6);
+            if (hasCompletedOnboarding) {
+              router.push('/freelancer/dashboard');
+            } else {
+              // Redirect to current step in onboarding
+              const currentStep = progress.currentStep || 1;
+              const stepPaths = {
+                1: '/freelancer/onboarding/profile',
+                2: '/freelancer/onboarding/professional',
+                3: '/freelancer/onboarding/skills',
+                4: '/freelancer/onboarding/portfolio',
+                5: '/freelancer/onboarding/credentials',
+                6: '/freelancer/onboarding/payment',
+              };
+              const onboardingPath = stepPaths[currentStep as keyof typeof stepPaths] || '/freelancer/onboarding/profile';
+              router.push(onboardingPath);
+            }
+          } catch (error) {
+            // If there's an error parsing progress, start fresh onboarding
+            router.push('/freelancer/onboarding/profile');
+          }
+        } else {
+          // No progress found, start onboarding
+          router.push('/freelancer/onboarding/profile');
+        }
       } else if (user?.role === 'admin') {
         router.push('/admin/dashboard');
       }

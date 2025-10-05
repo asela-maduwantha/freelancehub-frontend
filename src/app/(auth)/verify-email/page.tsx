@@ -87,15 +87,57 @@ function VerifyEmailForm() {
         otp: formData.otp,
       });
 
-      setSuccessMessage('Email verified successfully! Redirecting to dashboard...');
+      setSuccessMessage('Email verified successfully! Redirecting...');
 
-      // Get user role from Redux store and redirect to appropriate dashboard
+      // Get user role from Redux store and redirect appropriately
       const user = store.getState().auth.user;
       setTimeout(() => {
         if (user?.role === 'client') {
-          router.push('/client/dashboard');
+          // Check if client has completed onboarding
+          const clientOnboardingProgress = localStorage.getItem('client_onboarding_progress');
+          if (clientOnboardingProgress) {
+            try {
+              const progress = JSON.parse(clientOnboardingProgress);
+              // Check if all steps are completed
+              const hasCompletedOnboarding = progress.completedSteps?.length >= 2;
+              if (hasCompletedOnboarding) {
+                router.push('/client/dashboard');
+              } else {
+                // Redirect to current step in onboarding
+                const currentStep = progress.currentStep || 1;
+                router.push(`/client/onboarding?step=${currentStep}`);
+              }
+            } catch (error) {
+              // If there's an error parsing progress, start fresh onboarding
+              router.push('/client/onboarding?step=1');
+            }
+          } else {
+            // No progress found, start onboarding
+            router.push('/client/onboarding?step=1');
+          }
         } else if (user?.role === 'freelancer') {
-          router.push('/freelancer/dashboard');
+          // Check if freelancer has completed onboarding
+          const onboardingProgress = localStorage.getItem('freelancer_onboarding_progress');
+          if (onboardingProgress) {
+            try {
+              const progress = JSON.parse(onboardingProgress);
+              // Check if all 4 steps are completed (updated from 6 to 4)
+              const hasCompletedOnboarding = progress.completedSteps?.length >= 4;
+              if (hasCompletedOnboarding) {
+                router.push('/freelancer/dashboard');
+              } else {
+                // Redirect to current step in onboarding
+                const currentStep = progress.currentStep || 1;
+                router.push(`/freelancer/onboarding?step=${currentStep}`);
+              }
+            } catch (error) {
+              // If there's an error parsing progress, start fresh onboarding
+              router.push('/freelancer/onboarding?step=1');
+            }
+          } else {
+            // No progress found, start onboarding
+            router.push('/freelancer/onboarding?step=1');
+          }
         } else if (user?.role === 'admin') {
           router.push('/admin/dashboard');
         } else {

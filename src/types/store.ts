@@ -1,4 +1,5 @@
 import { User, Job, UserProfile, JobFilters, Notification } from './index';
+import { OnboardingState } from './onboarding';
 
 // Redux store types
 export interface AuthState {
@@ -50,6 +51,7 @@ export interface RootState {
   user: UserState;
   notifications: NotificationsState;
   ui: UIState;
+  onboarding: OnboardingState;
 }
 
 // Action types

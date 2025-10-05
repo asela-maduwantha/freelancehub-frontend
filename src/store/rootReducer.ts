@@ -11,6 +11,8 @@ import uiReducer from './slices/ui';
 import adminReducer from './slices/admin';
 import withdrawalsReducer from './slices/withdrawals';
 import stripeAccountReducer from './slices/stripe';
+import onboardingReducer from './slices/onboarding';
+import { clientOnboardingReducer } from './slices/clientOnboarding';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -25,6 +27,8 @@ const rootReducer = combineReducers({
   admin: adminReducer,
   withdrawals: withdrawalsReducer,
   stripeAccount: stripeAccountReducer,
+  onboarding: onboardingReducer,
+  clientOnboarding: clientOnboardingReducer,
 });
 
 export default rootReducer;

@@ -37,7 +37,7 @@ export interface UpdateProfileRequest {
   lastName?: string;
   bio?: string;
   skills?: string[];
-  experience?: number;
+  experience?: string | number; // Can be string (level) or number (years)
   hourlyRate?: number;
   location?: string;
   portfolio?: string[];
@@ -46,6 +46,12 @@ export interface UpdateProfileRequest {
     github?: string;
     website?: string;
   };
+  // Onboarding fields
+  title?: string;
+  overview?: string;
+  availability?: string;
+  languages?: string[];
+  avatar?: string;
 }
 
 export interface CreateApplicationRequest {
