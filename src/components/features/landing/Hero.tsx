@@ -70,20 +70,24 @@ const HeroSection: React.FC = () => {
               <SearchBar />
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  variant="accent"
-                  size="lg"
-                  className="px-8 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg"
-                >
-                  Find Talent
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="btn-outline-hero px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-                >
-                  Find Work
-                </Button>
+                <Link href="/register">
+                  <Button
+                    variant="accent"
+                    size="lg"
+                    className="px-8 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg"
+                  >
+                    Find Talent
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="btn-outline-hero px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                  >
+                    Find Work
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

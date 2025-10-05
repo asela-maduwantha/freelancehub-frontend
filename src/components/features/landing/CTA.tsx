@@ -1,5 +1,6 @@
 import React from 'react';
 import { Check } from 'lucide-react';
+import Link from 'next/link';
 import Button from '../../ui/Button';
 
 const CTA: React.FC = () => {
@@ -24,26 +25,30 @@ const CTA: React.FC = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Button
-              variant="accent"
-              size="lg"
-              className="group inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300"
-            >
-              <span>Start as a Client</span>
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              className="group inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/10 hover:border-blue-300 transform hover:scale-105 transition-all duration-300"
-            >
-              <span>Join as a Freelancer</span>
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Button>
+            <Link href="/register">
+              <Button
+                variant="accent"
+                size="lg"
+                className="group inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300"
+              >
+                <span>Start as a Client</span>
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="group inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/10 hover:border-blue-300 transform hover:scale-105 transition-all duration-300"
+              >
+                <span>Join as a Freelancer</span>
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Button>
+            </Link>
           </div>
 
           {/* Trust indicators */}
