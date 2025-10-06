@@ -9,7 +9,9 @@ import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
 import { Modal } from '../../../../../components/ui/Modal';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Loader2 } from 'lucide-react';
+import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
+import { conversationsApi } from '../../../../../lib/api/messages';
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -21,6 +23,20 @@ export default function ContractDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [showSignModal, setShowSignModal] = useState(false);
   const [signingContract, setSigningContract] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [loadingConversation, setLoadingConversation] = useState(false);
+
+  // Check URL query parameter for initial view
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab');
+      if (tabParam === 'messages') {
+        setShowMessages(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchContract = async () => {
@@ -39,6 +55,28 @@ export default function ContractDetailPage() {
       fetchContract();
     }
   }, [contractId]);
+
+  // Fetch conversation when showing messages
+  useEffect(() => {
+    const fetchConversation = async () => {
+      if (!showMessages || !contractId) return;
+      
+      try {
+        setLoadingConversation(true);
+        const response = await conversationsApi.getConversations({ contractId });
+        
+        if (response.success && response.data.conversations.length > 0) {
+          setConversationId(response.data.conversations[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch conversation:', error);
+      } finally {
+        setLoadingConversation(false);
+      }
+    };
+
+    fetchConversation();
+  }, [showMessages, contractId]);
 
   const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -189,6 +227,13 @@ export default function ContractDetailPage() {
             <Button variant="outline" onClick={handleDownloadPDF}>
               Download PDF
             </Button>
+            <Button 
+              variant={showMessages ? "primary" : "outline"} 
+              onClick={() => setShowMessages(!showMessages)}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              {showMessages ? 'Hide Messages' : 'Messages'}
+            </Button>
             {!contract.isFreelancerSigned && contract.status !== 'cancelled' && (
               <Button variant="primary" onClick={() => setShowSignModal(true)}>
                 Sign Contract
@@ -199,6 +244,37 @@ export default function ContractDetailPage() {
             </Button>
           </div>
         </div>
+
+        {/* Messages Section */}
+        {showMessages && (
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Contract Messages
+              </h2>
+            </CardHeader>
+            <CardBody className="p-0">
+              {loadingConversation ? (
+                <div className="flex items-center justify-center h-96 p-6">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                </div>
+              ) : !conversationId ? (
+                <div className="p-12 text-center">
+                  <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No conversation yet</h3>
+                  <p className="text-gray-600">
+                    Messages for this contract will appear here once communication begins.
+                  </p>
+                </div>
+              ) : (
+                <div className="h-[600px]">
+                  <ChatInterface conversationId={conversationId} contractId={contractId} />
+                </div>
+              )}
+            </CardBody>
+          </Card>
+        )}
 
         {/* Contract Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

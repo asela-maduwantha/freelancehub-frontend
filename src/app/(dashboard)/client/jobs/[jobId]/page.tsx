@@ -43,6 +43,9 @@ export default function JobDetailPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [proposalSearchQuery, setProposalSearchQuery] = useState('');
 
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchJob = async () => {
       setIsLoading(true);
@@ -242,6 +245,29 @@ export default function JobDetailPage() {
       proposalSkills.some(ps => ps.toLowerCase() === skill.toLowerCase())
     ).length;
     return Math.round((matches / jobSkills.length) * 100);
+  };
+
+  const handlePublish = async () => {
+    if (!job) return;
+
+    setIsPublishing(true);
+    setPublishError(null);
+
+    try {
+      await jobService.updateJob(jobId, { status: 'open' } as any);
+      
+      // Refresh the job data to reflect the new status
+      const response = await apiClient.get(`/jobs/${jobId}`);
+      setJob(response);
+      
+      // Show success message (you could add a toast notification here)
+      console.log('Job published successfully!');
+      
+    } catch (err: any) {
+      setPublishError(err.response?.data?.message || err.message || 'Failed to publish job');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const filteredProposals = proposals.filter(proposal => 
@@ -522,9 +548,22 @@ export default function JobDetailPage() {
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Draft
                   </Button>
-                  <Button variant="primary">
-                    <Send className="w-4 h-4 mr-2" />
-                    Publish
+                  <Button 
+                    variant="primary" 
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                  >
+                    {isPublishing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Publish
+                      </>
+                    )}
                   </Button>
                 </>
               )}
@@ -577,6 +616,19 @@ export default function JobDetailPage() {
         </div>
 
         {/* Contextual Alerts */}
+        {publishError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900">
+                Failed to publish job
+              </p>
+              <p className="text-sm text-red-700 mt-1">
+                {publishError}
+              </p>
+            </div>
+          </div>
+        )}
         {job.status === 'open' && proposals.length > 0 && (
           <ContextualAlert
             type="info"

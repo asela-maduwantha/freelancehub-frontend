@@ -176,6 +176,23 @@ export interface CreateMilestoneResponse extends MilestoneResponse {
   // API client extracts the data.data part, so this will be the milestone object directly
 }
 
+export interface PayContractRequest {
+  paymentMethodId: string;
+}
+
+export interface PayContractResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    clientSecret: string;
+    amount: number;
+    currency: string;
+    status: string;
+    paymentId: string;
+  };
+}
+
 export interface ContractMilestonesResponse {
   milestones: MilestoneResponse[];
   total: number;
@@ -270,6 +287,16 @@ class ContractService {
       return response;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to download contract');
+    }
+  }
+
+  // Pay for a contract using saved payment method
+  async payContract(contractId: string, data: PayContractRequest): Promise<PayContractResponse> {
+    try {
+      const response = await apiClient.post(`/contracts/${contractId}/pay`, data);
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to initiate payment');
     }
   }
 }

@@ -1,5 +1,26 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { PaymentMethod, PaymentMethodsResponse } from '../../../lib/api/payments';
+import { apiClient } from '../../../lib/api/client';
+
+// Type definitions
+export interface PaymentMethod {
+  id: string;
+  stripePaymentMethodId: string;
+  type: 'card';
+  card: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+  };
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface PaymentMethodsResponse {
+  paymentMethods: PaymentMethod[];
+  defaultPaymentMethodId?: string | null;
+}
 
 export interface ContractCreationFlow {
   jobId: string;
@@ -39,15 +60,57 @@ const initialState: PaymentState = {
 };
 
 // Async thunks
-export const fetchPaymentMethods = createAsyncThunk(
+export const fetchPaymentMethods = createAsyncThunk<
+  PaymentMethodsResponse,
+  void,
+  { rejectValue: string }
+>(
   'payments/fetchPaymentMethods',
   async (_, { rejectWithValue }) => {
     try {
-      const { paymentService } = await import('../../../lib/api/payments');
-      const response = await paymentService.getPaymentMethods();
-      return response;
+      console.log('fetchPaymentMethods thunk - START');
+      
+      // Call API directly using apiClient
+      const data = await apiClient.get('/payment-methods');
+      
+      console.log('fetchPaymentMethods thunk - received data:', data);
+      console.log('fetchPaymentMethods thunk - data type:', typeof data);
+      console.log('fetchPaymentMethods thunk - data keys:', data ? Object.keys(data) : 'null');
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid response structure - not an object:', data);
+        return rejectWithValue('Invalid response from server');
+      }
+      
+      // Check if paymentMethods exists and is an array
+      if (!Array.isArray(data.paymentMethods)) {
+        console.error('paymentMethods is not an array:', data.paymentMethods);
+        // Return empty structure rather than failing
+        return {
+          paymentMethods: [],
+          defaultPaymentMethodId: null
+        };
+      }
+      
+      console.log('fetchPaymentMethods thunk - returning valid data:', {
+        paymentMethodsCount: data.paymentMethods.length,
+        defaultPaymentMethodId: data.defaultPaymentMethodId
+      });
+      
+      return {
+        paymentMethods: data.paymentMethods,
+        defaultPaymentMethodId: data.defaultPaymentMethodId || null
+      };
+      
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch payment methods');
+      console.error('fetchPaymentMethods thunk - ERROR:', error);
+      console.error('fetchPaymentMethods thunk - error type:', typeof error);
+      console.error('fetchPaymentMethods thunk - error message:', error?.message);
+      console.error('fetchPaymentMethods thunk - error stack:', error?.stack);
+      
+      const errorMessage = error?.message || error?.toString() || 'Failed to fetch payment methods';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -108,17 +171,45 @@ const paymentsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchPaymentMethods.pending, (state) => {
+        console.log('Reducer - PENDING');
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPaymentMethods.fulfilled, (state, action: PayloadAction<PaymentMethodsResponse>) => {
+      .addCase(fetchPaymentMethods.fulfilled, (state, action) => {
+        console.log('Reducer - FULFILLED');
+        console.log('Reducer - action.payload:', action.payload);
+        console.log('Reducer - action.payload type:', typeof action.payload);
+        
         state.loading = false;
-        state.paymentMethods = action.payload.paymentMethods;
-        state.defaultPaymentMethodId = action.payload.defaultPaymentMethodId || null;
+        
+        if (action.payload && typeof action.payload === 'object') {
+          const paymentMethods = action.payload.paymentMethods;
+          const defaultId = action.payload.defaultPaymentMethodId;
+          
+          console.log('Reducer - paymentMethods:', paymentMethods);
+          console.log('Reducer - paymentMethods is array:', Array.isArray(paymentMethods));
+          console.log('Reducer - defaultId:', defaultId);
+          
+          state.paymentMethods = Array.isArray(paymentMethods) ? paymentMethods : [];
+          state.defaultPaymentMethodId = defaultId || null;
+          
+          console.log('Reducer - STATE UPDATED');
+          console.log('Reducer - state.paymentMethods.length:', state.paymentMethods.length);
+        } else {
+          console.error('Reducer - Invalid payload structure:', action.payload);
+          state.paymentMethods = [];
+          state.defaultPaymentMethodId = null;
+        }
       })
       .addCase(fetchPaymentMethods.rejected, (state, action) => {
+        console.log('Reducer - REJECTED');
+        console.log('Reducer - action.payload:', action.payload);
+        console.log('Reducer - action.error:', action.error);
+        
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload || action.error?.message || 'Failed to fetch payment methods';
+        state.paymentMethods = [];
+        state.defaultPaymentMethodId = null;
       });
   },
 });

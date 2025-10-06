@@ -334,7 +334,7 @@ export default function CreateJobPage() {
 
       // Redirect to job details page after successful creation
       setTimeout(() => {
-        router.push(`/jobs`);
+        router.push(`/client/jobs`);
       }, 2000);
 
     } catch (err: any) {

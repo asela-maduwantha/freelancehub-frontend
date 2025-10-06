@@ -193,7 +193,11 @@ const withdrawalsSlice = createSlice({
       .addCase(fetchWithdrawals.fulfilled, (state, action) => {
         state.loading = false;
         state.withdrawals = action.payload.withdrawals as Withdrawal[];
-        state.pagination = action.payload.pagination || null;
+        const paginationData = action.payload.pagination;
+        state.pagination = paginationData ? {
+          ...paginationData,
+          hasMore: paginationData.page < paginationData.totalPages,
+        } : null;
       })
       .addCase(fetchWithdrawals.rejected, (state, action) => {
         state.loading = false;
@@ -302,7 +306,11 @@ const withdrawalsSlice = createSlice({
       .addCase(fetchPendingWithdrawals.fulfilled, (state, action) => {
         state.loading = false;
         state.withdrawals = action.payload.withdrawals as Withdrawal[];
-        state.pagination = action.payload.pagination || null;
+        const paginationData = action.payload.pagination;
+        state.pagination = paginationData ? {
+          ...paginationData,
+          hasMore: paginationData.page < paginationData.totalPages,
+        } : null;
       })
       .addCase(fetchPendingWithdrawals.rejected, (state, action) => {
         state.loading = false;
@@ -320,5 +328,15 @@ export const {
   removeWithdrawalFromList,
   clearWithdrawals,
 } = withdrawalsSlice.actions;
+
+// Selectors
+export const selectAllWithdrawals = (state: { withdrawals: WithdrawalsState }) => state.withdrawals.withdrawals;
+export const selectWithdrawalById = (state: { withdrawals: WithdrawalsState }, id: string) =>
+  state.withdrawals.withdrawals.find((w) => w._id === id || w.id === id);
+export const selectWithdrawalsLoading = (state: { withdrawals: WithdrawalsState }) => state.withdrawals.loading;
+export const selectWithdrawalsError = (state: { withdrawals: WithdrawalsState }) => state.withdrawals.error;
+export const selectWithdrawalsPagination = (state: { withdrawals: WithdrawalsState }) => state.withdrawals.pagination;
+export const selectCurrentWithdrawal = (state: { withdrawals: WithdrawalsState }) => state.withdrawals.currentWithdrawal;
+export const selectWithdrawalFilters = (state: { withdrawals: WithdrawalsState }) => state.withdrawals.filters;
 
 export default withdrawalsSlice.reducer;

@@ -65,12 +65,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         isActive: true
       },
       {
-        id: 'messages',
-        label: 'Messages',
-        icon: <MessageSquare size={20} />,
-        href: `/${userRole}/messages`,
-      },
-      {
         id: 'profile',
         label: 'Profile',
         icon: <User size={20} />,
@@ -148,10 +142,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           href: '/milestone-tracker',
         },
         {
-          id: 'earnings',
-          label: 'Earnings',
+          id: 'payouts',
+          label: 'Payouts',
           icon: <TrendingUp size={20} />,
-          href: '/freelancer/payments',
+          children: [
+            {
+              id: 'withdrawals',
+              label: 'Withdrawals',
+              href: '/freelancer/withdrawals',
+            },
+          ],
         },
         ...baseItems.slice(1)
       ];
@@ -161,9 +161,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const sidebarItems = getSidebarItems();
 
   return (
-    <div className="h-screen flex flex-col bg-secondary">
+    <div className="h-screen flex flex-col bg-primary-50">
       {/* Top Navigation Bar - Fixed */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+      <header className="bg-primary-50/80 border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and role indicator */}
           <div className="flex items-center space-x-4">
@@ -251,7 +251,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         />
 
         {/* Main Content - Scrollable */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-primary-50/50">
           {children}
         </main>
       </div>

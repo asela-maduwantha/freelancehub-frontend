@@ -274,7 +274,7 @@ export const getContractPayments = async (contractId: string): Promise<Payment[]
  */
 export const getPaymentMethods = async (): Promise<PaymentMethodsResponse> => {
   try {
-    const response = await apiClient.get('/payments/methods');
+    const response = await apiClient.get('/payment-methods');
     return response.data;
   } catch (error: any) {
     console.error('[PaymentService] Failed to get payment methods:', error);
@@ -425,7 +425,7 @@ export const getPayments = async (params: {
     }
 
     const response = await apiClient.get(`/payments?${queryParams.toString()}`);
-    return response.data;
+    return response; // apiClient.get already unwraps response.data.data
   } catch (error: any) {
     console.error('[PaymentService] Failed to get payments:', error);
     throw new Error(

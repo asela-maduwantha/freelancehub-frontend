@@ -11,6 +11,8 @@ import { ComponentLoader } from '../../../../../components/common/Loading';
 import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
+import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
+import { conversationsApi } from '../../../../../lib/api/messages';
 import { 
   Eye, FileText, Clock, CheckCircle, Calendar, MapPin, Briefcase, 
   Star, MessageSquare, Download, ChevronRight, TrendingUp, User,
@@ -189,7 +191,13 @@ const TabNavigation = ({
 };
 
 // Freelancer Info Card Component
-const FreelancerInfoCard = ({ contract }: { contract: ContractWithDetails }) => {
+const FreelancerInfoCard = ({ 
+  contract, 
+  onMessageClick 
+}: { 
+  contract: ContractWithDetails;
+  onMessageClick: () => void;
+}) => {
   const freelancer = typeof contract.freelancerId === 'object' ? contract.freelancerId : null;
   
   return (
@@ -226,7 +234,11 @@ const FreelancerInfoCard = ({ contract }: { contract: ContractWithDetails }) => 
 
           {/* Contact Actions */}
           <div className="space-y-2">
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center gap-2"
+              onClick={onMessageClick}
+            >
               <MessageSquare className="w-4 h-4" />
               Send Message
             </Button>
@@ -611,89 +623,61 @@ const DocumentsTab = ({ documents }: { documents: Document[] }) => {
   );
 };
 
-// Messages Tab Component
-const MessagesTab = ({ 
-  messages, 
-  newMessage, 
-  setNewMessage 
-}: { 
-  messages: Message[]; 
-  newMessage: string; 
-  setNewMessage: (message: string) => void;
-}) => {
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      // TODO: Implement message sending
-      console.log('Sending message:', newMessage);
-      setNewMessage('');
-    }
-  };
+// Messages Tab Component - Uses real chat interface
+const MessagesTab = ({ contractId }: { contractId: string }) => {
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  return (
-    <div className="space-y-6">
-      {/* Message Composer */}
+  useEffect(() => {
+    const fetchConversation = async () => {
+      try {
+        setLoading(true);
+        // Fetch conversations for this contract
+        const response = await conversationsApi.getConversations({ contractId });
+        
+        if (response.success && response.data.conversations.length > 0) {
+          // Use the first conversation for this contract
+          setConversationId(response.data.conversations[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch conversation:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (contractId) {
+      fetchConversation();
+    }
+  }, [contractId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (!conversationId) {
+    return (
       <Card>
-        <CardBody className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Send Message</h3>
-          <div className="space-y-4">
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your message here..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows={4}
-            />
-            <div className="flex justify-between items-center">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Paperclip className="w-4 h-4" />
-                Attach Files
-              </Button>
-              <Button 
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                className="flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                Send Message
-              </Button>
-            </div>
+        <CardBody className="p-12">
+          <div className="text-center">
+            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No conversation yet</h3>
+            <p className="text-gray-600">
+              Messages for this contract will appear here once communication begins.
+            </p>
           </div>
         </CardBody>
       </Card>
+    );
+  }
 
-      {/* Messages List */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold text-gray-900">Message History</h3>
-        </CardHeader>
-        <CardBody>
-          {messages.length === 0 ? (
-            <div className="text-center py-8">
-              <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No messages yet. Start the conversation!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === 'client' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender === 'client'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}>
-                    <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.sender === 'client' ? 'text-blue-200' : 'text-gray-500'
-                    }`}>
-                      {formatDate(message.timestamp)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardBody>
-      </Card>
+  return (
+    <div className="h-[600px] bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <ChatInterface conversationId={conversationId} contractId={contractId} />
     </div>
   );
 };
@@ -783,11 +767,20 @@ export default function ClientContractDetailPage() {
 
   // New state variables for enhanced UI
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  
+  // Check URL query parameter for initial tab
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab') as TabType;
+      if (tabParam && ['overview', 'milestones', 'activity', 'documents', 'messages'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [showEndContractModal, setShowEndContractModal] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
   const [activityFilter, setActivityFilter] = useState<string>('all');
   const [showContractDetails, setShowContractDetails] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -865,23 +858,6 @@ export default function ClientContractDetailPage() {
         ];
         setDocuments(mockDocuments);
 
-        // Generate mock messages
-        const mockMessages: Message[] = [
-          {
-            id: '1',
-            content: 'Thank you for the contract! I\'m excited to start working on this project.',
-            sender: 'freelancer',
-            timestamp: new Date(Date.now() - 86400000).toISOString()
-          },
-          {
-            id: '2',
-            content: 'Welcome! Please let me know if you have any questions about the requirements.',
-            sender: 'client',
-            timestamp: new Date(Date.now() - 43200000).toISOString()
-          }
-        ];
-        setMessages(mockMessages);
-
         // Debug logging for milestone data
         console.log('Contract milestone data:', {
           milestoneCount: contractData.milestoneCount,
@@ -942,7 +918,7 @@ export default function ClientContractDetailPage() {
       milestones: contract?.milestoneCount || 0,
       activity: activities.length,
       documents: documents.length,
-      messages: messages.length
+      messages: 0 // Messages are loaded dynamically in the MessagesTab
     };
   };
 
@@ -1158,17 +1134,23 @@ export default function ClientContractDetailPage() {
           {activeTab === 'milestones' && <MilestonesTab contract={contract} />}
           {activeTab === 'activity' && <ActivityTab activities={activities} activityFilter={activityFilter} setActivityFilter={setActivityFilter} />}
           {activeTab === 'documents' && <DocumentsTab documents={documents} />}
-          {activeTab === 'messages' && <MessagesTab messages={messages} newMessage={newMessage} setNewMessage={setNewMessage} />}
+          {activeTab === 'messages' && <MessagesTab contractId={contractId} />}
         </div>
 
         {/* Freelancer Info Sidebar */}
         <div className="block xl:hidden mb-6">
-          <FreelancerInfoCard contract={contract} />
+          <FreelancerInfoCard 
+            contract={contract} 
+            onMessageClick={() => setActiveTab('messages')}
+          />
         </div>
         
         {/* Fixed Sidebar for Desktop */}
         <div className="fixed right-6 top-24 w-80 hidden xl:block">
-          <FreelancerInfoCard contract={contract} />
+          <FreelancerInfoCard 
+            contract={contract} 
+            onMessageClick={() => setActiveTab('messages')}
+          />
         </div>
 
         {/* Create Milestone Modal */}

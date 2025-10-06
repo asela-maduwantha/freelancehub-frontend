@@ -75,7 +75,7 @@ export function useStripeAccount(autoFetch = false): UseStripeAccountReturn {
   // Create Stripe account
   const handleCreateAccount = useCallback(
     async (country: string, type: StripeAccountType = StripeAccountType.EXPRESS) => {
-      const data: CreateStripeAccountRequest = { country, type };
+      const data: CreateStripeAccountRequest = { country };
       await dispatch(createStripeAccount(data)).unwrap();
     },
     [dispatch]

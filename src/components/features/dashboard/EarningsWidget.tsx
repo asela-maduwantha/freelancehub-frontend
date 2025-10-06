@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { BalanceSummary, StripeAccountStatusBadge } from '@/components/features/payments';
 import { useWithdrawals } from '@/lib/hooks/useWithdrawals';
+import { Withdrawal } from '@/types';
 import { useStripeAccount } from '@/lib/hooks/useStripeAccount';
 import { WithdrawalStatus } from '@/types/withdrawals';
 import { formatDate } from '@/lib/utils/formatting';
@@ -13,15 +14,15 @@ import { formatDate } from '@/lib/utils/formatting';
  * Shows balance summary, recent withdrawals, and quick actions
  */
 export const EarningsWidget: React.FC = () => {
-  const { withdrawals, fetchWithdrawals } = useWithdrawals();
+  const { withdrawals, loadWithdrawals } = useWithdrawals();
   const { account } = useStripeAccount();
 
   // Get recent withdrawals (last 3)
   const recentWithdrawals = withdrawals.slice(0, 3);
 
   React.useEffect(() => {
-    fetchWithdrawals({ page: 1, limit: 3, sortBy: 'requestedAt', sortOrder: 'desc' });
-  }, [fetchWithdrawals]);
+    loadWithdrawals({ page: 1, limit: 3, sortBy: 'requestedAt', sortOrder: 'desc' });
+  }, [loadWithdrawals]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -70,7 +71,7 @@ export const EarningsWidget: React.FC = () => {
         <h3 className="text-sm font-medium text-gray-700 mb-3">Recent Withdrawals</h3>
         {recentWithdrawals.length > 0 ? (
           <div className="space-y-3">
-            {recentWithdrawals.map((withdrawal) => (
+            {recentWithdrawals.map((withdrawal: Withdrawal) => (
               <div
                 key={withdrawal._id}
                 className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"

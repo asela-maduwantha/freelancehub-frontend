@@ -320,7 +320,15 @@ class PaymentService {
 
   // Get saved payment methods
   getPaymentMethods(): Promise<PaymentMethodsResponse> {
-    return apiClient.get('/payment-methods');
+    console.log('🔄 PaymentService.getPaymentMethods called');
+    try {
+      const result = apiClient.get('/payment-methods');
+      console.log('🔄 PaymentService.getPaymentMethods returning promise:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ PaymentService.getPaymentMethods error:', error);
+      throw error;
+    }
   }
 
   // Create setup intent for adding new payment method

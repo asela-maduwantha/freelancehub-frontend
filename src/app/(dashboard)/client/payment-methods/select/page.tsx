@@ -21,8 +21,21 @@ export default function SelectPaymentMethodPage() {
 
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('SelectPaymentMethodPage - Redux state:', {
+      paymentMethods,
+      loading,
+      defaultPaymentMethodId,
+      paymentMethodsLength: paymentMethods?.length,
+      paymentMethodsType: typeof paymentMethods,
+      isArray: Array.isArray(paymentMethods)
+    });
+  }, [paymentMethods, loading, defaultPaymentMethodId]);
+
   // Fetch payment methods on mount
   useEffect(() => {
+    console.log('SelectPaymentMethodPage - Dispatching fetchPaymentMethods');
     dispatch(fetchPaymentMethods());
   }, [dispatch]);
 
@@ -82,6 +95,10 @@ export default function SelectPaymentMethodPage() {
         </div>
 
         {/* No Payment Methods */}
+        {(() => {
+          console.log('Render check - paymentMethods:', paymentMethods, 'length:', paymentMethods?.length);
+          return null;
+        })()}
         {paymentMethods.length === 0 && (
           <Card variant="default" className="mb-6">
             <CardBody>

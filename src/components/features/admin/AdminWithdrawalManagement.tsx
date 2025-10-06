@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWithdrawals } from '@/lib/hooks/useWithdrawals';
-import { WithdrawalStatus, WithdrawalMethod, Withdrawal } from '@/types/withdrawals';
+import { WithdrawalStatus, WithdrawalMethod, Withdrawal } from '@/types';
 import { formatDate } from '@/lib/utils/formatting';
 import Button from '@/components/ui/Button/Button';
 
@@ -18,8 +18,8 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     loading,
     error,
     pagination,
-    fetchWithdrawals,
-    fetchPending,
+    loadWithdrawals,
+    loadPendingWithdrawals,
     processWithdrawal,
     completeWithdrawal,
     failWithdrawal,
@@ -38,11 +38,11 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
   // Fetch withdrawals on mount and when filters change
   useEffect(() => {
     if (statusFilter === 'all') {
-      fetchWithdrawals({ page: currentPage, limit, sortBy: 'requestedAt', sortOrder: 'desc' });
+      loadWithdrawals({ page: currentPage, limit, sortBy: 'requestedAt', sortOrder: 'desc' });
     } else if (statusFilter === WithdrawalStatus.PENDING) {
-      fetchPending(currentPage, limit);
+      loadPendingWithdrawals(currentPage, limit);
     } else {
-      fetchWithdrawals({
+      loadWithdrawals({
         page: currentPage,
         limit,
         status: statusFilter,
@@ -50,7 +50,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
         sortOrder: 'desc',
       });
     }
-  }, [statusFilter, currentPage, fetchWithdrawals, fetchPending]);
+  }, [statusFilter, currentPage, loadWithdrawals, loadPendingWithdrawals]);
 
   const handleAction = (withdrawal: Withdrawal, type: 'process' | 'complete' | 'fail') => {
     setSelectedWithdrawal(withdrawal);
@@ -66,7 +66,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     try {
       switch (actionType) {
         case 'process':
-          await processWithdrawal(selectedWithdrawal._id);
+          await processWithdrawal(selectedWithdrawal._id, {});
           break;
         case 'complete':
           await completeWithdrawal(selectedWithdrawal._id);
@@ -83,11 +83,11 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
 
       // Refresh the list
       if (statusFilter === 'all') {
-        fetchWithdrawals({ page: currentPage, limit, sortBy: 'requestedAt', sortOrder: 'desc' });
+        loadWithdrawals({ page: currentPage, limit, sortBy: 'requestedAt', sortOrder: 'desc' });
       } else if (statusFilter === WithdrawalStatus.PENDING) {
-        fetchPending(currentPage, limit);
+        loadPendingWithdrawals(currentPage, limit);
       } else {
-        fetchWithdrawals({
+        loadWithdrawals({
           page: currentPage,
           limit,
           status: statusFilter,
@@ -145,10 +145,6 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     switch (method) {
       case WithdrawalMethod.STRIPE:
         return 'Stripe';
-      case WithdrawalMethod.BANK_TRANSFER:
-        return 'Bank Transfer';
-      case WithdrawalMethod.PAYPAL:
-        return 'PayPal';
       default:
         return method;
     }
@@ -213,7 +209,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     },
     {
       label: 'Pending',
-      value: withdrawals.filter((w) => w.status === WithdrawalStatus.PENDING).length,
+      value: withdrawals.filter((w: Withdrawal) => w.status === WithdrawalStatus.PENDING).length,
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -223,7 +219,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     },
     {
       label: 'Processing',
-      value: withdrawals.filter((w) => w.status === WithdrawalStatus.PROCESSING).length,
+      value: withdrawals.filter((w: Withdrawal) => w.status === WithdrawalStatus.PROCESSING).length,
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -233,7 +229,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     },
     {
       label: 'Completed',
-      value: withdrawals.filter((w) => w.status === WithdrawalStatus.COMPLETED).length,
+      value: withdrawals.filter((w: Withdrawal) => w.status === WithdrawalStatus.COMPLETED).length,
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -269,11 +265,11 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
             <Button
               onClick={() => {
                 if (statusFilter === 'all') {
-                  fetchWithdrawals({ page: currentPage, limit, sortBy: 'requestedAt', sortOrder: 'desc' });
+                  loadWithdrawals({ page: currentPage, limit, sortBy: 'requestedAt', sortOrder: 'desc' });
                 } else if (statusFilter === WithdrawalStatus.PENDING) {
-                  fetchPending(currentPage, limit);
+                  loadPendingWithdrawals(currentPage, limit);
                 } else {
-                  fetchWithdrawals({
+                  loadWithdrawals({
                     page: currentPage,
                     limit,
                     status: statusFilter,
@@ -393,7 +389,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {withdrawals.map((withdrawal) => (
+                {withdrawals.map((withdrawal: Withdrawal) => (
                   <tr key={withdrawal._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(withdrawal.requestedAt)}

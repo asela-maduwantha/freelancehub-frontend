@@ -33,8 +33,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
     });
 
-    if (isAuthenticated && token) {
-      // Simply connect - the socketService will handle duplicate connection prevention
+    // Only connect if we have a valid token and are authenticated
+    if (isAuthenticated && token && token.length > 10) { // Basic token validation
       console.log('🔌 Initializing notification socket connection...');
       socketService.connect(token);
 

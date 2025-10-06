@@ -7,3 +7,4 @@ export { WithdrawalRequestForm } from './WithdrawalRequestForm';
 export { default as WithdrawalRequestFormDefault } from './WithdrawalRequestForm';
 export { WithdrawalHistory } from './WithdrawalHistory';
 export { default as WithdrawalHistoryDefault } from './WithdrawalHistory';
+export { default as ContractPaymentModal } from './ContractPaymentModal';

@@ -47,6 +47,14 @@ class SocketService {
 
     const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000';
 
+    // Validate WebSocket URL
+    if (!WS_BASE_URL || WS_BASE_URL === 'http://localhost:8000') {
+      console.warn('⚠️ WebSocket URL not properly configured or using localhost. Socket connection skipped.');
+      console.warn('💡 Make sure your backend WebSocket server is running and NEXT_PUBLIC_WS_URL is set correctly.');
+      this.isConnecting = false;
+      return;
+    }
+
     console.log('🔌 Connecting to WebSocket server:', `${WS_BASE_URL}/notifications`);
     console.log('🔑 Using token for auth:', token ? 'Token present' : 'No token');
     console.log('🌐 Environment WS_URL:', process.env.NEXT_PUBLIC_WS_URL);
@@ -90,17 +98,21 @@ class SocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Socket connection error:', error);
+      console.error('❌ Socket connection error:', error.message || error);
       console.error('🔍 Connection details:', {
         auth: !!this.socket?.auth,
-        transport: this.socket?.io?.engine?.transport?.name
+        transport: this.socket?.io?.engine?.transport?.name,
+        readyState: this.socket?.io?.engine?.readyState
       });
       this.isConnecting = false;
       this.reconnectAttempts++;
 
+      // Only emit connection_failed after max attempts, don't log it every time
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error('🚫 Max reconnection attempts reached');
         this.emit('connection_failed', { error: 'Failed to connect after maximum attempts' });
+        // Stop trying to reconnect after max attempts
+        this.socket?.disconnect();
       }
     });
 

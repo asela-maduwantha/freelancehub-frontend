@@ -15,11 +15,13 @@ import { Conversation } from '../../../types/messages';
 interface ConversationListProps {
   onConversationSelect?: (conversation: Conversation) => void;
   selectedConversationId?: string | null;
+  contractId?: string; // Filter conversations by contract
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
   onConversationSelect,
   selectedConversationId,
+  contractId,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const conversations = useSelector(selectConversations);
@@ -28,10 +30,10 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Load conversations on mount
+  // Load conversations on mount, filtered by contractId if provided
   useEffect(() => {
-    dispatch(fetchConversations({}));
-  }, [dispatch]);
+    dispatch(fetchConversations(contractId ? { contractId } : {}));
+  }, [dispatch, contractId]);
 
   // Filter conversations based on search
   const filteredConversations = conversations.filter(conversation => {
@@ -55,6 +57,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       dispatch(fetchConversations({
         page: pagination.page + 1,
         limit: 20, // Default limit
+        ...(contractId && { contractId }),
       }));
     }
   };
@@ -95,6 +98,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             <p className="text-gray-600 text-sm max-w-xs">
               {searchQuery
                 ? 'Try adjusting your search terms'
+                : contractId
+                ? 'No messages for this contract yet. Start a conversation!'
                 : 'Your conversations with clients and freelancers will appear here'
               }
             </p>

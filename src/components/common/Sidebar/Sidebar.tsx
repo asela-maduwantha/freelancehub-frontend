@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SidebarItem {
   id: string;
@@ -9,6 +9,7 @@ interface SidebarItem {
   href?: string;
   onClick?: () => void;
   isActive?: boolean;
+  children?: SidebarItem[];
 }
 
 interface SidebarProps {
@@ -24,8 +25,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   className = ''
 }) => {
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (id: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedItems(newExpanded);
+  };
   return (
-    <div className={`bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-screen ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}>
+    <div className={`bg-primary-50/60 border-r border-gray-200 transition-all duration-300 flex flex-col h-screen ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
         {!isCollapsed && (
@@ -44,10 +56,60 @@ const Sidebar: React.FC<SidebarProps> = ({
         <ul className="space-y-2">
           {items.map((item) => (
             <li key={item.id}>
-              {item.href ? (
-                <Link href={item.href}>
-                  <div
-                    className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer ${
+              <div>
+                {item.children ? (
+                  // Parent item with children
+                  <button
+                    onClick={() => toggleExpanded(item.id)}
+                    className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
+                      item.isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                    } ${isCollapsed ? 'justify-center' : 'justify-between'}`}
+                  >
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
+                      {item.icon && (
+                        <span className="flex-shrink-0">
+                          {item.icon}
+                        </span>
+                      )}
+                      {!isCollapsed && (
+                        <span className="ml-3 text-sm font-medium">
+                          {item.label}
+                        </span>
+                      )}
+                    </div>
+                    {!isCollapsed && (
+                      <span className="flex-shrink-0">
+                        {expandedItems.has(item.id) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </span>
+                    )}
+                  </button>
+                ) : item.href ? (
+                  <Link href={item.href}>
+                    <div
+                      className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer ${
+                        item.isActive
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                          : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                      } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
+                    >
+                      {item.icon && (
+                        <span className="flex-shrink-0">
+                          {item.icon}
+                        </span>
+                      )}
+                      {!isCollapsed && (
+                        <span className="ml-3 text-sm font-medium">
+                          {item.label}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={item.onClick}
+                    className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
                       item.isActive
                         ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
                         : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
@@ -63,29 +125,38 @@ const Sidebar: React.FC<SidebarProps> = ({
                         {item.label}
                       </span>
                     )}
-                  </div>
-                </Link>
-              ) : (
-                <button
-                  onClick={item.onClick}
-                  className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 ${
-                    item.isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-                  } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
-                >
-                  {item.icon && (
-                    <span className="flex-shrink-0">
-                      {item.icon}
-                    </span>
-                  )}
-                  {!isCollapsed && (
-                    <span className="ml-3 text-sm font-medium">
-                      {item.label}
-                    </span>
-                  )}
-                </button>
-              )}
+                  </button>
+                )}
+                {/* Render children if expanded */}
+                {item.children && expandedItems.has(item.id) && !isCollapsed && (
+                  <ul className="ml-6 mt-2 space-y-1">
+                    {item.children.map((child) => (
+                      <li key={child.id}>
+                        {child.href ? (
+                          <Link href={child.href}>
+                            <div
+                              className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer text-gray-600 hover:bg-blue-50 hover:text-blue-600`}
+                            >
+                              <span className="text-sm font-medium">
+                                {child.label}
+                              </span>
+                            </div>
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={child.onClick}
+                            className={`w-full flex items-center px-3 py-2 rounded-md transition-colors duration-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600`}
+                          >
+                            <span className="text-sm font-medium">
+                              {child.label}
+                            </span>
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </li>
           ))}
         </ul>

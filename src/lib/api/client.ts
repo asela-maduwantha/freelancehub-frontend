@@ -75,11 +75,17 @@ class ApiClient {
     const response = await this.axiosInstance.get(endpoint, config);
     console.log('ApiClient.get - Response status:', response.status);
     console.log('ApiClient.get - Response data:', response.data);
+    console.log('ApiClient.get - Response data.data:', response.data.data);
+    console.log('ApiClient.get - typeof response.data.data:', typeof response.data.data);
     
     if(response.data.success === false){
       throw new Error(response.data.message || 'API Error');
     }
-    return response.data.data;
+    const unwrappedData = response.data.data;
+    console.log('ApiClient.get - Returning unwrapped data:', unwrappedData);
+    console.log('ApiClient.get - typeof unwrappedData:', typeof unwrappedData);
+    console.log('ApiClient.get - JSON.stringify(unwrappedData):', JSON.stringify(unwrappedData));
+    return unwrappedData;
   }
 
   async post(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<any> {

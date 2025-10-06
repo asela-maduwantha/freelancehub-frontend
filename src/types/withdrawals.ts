@@ -5,16 +5,16 @@ export enum WithdrawalStatus {
   PROCESSING = 'processing',
   COMPLETED = 'completed',
   FAILED = 'failed',
+  CANCELLED = 'cancelled',
 }
 
 export enum WithdrawalMethod {
   STRIPE = 'stripe',
-  BANK_TRANSFER = 'bank_transfer',
-  PAYPAL = 'paypal',
 }
 
 export interface Withdrawal {
   _id: string;
+  id?: string; // Alias for _id
   freelancerId: {
     _id: string;
     firstName: string;
@@ -25,54 +25,40 @@ export interface Withdrawal {
   currency: string;
   finalAmount: number;
   processingFee: number;
-  method?: WithdrawalMethod;
+  method: WithdrawalMethod;
+  status: WithdrawalStatus;
   
   // Stripe-specific fields
-  stripeAccountId?: string;
+  stripeAccountId: string;
   stripeTransferId?: string;
-  stripePayoutId?: string;
-  
-  // Bank transfer fields
-  bankAccountNumber?: string;
-  bankRoutingNumber?: string;
-  bankName?: string;
-  accountHolderName?: string;
-  
-  // PayPal fields
-  paypalEmail?: string;
   
   // Additional fields
   description?: string;
-  externalTransactionId?: string;
   errorMessage?: string;
   
-  status: WithdrawalStatus;
+  // Timestamps
   requestedAt: string;
   processedAt?: string;
   completedAt?: string;
   failedAt?: string;
   createdAt: string;
   updatedAt: string;
+  
+  // Metadata
+  metadata?: {
+    ipAddress?: string;
+    userAgent?: string;
+  };
 }
 
 // Request Types
 export interface CreateWithdrawalRequest {
   amount: number;
   currency?: string;
-  method: WithdrawalMethod;
+  method: 'stripe';
+  stripeAccountId: string;
   description?: string;
-  
-  // Stripe method
-  stripeAccountId?: string;
-  
-  // Bank transfer method
-  bankAccountNumber?: string;
-  bankRoutingNumber?: string;
-  bankName?: string;
-  accountHolderName?: string;
-  
-  // PayPal method
-  paypalEmail?: string;
+  idempotencyKey?: string;
 }
 
 export interface ProcessWithdrawalRequest {
@@ -110,3 +96,16 @@ export interface GetWithdrawalsQuery {
   sortBy?: 'requestedAt' | 'amount' | 'status';
   sortOrder?: 'asc' | 'desc';
 }
+
+// Stats Types
+export interface WithdrawalStats {
+  totalWithdrawn: number;
+  totalPending: number;
+  pendingCount: number;
+  lastWithdrawalDate?: string;
+  lastWithdrawalAmount?: number;
+}
+
+// NOTE: StripeAccountStatus, CreateStripeAccountRequest/Response, CreateOnboardingLinkRequest/Response
+// are now defined in @/types/stripe.ts to avoid duplication
+// FreelancerData and UserWithFreelancerData are defined in @/types/balance.ts

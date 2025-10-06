@@ -17,9 +17,10 @@ import { ChatMessage } from '../../../types/messages';
 
 interface ChatInterfaceProps {
   conversationId: string;
+  contractId?: string; // Optional contract context
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ conversationId, contractId }) => {
   const dispatch = useDispatch<AppDispatch>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

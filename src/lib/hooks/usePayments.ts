@@ -41,10 +41,37 @@ export function usePayments(initialFilters: PaymentFilters = {}): UsePaymentsRet
     try {
       setIsLoading(true);
       setError(null);
+      console.log('[usePayments] Fetching payments with filters:', filters);
+      
       const response: PaymentListResponse = await paymentService.getPayments(filters);
+      console.log('[usePayments] Raw response:', response);
+      console.log('[usePayments] typeof response:', typeof response);
+      console.log('[usePayments] JSON.stringify(response):', JSON.stringify(response));
+      
+      // Ensure response exists and has payments array
+      if (!response || typeof response !== 'object') {
+        console.error('[usePayments] Response is null, undefined, or not an object:', response);
+        setError('No response from server');
+        setPayments([]);
+        setTotal(0);
+        setTotalPages(0);
+        return;
+      }
+      
+      // Check if payments property exists and is an array
+      if (!response.payments || !Array.isArray(response.payments)) {
+        console.error('[usePayments] Invalid response structure - payments missing or not an array:', response);
+        setError('Invalid response from server');
+        setPayments([]);
+        setTotal(0);
+        setTotalPages(0);
+        return;
+      }
+      
+      console.log('[usePayments] Processing', response.payments.length, 'payments');
       
       // Transform payment items to add computed id fields
-      const transformedPayments = response.payments.map(payment => ({
+      const transformedPayments = response.payments.map((payment: any) => ({
         ...payment,
         id: payment._id, // _id is always present from API
         contractId: payment.contractId ? {
@@ -57,14 +84,20 @@ export function usePayments(initialFilters: PaymentFilters = {}): UsePaymentsRet
         } : undefined
       }));
       
+      console.log('[usePayments] Transformed payments:', transformedPayments);
+      
       setPayments(transformedPayments);
-      setTotal(response.total);
+      setTotal(response.total || 0);
       setPage(filters.page || 1);
       setLimit(filters.limit || 10);
-      setTotalPages(response.totalPages || Math.ceil(response.total / (filters.limit || 10)));
+      setTotalPages(response.totalPages || Math.ceil((response.total || 0) / (filters.limit || 10)));
     } catch (err: any) {
+      console.error('[usePayments] Error fetching payments:', err);
       const errorMessage = err?.response?.data?.message || err.message || 'Failed to load payments';
       setError(errorMessage);
+      setPayments([]);
+      setTotal(0);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }

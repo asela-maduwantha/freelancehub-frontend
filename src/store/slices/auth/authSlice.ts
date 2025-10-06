@@ -1,4 +1,20 @@
 // Auth slice for Redux
+export interface FreelancerData {
+  skills: string[];
+  hourlyRate?: number;
+  availability?: string;
+  experience?: string;
+  totalEarned: number;
+  pendingBalance: number;
+  availableBalance: number;
+  completedJobs: number;
+  rating?: number;
+  reviewCount?: number;
+  bio?: string;
+  portfolio?: string[];
+  certifications?: string[];
+}
+
 export interface User {
   id: string;
   email: string;
@@ -9,6 +25,9 @@ export interface User {
   avatar?: string;
   createdAt: string;
   lastLoginAt?: string;
+  freelancerData?: FreelancerData;
+  stripeConnectAccountId?: string;
+  stripeConnectStatus?: string;
 }
 
 export interface AuthState {

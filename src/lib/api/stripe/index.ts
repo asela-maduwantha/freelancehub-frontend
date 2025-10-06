@@ -168,7 +168,6 @@ class StripeAccountService {
     return this.createOnboardingLink({
       returnUrl: `${origin}${returnPath}`,
       refreshUrl: `${origin}${refreshPath}`,
-      type,
     });
   }
 
@@ -179,7 +178,6 @@ class StripeAccountService {
   async createAccountWithDefaults(country: string = 'US'): Promise<CreateStripeAccountResponse> {
     return this.createAccount({
       country,
-      type: StripeAccountType.EXPRESS,
     });
   }
 

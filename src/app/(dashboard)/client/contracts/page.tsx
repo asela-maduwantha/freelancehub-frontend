@@ -8,6 +8,7 @@ import { ProposalResponse, proposalService } from '@/lib/api/proposals';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import ContractListItem from '@/components/features/contracts/ContractListItem';
 import CreateMilestoneModal from '@/components/features/contracts/CreateMilestoneModal';
+import ContractPaymentModal from '@/components/features/payments/ContractPaymentModal';
 import { Spinner } from '@/components/ui/Feedback';
 import Button from '@/components/ui/Button';
 import { 
@@ -54,6 +55,10 @@ export default function ClientContractsPage() {
   // Milestone modal state
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<ContractResponse | null>(null);
+
+  // Payment modal state
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedContractForPayment, setSelectedContractForPayment] = useState<ContractWithDetails | null>(null);
 
   const fetchContracts = async () => {
     setIsLoading(true);
@@ -149,6 +154,23 @@ export default function ClientContractsPage() {
     setIsMilestoneModalOpen(true);
   };
 
+  const handlePayNow = (contract: ContractWithDetails) => {
+    setSelectedContractForPayment(contract);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = (payment: any) => {
+    // Refresh contracts to update payment status
+    fetchContracts();
+    // You could also show a success toast here
+    console.log('Payment successful:', payment);
+  };
+
+  const handlePaymentError = (error: string) => {
+    // You could show an error toast here
+    console.error('Payment failed:', error);
+  };
+
   const handleMilestoneCreated = () => {
     fetchContracts(); // Refresh the contracts list
   };
@@ -174,9 +196,17 @@ export default function ClientContractsPage() {
   };
 
   const getPaymentStatus = (contract: ContractWithDetails): PaymentStatus => {
+    // If contract is completed and fully paid
     if (contract.status === 'completed' && contract.releasedAmount >= contract.totalAmount) return 'paid';
+    
+    // If contract is in pending payment status (payable)
+    if (contract.status === 'pending' || contract.status === 'pending_payment_method') return 'pending';
+    
+    // If contract is overdue (past end date and not completed)
     if (contract.endDate && new Date(contract.endDate) < new Date() && contract.status !== 'completed') return 'overdue';
-    return 'pending';
+    
+    // Default to paid for active contracts (not awaiting payment)
+    return 'paid';
   };
 
   const getDaysRemaining = (contract: ContractWithDetails): string => {
@@ -399,6 +429,7 @@ export default function ClientContractsPage() {
               <Button
                 variant="accent"
                 size="sm"
+                onClick={() => handlePayNow(contract)}
                 className="flex items-center gap-2"
               >
                 <CreditCard className="h-4 w-4" />
@@ -546,6 +577,11 @@ export default function ClientContractsPage() {
                 Milestones
               </button>
               <button
+                onClick={() => {
+                  const contractIdValue = typeof contract._id === 'object' && contract._id ? (contract._id as any)._id : contract._id;
+                  router.push(`/client/contracts/${contractIdValue}?tab=messages`);
+                  setShowActions(false);
+                }}
                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
               >
                 <MessageSquare className="h-4 w-4" />
@@ -950,6 +986,20 @@ export default function ClientContractsPage() {
             }}
             contract={selectedContract}
             onMilestoneCreated={handleMilestoneCreated}
+          />
+        )}
+
+        {/* Contract Payment Modal */}
+        {selectedContractForPayment && (
+          <ContractPaymentModal
+            isOpen={isPaymentModalOpen}
+            onClose={() => {
+              setIsPaymentModalOpen(false);
+              setSelectedContractForPayment(null);
+            }}
+            contract={selectedContractForPayment}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
           />
         )}
       </div>
