@@ -66,10 +66,10 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
     try {
       switch (actionType) {
         case 'process':
-          await processWithdrawal(selectedWithdrawal._id, {});
+          await processWithdrawal(selectedWithdrawal.id, {});
           break;
         case 'complete':
-          await completeWithdrawal(selectedWithdrawal._id);
+          await completeWithdrawal(selectedWithdrawal.id);
           break;
         case 'fail':
           if (!failureReason.trim()) {
@@ -77,7 +77,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
             setActionLoading(false);
             return;
           }
-          await failWithdrawal(selectedWithdrawal._id, { errorMessage: failureReason });
+          await failWithdrawal(selectedWithdrawal.id, { errorMessage: failureReason });
           break;
       }
 
@@ -471,7 +471,7 @@ export const AdminWithdrawalManagement: React.FC<AdminWithdrawalManagementProps>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Withdrawal ID:</span>
-                  <span className="font-medium text-gray-900">{selectedWithdrawal._id.slice(-8)}</span>
+                  <span className="font-medium text-gray-900">{selectedWithdrawal.id.slice(-8)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount:</span>

@@ -96,12 +96,10 @@ const WithdrawalsPage: React.FC = () => {
     
     if (setupStatus === 'success') {
       showSuccess('Stripe account setup complete!');
-      fetchStripeStatus(); // Refresh Stripe status
-      // Clean up URL
+      fetchStripeStatus();
       window.history.replaceState({}, '', window.location.pathname);
     } else if (setupStatus === 'failed') {
       showError('Stripe account setup was not completed');
-      // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [searchParams]);
@@ -130,90 +128,99 @@ const WithdrawalsPage: React.FC = () => {
   // Calculate stats
   const stats = calculateWithdrawalStats(withdrawals);
 
-  // Loading state
-  const isLoading = isLoadingProfile || isLoadingStripe || isLoadingWithdrawals;
-
   // Error state
   if (error && !userProfile) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-          <svg
-            className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Failed to Load Data
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              fetchUserProfile();
-              fetchStripeStatus();
-              fetchWithdrawals();
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Retry
-          </button>
+      <DashboardLayout userRole="freelancer">
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-white border border-blue-200 rounded-xl p-8 text-center shadow-sm">
+            <svg
+              className="w-16 h-16 text-blue-600 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h2 className="text-2xl font-bold text-blue-900 mb-2">
+              Failed to Load Data
+            </h2>
+            <p className="text-blue-700 mb-6">{error}</p>
+            <button
+              onClick={() => {
+                fetchUserProfile();
+                fetchStripeStatus();
+                fetchWithdrawals();
+              }}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            >
+              Retry
+            </button>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout userRole="freelancer">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Withdrawals
-          </h1>
-          <p className="text-gray-600">
-            Manage your earnings and withdraw funds to your account
-          </p>
-        </div>      <div className="space-y-8">
-        {/* Check Stripe Account Status */}
-        {!isLoadingStripe &&
-          stripeStatus &&
-          (!stripeStatus.hasAccount ||
-            !stripeStatus.payoutsEnabled ||
-            !stripeStatus.detailsSubmitted) && (
-            <WithdrawalStripeSetup
-              stripeStatus={stripeStatus}
-              onSetupComplete={fetchStripeStatus}
-            />
-          )}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 p-4 md:p-8">
+        <div className="container mx-auto max-w-7xl space-y-6">
+          
+          {/* Page Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">
+                Withdrawals
+              </h1>
+              <p className="text-blue-700">
+                Manage your earnings and transfer funds securely
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-blue-100">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+              <span className="text-sm text-blue-700">Account Active</span>
+            </div>
+          </div>
 
-        {/* Balance Card */}
-        <WithdrawalBalanceCard
-          availableBalance={userProfile?.freelancerData?.availableBalance || 0}
-          pendingBalance={userProfile?.freelancerData?.pendingBalance || 0}
-          totalEarned={userProfile?.freelancerData?.totalEarned || 0}
-          onWithdrawClick={() => setIsCreateModalOpen(true)}
-          canWithdraw={canWithdraw}
-          withdrawDisabledReason={withdrawDisabledReason}
-          isLoading={isLoadingProfile}
-        />
+          {/* Stripe Setup Warning */}
+          {!isLoadingStripe &&
+            stripeStatus &&
+            (!stripeStatus.hasAccount ||
+              !stripeStatus.payoutsEnabled ||
+              !stripeStatus.detailsSubmitted) && (
+              <WithdrawalStripeSetup
+                stripeStatus={stripeStatus}
+                onSetupComplete={fetchStripeStatus}
+              />
+            )}
 
-        {/* Stats Cards */}
-        <WithdrawalStatsCards stats={stats} isLoading={isLoadingWithdrawals} />
+          {/* Balance Card */}
+          <WithdrawalBalanceCard
+            availableBalance={userProfile?.freelancerData?.availableBalance || 0}
+            pendingBalance={userProfile?.freelancerData?.pendingBalance || 0}
+            totalEarned={userProfile?.freelancerData?.totalEarned || 0}
+            onWithdrawClick={() => setIsCreateModalOpen(true)}
+            canWithdraw={canWithdraw}
+            withdrawDisabledReason={withdrawDisabledReason}
+            isLoading={isLoadingProfile}
+          />
 
-        {/* Withdrawal History Table */}
-        <WithdrawalHistoryTable
-          withdrawals={withdrawals}
-          onViewDetails={handleViewDetails}
-          isLoading={isLoadingWithdrawals}
-        />
+          {/* Stats Cards */}
+          <WithdrawalStatsCards stats={stats} isLoading={isLoadingWithdrawals} />
+
+          {/* Withdrawal History Table */}
+          <WithdrawalHistoryTable
+            withdrawals={withdrawals}
+            onViewDetails={handleViewDetails}
+            isLoading={isLoadingWithdrawals}
+          />
+        </div>
       </div>
 
       {/* Create Withdrawal Modal */}
@@ -236,7 +243,6 @@ const WithdrawalsPage: React.FC = () => {
         }}
         withdrawal={selectedWithdrawal}
       />
-    </div>
     </DashboardLayout>
   );
 };

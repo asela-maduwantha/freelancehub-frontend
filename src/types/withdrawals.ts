@@ -13,12 +13,12 @@ export enum WithdrawalMethod {
 }
 
 export interface Withdrawal {
-  _id: string;
-  id?: string; // Alias for _id
+  id: string;
+  _id?: string; // Alias for id
   freelancerId: {
-    _id: string;
-    firstName: string;
-    lastName: string;
+    id: string;
+    firstName?: string;
+    lastName?: string;
     email: string;
   } | string;
   amount: number;
