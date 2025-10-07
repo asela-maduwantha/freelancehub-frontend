@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { FileText } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 import { usePagination } from '../../../../lib/hooks/api';
 import { API_ENDPOINTS } from '../../../../lib/api/endpoints';
 import ContractListItem from '../../../../components/features/contracts/ContractListItem';
@@ -159,6 +161,14 @@ export default function FreelancerContractsPage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Contracts', icon: <FileText size={16} /> }
+          ]}
+        />
+
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Contracts</h1>

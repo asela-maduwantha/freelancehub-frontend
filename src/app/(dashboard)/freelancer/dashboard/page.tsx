@@ -13,9 +13,11 @@ import {
   Search,
   MessageSquare,
   Award,
-  AlertCircle
+  AlertCircle,
+  LayoutDashboard
 } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 import StatsCard from '../../../../components/features/dashboard/StatsCard';
 import { dashboardApi, type FreelancerStats, type FreelancerProposal, type ActiveContract } from '../../../../lib/api/dashboard';
 import { useUserDisplay } from '../../../../lib/hooks/useAuth';
@@ -117,6 +119,13 @@ export default function FreelancerDashboard() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', icon: <LayoutDashboard size={16} /> }
+          ]}
+        />
+
         {/* Welcome Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center justify-between">

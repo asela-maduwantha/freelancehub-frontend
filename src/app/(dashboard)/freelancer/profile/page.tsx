@@ -1,11 +1,21 @@
 'use client';
 
+import { User } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 
 export default function FreelancerProfilePage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Profile', icon: <User size={16} /> }
+          ]}
+        />
+
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
           <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">

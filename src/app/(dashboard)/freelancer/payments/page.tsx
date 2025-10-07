@@ -2,7 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { DollarSign } from 'lucide-react';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 import TransactionHistory from '../../../../components/features/payments/PaymentHistory';
 import { BalanceSummary, StripeAccountStatusBadge } from '../../../../components/features/payments';
 import { useStripeAccount } from '../../../../lib/hooks/useStripeAccount';
@@ -13,6 +15,14 @@ export default function FreelancerPaymentsPage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Payments & Earnings', icon: <DollarSign size={16} /> }
+          ]}
+        />
+
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Payments & Earnings</h1>

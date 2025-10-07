@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 import Button from '../../../../components/ui/Button/Button';
 import Loader from '../../../../components/ui/Feedback/Loader';
 import { Alert } from '../../../../components/ui/Feedback';
@@ -365,6 +366,16 @@ const BrowseProjectsPage: React.FC = () => {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="min-h-screen bg-gray-50">
+        {/* Breadcrumb Navigation */}
+        <div className="max-w-7xl mx-auto px-6 pt-6">
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/freelancer/dashboard' },
+              { label: 'Browse Jobs', icon: <Briefcase size={16} /> }
+            ]}
+          />
+        </div>
+
         {/* Hero Section */}
         <HeroSection
           searchTerm={searchTerm}
