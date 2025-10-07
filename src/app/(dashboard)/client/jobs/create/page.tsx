@@ -10,6 +10,7 @@ import Loader from '../../../../../components/ui/Feedback/Loader';
 import { Alert } from '../../../../../components/ui/Feedback';
 import { jobService, CreateJobRequest } from '../../../../../lib/api/jobs';
 import { fileService } from '../../../../../lib/api/files';
+import Breadcrumb from '../../../../../components/common/Breadcrumb';
 import {
   Briefcase,
   DollarSign,
@@ -347,6 +348,15 @@ export default function CreateJobPage() {
   return (
     <DashboardLayout userRole="client">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/client/dashboard' },
+            { label: 'My Jobs', href: '/client/jobs', icon: <Briefcase size={16} /> },
+            { label: 'Post a Job', icon: <Plus size={16} /> }
+          ]}
+        />
+
         {/* Page Header */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between">

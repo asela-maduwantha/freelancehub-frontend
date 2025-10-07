@@ -23,6 +23,7 @@ export default function PaymentProcessingPage() {
   );
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasProcessed, setHasProcessed] = useState(false);
 
   useEffect(() => {
     // Redirect if no contract creation flow
@@ -31,9 +32,13 @@ export default function PaymentProcessingPage() {
       return;
     }
 
+    // Prevent multiple executions
+    if (hasProcessed) return;
+    setHasProcessed(true);
+
     // Start payment processing
     processPayment();
-  }, []);
+  }, [contractCreationFlow]); // Add dependency
 
   const processPayment = async () => {
     if (!contractCreationFlow) return;
@@ -60,9 +65,19 @@ export default function PaymentProcessingPage() {
         paymentMethodId: selectedPaymentMethodId,
       });
 
+      // Store contract ID immediately for error recovery
+      const contractId = createdContract._id;
+
       // Check if payment intent was created
       if (!createdContract.stripePaymentIntentId || !createdContract.paymentIntent) {
-        throw new Error('Payment setup failed. Please contact support.');
+        // Contract created but payment failed - allow retry from contract page
+        dispatch(setPaymentProcessing({
+          status: 'failed',
+          message: 'Contract created but payment setup failed. You can complete payment from the contract page.',
+          contractId: contractId,
+        }));
+        setIsProcessing(false);
+        return;
       }
 
       // Get Stripe instance
@@ -112,6 +127,24 @@ export default function PaymentProcessingPage() {
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Payment failed';
+      
+      // Check for duplicate contract error
+      if (errorMessage.includes('already has a contract') || 
+          errorMessage.includes('contract already exists')) {
+        // Contract was created but payment failed
+        // Try to extract contract ID from error or state
+        dispatch(setPaymentProcessing({
+          status: 'failed',
+          message: 'This job already has a contract. Redirecting...',
+        }));
+        
+        // Redirect to jobs page after a delay
+        setTimeout(() => {
+          router.push('/client/jobs');
+        }, 2000);
+        return;
+      }
+      
       dispatch(setPaymentProcessing({
         status: 'failed',
         message: errorMessage,

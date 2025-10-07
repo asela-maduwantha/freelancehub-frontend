@@ -62,7 +62,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         label: 'Dashboard',
         icon: <LayoutDashboard size={20} />,
         href: `/${userRole}/dashboard`,
-        isActive: true
       },
       {
         id: 'profile',
@@ -74,7 +73,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         id: 'settings',
         label: 'Settings',
         icon: <Settings size={20} />,
-        href: '/shared/settings',
+        href: `/${userRole}/settings`,
       }
     ];
 
@@ -103,7 +102,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           id: 'milestone-tracker',
           label: 'Milestone Tracker',
           icon: <Kanban size={20} />,
-          href: '/milestone-tracker',
+          href: '/client/milestone-tracker',
         },
         {
           id: 'payments',
@@ -139,7 +138,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           id: 'milestone-tracker',
           label: 'Milestone Tracker',
           icon: <Kanban size={20} />,
-          href: '/milestone-tracker',
+          href: '/freelancer/milestone-tracker',
         },
         {
           id: 'payouts',
@@ -161,21 +160,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const sidebarItems = getSidebarItems();
 
   return (
-    <div className="h-screen flex flex-col bg-primary-50">
+    <div className="h-screen flex flex-col bg-gray-50">
       {/* Top Navigation Bar - Fixed */}
-      <header className="bg-primary-50/80 border-b border-gray-200 px-6 py-4 flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0 shadow-sm">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and role indicator */}
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
                 <div className="w-5 h-5 bg-text-white rounded-sm transform rotate-45"></div>
               </div>
               <span className="text-xl font-bold text-gray-900">Frevo</span>
             </Link>
             <div className="hidden md:flex items-center space-x-2">
-              <span className="text-sm text-secondary">|</span>
-              <span className="text-sm font-medium text-secondary capitalize">
+              <span className="text-sm text-gray-300">|</span>
+              <span className="text-sm font-medium text-gray-600 capitalize">
                 {userRole} Dashboard
               </span>
             </div>
@@ -215,7 +214,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-[#F59E0B] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
                     <span className="text-text-white text-sm font-medium">
                       {initials}
                     </span>
@@ -230,7 +229,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-blue-50"
+                className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
                 title="Logout"
               >
                 <LogOut size={20} />
@@ -251,7 +250,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         />
 
         {/* Main Content - Scrollable */}
-        <main className="flex-1 overflow-y-auto p-6 bg-primary-50/50">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
           {children}
         </main>
       </div>

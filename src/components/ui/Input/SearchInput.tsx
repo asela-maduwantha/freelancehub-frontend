@@ -14,7 +14,7 @@ const SearchBar: React.FC = () => {
         placeholder="Search for skills or services..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-[#F56565] focus:ring-2 focus:ring-[#F56565]/20 text-gray-900 placeholder-gray-500"
+        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 text-gray-900 placeholder-gray-500"
       />
     </div>
   );

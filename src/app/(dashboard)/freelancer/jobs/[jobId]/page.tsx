@@ -8,6 +8,7 @@ import DashboardLayout from '../../../../../components/layouts/DashboardLayout';
 import { Loader } from '../../../../../components/ui/Feedback';
 import Button from '../../../../../components/ui/Button';
 import { Badge } from '../../../../../components/ui/Display';
+import Breadcrumb from '../../../../../components/common/Breadcrumb';
 import {
   ArrowLeft,
   Calendar,
@@ -23,7 +24,8 @@ import {
   CheckCircle,
   AlertCircle,
   Award,
-  Users
+  Users,
+  Search
 } from 'lucide-react';
 
 export default function FreelancerJobDetailPage() {
@@ -160,20 +162,18 @@ export default function FreelancerJobDetailPage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="max-w-7xl mx-auto p-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Browse Jobs', href: '/freelancer/jobs', icon: <Search size={16} /> },
+            { label: job.title }
+          ]}
+          className="mb-6"
+        />
+
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/freelancer/jobs')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Jobs
-            </Button>
-          </div>
-
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">

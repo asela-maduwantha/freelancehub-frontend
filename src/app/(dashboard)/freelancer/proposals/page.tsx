@@ -105,6 +105,20 @@ const MyProposalsPage: React.FC = () => {
     setFilters(prev => ({ ...prev, status: status === 'all' ? undefined : status, page: 1 }));
   };
 
+  const handleWithdrawProposal = async (proposalId: string) => {
+    try {
+      await proposalService.withdrawProposal(proposalId);
+      // Refresh the proposals list
+      await fetchProposals();
+      // Show success message
+      setError(null);
+      // You could add a toast notification here if available
+      alert('Proposal withdrawn successfully');
+    } catch (err: any) {
+      setError(err.message || 'Failed to withdraw proposal');
+    }
+  };
+
   const formatBudget = (budget: JobResponse['budget']) => {
     const { type, min, max, currency = 'USD' } = budget;
 
@@ -207,6 +221,7 @@ const MyProposalsPage: React.FC = () => {
                       variant={filters.status === status || (!filters.status && status === 'all') ? 'primary' : 'outline'}
                       size="sm"
                       onClick={() => handleStatusFilter(status)}
+                      className="px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
                     >
                       {status.charAt(0).toUpperCase() + status.slice(1)}
                     </Button>
@@ -254,13 +269,9 @@ const MyProposalsPage: React.FC = () => {
                 }}
                 onWithdraw={(id) => {
                   // Handle withdraw with confirmation
-                  if (window.confirm('Are you sure you want to withdraw this proposal?')) {
-                    console.log('Withdraw proposal:', id);
+                  if (window.confirm('Are you sure you want to withdraw this proposal? This action cannot be undone.')) {
+                    handleWithdrawProposal(id);
                   }
-                }}
-                onMessageClient={(id) => {
-                  // Handle message client
-                  console.log('Message client for proposal:', id);
                 }}
               />
             ))}

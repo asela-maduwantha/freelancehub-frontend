@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { Briefcase, FileText } from 'lucide-react';
 import { ProposalResponse, proposalService } from '../../../../../../lib/api/proposals';
 import { JobResponse, jobService } from '../../../../../../lib/api/jobs';
 import DashboardLayout from '../../../../../../components/layouts/DashboardLayout';
@@ -9,6 +10,7 @@ import { Card, CardHeader, CardBody, CardFooter } from '../../../../../../compon
 import Button from '../../../../../../components/ui/Button';
 import { Badge } from '../../../../../../components/ui/Display';
 import { Spinner } from '../../../../../../components/ui/Feedback';
+import Breadcrumb from '../../../../../../components/common/Breadcrumb';
 
 export default function JobProposalsPage() {
   const params = useParams();
@@ -142,29 +144,30 @@ export default function JobProposalsPage() {
   return (
     <DashboardLayout userRole="client">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/client/dashboard' },
+            { label: 'My Jobs', href: '/client/jobs', icon: <Briefcase size={16} /> },
+            { label: job?.title || 'Job Details', href: `/client/jobs/${jobId}` },
+            { label: 'Proposals', icon: <FileText size={16} /> }
+          ]}
+        />
+
         {/* Header */}
         <div className="space-y-4">
-          <button
-            onClick={() => router.back()}
-            className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all"
-          >
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>Back</span>
-          </button>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-primary mb-2">Proposals</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Proposals</h1>
               {isJobLoading ? (
                 <div className="flex items-center gap-2">
                   <Spinner size="sm" />
-                  <span className="text-secondary">Loading job details...</span>
+                  <span className="text-gray-600">Loading job details...</span>
                 </div>
               ) : job ? (
                 <div>
-                  <p className="text-lg text-primary font-medium">{job.title}</p>
-                  <p className="text-secondary text-sm mt-1">
+                  <p className="text-lg text-gray-800 font-medium">{job.title}</p>
+                  <p className="text-gray-600 text-sm mt-1">
                     {job.category} • {formatCurrency(job.budget.min)} {job.budget.max ? `- ${formatCurrency(job.budget.max)}` : ''}
                   </p>
                 </div>

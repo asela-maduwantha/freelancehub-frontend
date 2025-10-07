@@ -16,9 +16,11 @@ import WithdrawalStripeSetup from '@/components/features/payments/WithdrawalStri
 import CreateWithdrawalModal from '@/components/features/payments/CreateWithdrawalModal';
 import WithdrawalDetailsModal from '@/components/features/payments/WithdrawalDetailsModal';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Breadcrumb from '@/components/common/Breadcrumb';
 
 // Toast notifications
 import { useToast } from '@/components/common/Toast/ToastProvider';
+import { TrendingUp, Wallet } from 'lucide-react';
 
 const WithdrawalsPage: React.FC = () => {
   const searchParams = useSearchParams();
@@ -132,10 +134,19 @@ const WithdrawalsPage: React.FC = () => {
   if (error && !userProfile) {
     return (
       <DashboardLayout userRole="freelancer">
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-white border border-blue-200 rounded-xl p-8 text-center shadow-sm">
+        <div className="space-y-6">
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/freelancer/dashboard' },
+              { label: 'Payouts', icon: <TrendingUp size={16} /> },
+              { label: 'Withdrawals', icon: <Wallet size={16} /> }
+            ]}
+          />
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
             <svg
-              className="w-16 h-16 text-blue-600 mx-auto mb-4"
+              className="w-16 h-16 text-red-600 mx-auto mb-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -147,17 +158,17 @@ const WithdrawalsPage: React.FC = () => {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <h2 className="text-2xl font-bold text-blue-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Failed to Load Data
             </h2>
-            <p className="text-blue-700 mb-6">{error}</p>
+            <p className="text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => {
                 fetchUserProfile();
                 fetchStripeStatus();
                 fetchWithdrawals();
               }}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
             >
               Retry
             </button>
@@ -169,58 +180,64 @@ const WithdrawalsPage: React.FC = () => {
 
   return (
     <DashboardLayout userRole="freelancer">
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 p-4 md:p-8">
-        <div className="container mx-auto max-w-7xl space-y-6">
-          
-          {/* Page Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">
-                Withdrawals
-              </h1>
-              <p className="text-blue-700">
-                Manage your earnings and transfer funds securely
-              </p>
-            </div>
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-blue-100">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-              <span className="text-sm text-blue-700">Account Active</span>
-            </div>
+      <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Payouts', icon: <TrendingUp size={16} /> },
+            { label: 'Withdrawals', icon: <Wallet size={16} /> }
+          ]}
+        />
+
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              Withdrawals
+            </h1>
+            <p className="text-gray-600">
+              Manage your earnings and transfer funds securely
+            </p>
           </div>
-
-          {/* Stripe Setup Warning */}
-          {!isLoadingStripe &&
-            stripeStatus &&
-            (!stripeStatus.hasAccount ||
-              !stripeStatus.payoutsEnabled ||
-              !stripeStatus.detailsSubmitted) && (
-              <WithdrawalStripeSetup
-                stripeStatus={stripeStatus}
-                onSetupComplete={fetchStripeStatus}
-              />
-            )}
-
-          {/* Balance Card */}
-          <WithdrawalBalanceCard
-            availableBalance={userProfile?.freelancerData?.availableBalance || 0}
-            pendingBalance={userProfile?.freelancerData?.pendingBalance || 0}
-            totalEarned={userProfile?.freelancerData?.totalEarned || 0}
-            onWithdrawClick={() => setIsCreateModalOpen(true)}
-            canWithdraw={canWithdraw}
-            withdrawDisabledReason={withdrawDisabledReason}
-            isLoading={isLoadingProfile}
-          />
-
-          {/* Stats Cards */}
-          <WithdrawalStatsCards stats={stats} isLoading={isLoadingWithdrawals} />
-
-          {/* Withdrawal History Table */}
-          <WithdrawalHistoryTable
-            withdrawals={withdrawals}
-            onViewDetails={handleViewDetails}
-            isLoading={isLoadingWithdrawals}
-          />
+          <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-sm text-gray-700">Account Active</span>
+          </div>
         </div>
+
+        {/* Stripe Setup Warning */}
+        {!isLoadingStripe &&
+          stripeStatus &&
+          (!stripeStatus.hasAccount ||
+            !stripeStatus.payoutsEnabled ||
+            !stripeStatus.detailsSubmitted) && (
+            <WithdrawalStripeSetup
+              stripeStatus={stripeStatus}
+              onSetupComplete={fetchStripeStatus}
+            />
+          )}
+
+        {/* Balance Card */}
+        <WithdrawalBalanceCard
+          availableBalance={userProfile?.freelancerData?.availableBalance || 0}
+          pendingBalance={userProfile?.freelancerData?.pendingBalance || 0}
+          totalEarned={userProfile?.freelancerData?.totalEarned || 0}
+          onWithdrawClick={() => setIsCreateModalOpen(true)}
+          canWithdraw={canWithdraw}
+          withdrawDisabledReason={withdrawDisabledReason}
+          isLoading={isLoadingProfile}
+        />
+
+        {/* Stats Cards */}
+        <WithdrawalStatsCards stats={stats} isLoading={isLoadingWithdrawals} />
+
+        {/* Withdrawal History Table */}
+        <WithdrawalHistoryTable
+          withdrawals={withdrawals}
+          onViewDetails={handleViewDetails}
+          isLoading={isLoadingWithdrawals}
+        />
       </div>
 
       {/* Create Withdrawal Modal */}

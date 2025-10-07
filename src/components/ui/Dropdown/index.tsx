@@ -50,9 +50,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:cursor-not-allowed flex items-center justify-between ${
-          disabled ? 'text-gray-400' : 'text-gray-900'
-        }`}
+        className={`dropdown-button ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <span className="flex items-center gap-2">
           {selectedOption && selectedOption.color && (
@@ -71,15 +69,13 @@ const Dropdown: React.FC<DropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+        <div className="dropdown-menu">
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => handleSelect(option.value)}
-              className={`w-full px-3 py-2 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 flex items-center gap-2 ${
-                value === option.value ? 'bg-primary bg-opacity-10 text-primary' : 'text-gray-900'
-              }`}
+              className={`dropdown-option ${value === option.value ? 'selected' : ''}`}
             >
               {option.color && <div className={`w-2 h-2 rounded-full ${option.color}`}></div>}
               {option.label}

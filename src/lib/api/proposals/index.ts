@@ -198,7 +198,7 @@ class ProposalService {
   async withdrawProposal(id: string): Promise<void> {
     try {
       store.dispatch(proposalsActions.withdrawProposalStart());
-      await apiClient.post(API_ENDPOINTS.PROPOSALS.WITHDRAW(id));
+      await apiClient.delete(API_ENDPOINTS.PROPOSALS.DELETE(id));
       store.dispatch(proposalsActions.withdrawProposalSuccess(id));
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Failed to withdraw proposal';

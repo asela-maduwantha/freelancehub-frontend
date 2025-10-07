@@ -9,6 +9,7 @@ import { CreateContractMilestoneRequest } from '../../../../../../lib/api/contra
 import DashboardLayout from '../../../../../../components/layouts/DashboardLayout';
 import { Card, CardBody } from '../../../../../../components/ui/Card';
 import { Spinner } from '../../../../../../components/ui/Feedback';
+import Breadcrumb from '../../../../../../components/common/Breadcrumb';
 import { ContractHeader } from './components/ContractHeader';
 import { ProposalSummary } from './components/ProposalSummary';
 import { ContractTimeline } from './components/ContractTimeline';
@@ -19,6 +20,7 @@ import { formatCurrency } from '../../../../../../lib/utils/formatting';
 import { setContractCreationFlow } from '../../../../../../store/slices/payments';
 import { AppDispatch } from '../../../../../../store';
 import Button from '../../../../../../components/ui/Button';
+import { Briefcase, FileText, Plus } from 'lucide-react';
 
 function CreateContractPage() {
   const router = useRouter();
@@ -34,6 +36,7 @@ function CreateContractPage() {
   const [proposal, setProposal] = useState<ProposalResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form data
   const [startDate, setStartDate] = useState('');
@@ -207,6 +210,12 @@ function CreateContractPage() {
   // Submit form - now just validates and navigates to payment
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      console.log('Already submitting, ignoring duplicate request');
+      return;
+    }
 
     // Validate form
     const validationError = validateForm();
@@ -215,34 +224,40 @@ function CreateContractPage() {
       return;
     }
 
-    // Prepare contract data
-    const contractMilestones: CreateContractMilestoneRequest[] = milestones.map((m, index) => ({
-      title: m.title,
-      description: m.description,
-      amount: m.amount,
-      durationDays: m.durationDays,
-      order: index + 1,
-    }));
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare contract data
+      const contractMilestones: CreateContractMilestoneRequest[] = milestones.map((m, index) => ({
+        title: m.title,
+        description: m.description,
+        amount: m.amount,
+        durationDays: m.durationDays,
+        order: index + 1,
+      }));
 
-    const contractData = {
-      proposalId: proposalId!,
-      startDate,
-      endDate,
-      milestones: contractMilestones,
-      terms: terms || undefined,
-    };
+      const contractData = {
+        proposalId: proposalId!,
+        startDate,
+        endDate,
+        milestones: contractMilestones,
+        terms: terms || undefined,
+      };
 
-    // Store contract data in Redux and navigate to payment selection
-    dispatch(setContractCreationFlow({
-      jobId,
-      proposalId: proposalId!,
-      contractData,
-      selectedPaymentMethodId: null,
-      returnUrl: `/client/jobs/${jobId}/create-contract?proposalId=${proposalId}`,
-    }));
+      // Store contract data in Redux and navigate to payment selection
+      dispatch(setContractCreationFlow({
+        jobId,
+        proposalId: proposalId!,
+        contractData,
+        selectedPaymentMethodId: null,
+        returnUrl: `/client/jobs/${jobId}/create-contract?proposalId=${proposalId}`,
+      }));
 
-    // Navigate to payment method selection
-    router.push('/client/payment-methods/select');
+      // Navigate to payment method selection
+      router.push('/client/payment-methods/select');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -281,6 +296,17 @@ function CreateContractPage() {
   return (
     <DashboardLayout userRole="client">
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/client/dashboard' },
+            { label: 'My Jobs', href: '/client/jobs', icon: <Briefcase size={16} /> },
+            { label: job?.title || 'Job', href: `/client/jobs/${jobId}` },
+            { label: 'Create Contract', icon: <FileText size={16} /> }
+          ]}
+          className="mb-6"
+        />
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Header */}
           <ContractHeader job={job} formatCurrency={formatCurrencyHelper} />
@@ -404,10 +430,10 @@ function CreateContractPage() {
                   type="submit"
                   variant="primary"
                   size="lg"
-                  disabled={!startDate || !endDate || milestones.length === 0}
+                  disabled={!startDate || !endDate || milestones.length === 0 || isSubmitting}
                   className="flex-1"
                 >
-                  Continue to Payment
+                  {isSubmitting ? 'Processing...' : 'Continue to Payment'}
                 </Button>
               </div>
             </CardBody>

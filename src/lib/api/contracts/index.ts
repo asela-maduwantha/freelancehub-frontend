@@ -299,6 +299,26 @@ class ContractService {
       throw new Error(error.response?.data?.message || 'Failed to initiate payment');
     }
   }
+
+  // Cancel a contract (for regular users - client or freelancer)
+  async cancelContract(contractId: string): Promise<ContractResponse> {
+    try {
+      const response = await apiClient.delete(`/contracts/${contractId}/cancel`);
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to cancel contract');
+    }
+  }
+
+  // Cancel a contract as admin with reason
+  async adminCancelContract(contractId: string, reason: string): Promise<{ message: string }> {
+    try {
+      const response = await apiClient.patch(`/admin/contracts/${contractId}/cancel`, { reason });
+      return response;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to cancel contract');
+    }
+  }
 }
 
 // Export singleton instance

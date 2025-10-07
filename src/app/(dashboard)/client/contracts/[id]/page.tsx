@@ -7,12 +7,15 @@ import { ContractResponse, contractService } from '../../../../../lib/api/contra
 import { JobResponse, jobService } from '../../../../../lib/api/jobs';
 import { ProposalResponse, proposalService } from '../../../../../lib/api/proposals';
 import CreateMilestoneModal from '../../../../../components/features/contracts/CreateMilestoneModal';
+import CancelContractModal from '../../../../../components/features/contracts/CancelContractModal';
 import { ComponentLoader } from '../../../../../components/common/Loading';
 import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
 import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
 import { conversationsApi } from '../../../../../lib/api/messages';
+import Breadcrumb from '../../../../../components/common/Breadcrumb';
+import { useToast } from '../../../../../components/common/Toast';
 import { 
   Eye, FileText, Clock, CheckCircle, Calendar, MapPin, Briefcase, 
   Star, MessageSquare, Download, ChevronRight, TrendingUp, User,
@@ -187,81 +190,6 @@ const TabNavigation = ({
         })}
       </nav>
     </div>
-  );
-};
-
-// Freelancer Info Card Component
-const FreelancerInfoCard = ({ 
-  contract, 
-  onMessageClick 
-}: { 
-  contract: ContractWithDetails;
-  onMessageClick: () => void;
-}) => {
-  const freelancer = typeof contract.freelancerId === 'object' ? contract.freelancerId : null;
-  
-  return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <h3 className="text-lg font-semibold text-gray-900">Freelancer</h3>
-      </CardHeader>
-      <CardBody>
-        <div className="space-y-4">
-          {/* Profile */}
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-900">
-                {freelancer?.fullName || 'Freelancer'}
-              </h4>
-              <p className="text-sm text-gray-500">
-                {freelancer?.email || 'freelancer@example.com'}
-              </p>
-            </div>
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="w-4 h-4 text-yellow-400 fill-current" />
-              ))}
-            </div>
-            <span className="text-sm text-gray-600">4.8 (24 reviews)</span>
-          </div>
-
-          {/* Contact Actions */}
-          <div className="space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full flex items-center justify-center gap-2"
-              onClick={onMessageClick}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Send Message
-            </Button>
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-              <Mail className="w-4 h-4" />
-              Email
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">47</p>
-              <p className="text-xs text-gray-500">Projects</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">98%</p>
-              <p className="text-xs text-gray-500">Success Rate</p>
-            </div>
-          </div>
-        </div>
-      </CardBody>
-    </Card>
   );
 };
 
@@ -768,6 +696,10 @@ export default function ClientContractDetailPage() {
   // New state variables for enhanced UI
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   
+  // Cancel contract modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const toast = useToast();
+  
   // Check URL query parameter for initial tab
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -980,6 +912,34 @@ export default function ClientContractDetailPage() {
 
   const canCreateMilestone = contract && (contract.status === 'active' || contract.status === 'pending');
 
+  // Check if user can cancel this contract
+  const canCancelContract = contract && (
+    contract.status === 'pending' || 
+    contract.status === 'pending_payment_method' || 
+    contract.status === 'active'
+  );
+
+  // Handle contract cancellation
+  const handleCancelContract = async () => {
+    if (!contract) return;
+
+    try {
+      await contractService.cancelContract(contract._id);
+      toast.success('Contract cancelled successfully');
+      
+      // Refresh contract data to show updated status
+      const updatedContract = await contractService.getContract(contractId);
+      setContract(prev => prev ? { ...prev, ...updatedContract } : null);
+      
+      // Close the modal
+      setShowCancelModal(false);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to cancel contract. Please try again.';
+      toast.error(errorMessage);
+      throw err; // Re-throw to let modal handle it
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout userRole="client">
@@ -997,16 +957,16 @@ export default function ClientContractDetailPage() {
       <DashboardLayout userRole="client">
         <div className="space-y-6">
           <div className="mb-6">
-            <button 
-              onClick={handleBackToContracts}
-              className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all mb-4"
-            >
-              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span>Back to Contracts</span>
-            </button>
-            <h1 className="text-2xl font-bold text-primary">Contract Details</h1>
+            {/* Breadcrumb Navigation */}
+            <Breadcrumb
+              items={[
+                { label: 'Dashboard', href: '/client/dashboard' },
+                { label: 'Contracts', href: '/client/contracts', icon: <FileText size={16} /> },
+                { label: 'Contract Details' }
+              ]}
+              className="mb-4"
+            />
+            <h1 className="text-2xl font-bold text-gray-900">Contract Details</h1>
           </div>
           <div className="alert-error rounded-lg p-6">
             <div className="text-center">
@@ -1027,36 +987,19 @@ export default function ClientContractDetailPage() {
   return (
     <DashboardLayout userRole="client">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/client/dashboard' },
+            { label: 'Contracts', href: '/client/contracts', icon: <FileText size={16} /> },
+            { label: contract.title || 'Contract Details' }
+          ]}
+        />
+
         {/* Enhanced Hero Section */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 md:p-6 border border-blue-100">
           <div className="flex flex-col lg:flex-row items-start justify-between gap-4">
             <div className="flex-1 w-full">
-              {/* Breadcrumb */}
-              <nav className="flex mb-4" aria-label="Breadcrumb">
-                <ol className="inline-flex items-center space-x-1 md:space-x-3">
-                  <li className="inline-flex items-center">
-                    <button 
-                      onClick={handleBackToContracts}
-                      className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-8 8a1 1 0 001.414 1.414L9 4.414V17a1 1 0 102 0V4.414l6.293 6.293a1 1 0 001.414-1.414l-8-8z"/>
-                      </svg>
-                      <span className="hidden sm:inline">Contracts</span>
-                      <span className="sm:hidden">Back</span>
-                    </button>
-                  </li>
-                  <li>
-                    <div className="flex items-center">
-                      <svg className="w-6 h-6 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"/>
-                      </svg>
-                      <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2">Contract Details</span>
-                    </div>
-                  </li>
-                </ol>
-              </nav>
-
               {/* Contract Title and Badges */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="flex-1">
@@ -1115,6 +1058,17 @@ export default function ClientContractDetailPage() {
                     <MessageSquare className="w-4 h-4" />
                     Message
                   </Button>
+                  {canCancelContract && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCancelModal(true)} 
+                      className="flex items-center justify-center gap-2 w-full sm:w-auto border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Cancel Contract</span>
+                      <span className="sm:hidden">Cancel</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1137,21 +1091,7 @@ export default function ClientContractDetailPage() {
           {activeTab === 'messages' && <MessagesTab contractId={contractId} />}
         </div>
 
-        {/* Freelancer Info Sidebar */}
-        <div className="block xl:hidden mb-6">
-          <FreelancerInfoCard 
-            contract={contract} 
-            onMessageClick={() => setActiveTab('messages')}
-          />
-        </div>
-        
-        {/* Fixed Sidebar for Desktop */}
-        <div className="fixed right-6 top-24 w-80 hidden xl:block">
-          <FreelancerInfoCard 
-            contract={contract} 
-            onMessageClick={() => setActiveTab('messages')}
-          />
-        </div>
+       
 
         {/* Create Milestone Modal */}
         {contract && (
@@ -1160,6 +1100,17 @@ export default function ClientContractDetailPage() {
             onClose={() => setIsMilestoneModalOpen(false)}
             contract={contract}
             onMilestoneCreated={handleMilestoneCreated}
+          />
+        )}
+
+        {/* Cancel Contract Modal */}
+        {contract && (
+          <CancelContractModal
+            isOpen={showCancelModal}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={handleCancelContract}
+            contract={contract}
+            userRole="client"
           />
         )}
       </div>

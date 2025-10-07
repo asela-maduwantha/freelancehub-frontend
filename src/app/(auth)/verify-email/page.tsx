@@ -216,8 +216,8 @@ function VerifyEmailForm() {
             <div className="flex items-start space-x-3">
               <Shield className="h-5 w-5 mt-0.5" style={{ color: 'var(--color-info)' }} />
               <div>
-                <h3 className="text-sm font-medium" style={{ color: '#1E40AF' }}>Secure Verification</h3>
-                <p className="text-xs mt-1" style={{ color: '#1E40AF', opacity: 0.8 }}>
+                <h3 className="text-sm font-medium" style={{ color: 'var(--color-primary)' }}>Secure Verification</h3>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-primary)', opacity: 0.8 }}>
                   Your verification code is valid for 10 minutes and can only be used once.
                 </p>
               </div>

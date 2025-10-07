@@ -4,14 +4,16 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from '../../../../../components/layouts/DashboardLayout';
 import { ContractResponse, contractService } from '../../../../../lib/api/contracts';
+import CancelContractModal from '../../../../../components/features/contracts/CancelContractModal';
 import { ComponentLoader } from '../../../../../components/common/Loading';
 import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
 import { Modal } from '../../../../../components/ui/Modal';
-import { ArrowLeft, MessageSquare, Loader2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Loader2, XCircle } from 'lucide-react';
 import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
 import { conversationsApi } from '../../../../../lib/api/messages';
+import { useToast } from '../../../../../components/common/Toast';
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -26,6 +28,10 @@ export default function ContractDetailPage() {
   const [showMessages, setShowMessages] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loadingConversation, setLoadingConversation] = useState(false);
+  
+  // Cancel contract modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const toast = useToast();
 
   // Check URL query parameter for initial view
   useEffect(() => {
@@ -111,6 +117,34 @@ export default function ContractDetailPage() {
   const getProgressPercentage = () => {
     if (!contract || contract.milestoneCount === 0) return 0;
     return Math.round(((contract.completedMilestones || 0) / contract.milestoneCount) * 100);
+  };
+
+  // Check if user can cancel this contract
+  const canCancelContract = contract && (
+    contract.status === 'draft' || 
+    contract.status === 'pending_payment_method' || 
+    contract.status === 'active'
+  );
+
+  // Handle contract cancellation
+  const handleCancelContract = async () => {
+    if (!contract) return;
+
+    try {
+      await contractService.cancelContract(contract._id);
+      toast.success('Contract cancelled successfully');
+      
+      // Refresh contract data to show updated status
+      const updatedContract = await contractService.getContract(contractId);
+      setContract(updatedContract);
+      
+      // Close the modal
+      setShowCancelModal(false);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to cancel contract. Please try again.';
+      toast.error(errorMessage);
+      throw err; // Re-throw to let modal handle it
+    }
   };
 
   const handleViewMilestones = () => {
@@ -242,6 +276,16 @@ export default function ContractDetailPage() {
             <Button variant="primary" onClick={handleViewMilestones}>
               View Milestones
             </Button>
+            {canCancelContract && (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCancelModal(true)}
+                className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancel Contract
+              </Button>
+            )}
           </div>
         </div>
 
@@ -540,6 +584,17 @@ export default function ContractDetailPage() {
             </div>
           </div>
         </Modal>
+
+        {/* Cancel Contract Modal */}
+        {contract && (
+          <CancelContractModal
+            isOpen={showCancelModal}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={handleCancelContract}
+            contract={contract}
+            userRole="freelancer"
+          />
+        )}
       </div>
     </DashboardLayout>
   );

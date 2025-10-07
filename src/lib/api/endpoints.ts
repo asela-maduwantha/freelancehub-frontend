@@ -57,7 +57,7 @@ export const API_ENDPOINTS = {
     CREATE: '/proposals',
     DETAIL: (id: string) => `/proposals/${id}`,
     UPDATE: (id: string) => `/proposals/${id}`,
-    WITHDRAW: (id: string) => `/proposals/${id}/withdraw`,
+    DELETE: (id: string) => `/proposals/${id}`,
     ACCEPT: (id: string) => `/proposals/${id}/accept`,
     REJECT: (id: string) => `/proposals/${id}/reject`,
   },

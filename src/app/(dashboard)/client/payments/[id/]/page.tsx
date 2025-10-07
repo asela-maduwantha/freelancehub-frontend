@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Feedback';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import Breadcrumb from '@/components/common/Breadcrumb';
 import { paymentService } from '@/lib/api/payments';
 import { formatCurrency } from '@/lib/utils/formatting';
 import {
@@ -112,19 +113,22 @@ const PaymentDetailsPage: React.FC = () => {
   return (
     <DashboardLayout userRole="client">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/client/dashboard' },
+            { label: 'Payments', href: '/client/payments', icon: <CreditCard size={16} /> },
+            { label: `Payment #${payment.id.slice(-8)}` }
+          ]}
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="secondary" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Payments
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Payment Details</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Transaction ID: {payment.id}
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Payment Details</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Transaction ID: {payment.id}
+            </p>
           </div>
 
           <div className="flex gap-3">

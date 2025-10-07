@@ -9,6 +9,7 @@ import DashboardLayout from '../../../../../components/layouts/DashboardLayout';
 import { Spinner } from '../../../../../components/ui/Feedback';
 import Button from '../../../../../components/ui/Button';
 import { Badge } from '../../../../../components/ui/Display';
+import Breadcrumb from '../../../../../components/common/Breadcrumb';
 import { 
   Eye, FileText, Clock, CheckCircle, Calendar, MapPin, 
   Briefcase, Star, Mail, Phone, Globe, Edit, Send,
@@ -497,14 +498,14 @@ export default function JobDetailPage() {
   return (
     <DashboardLayout userRole="client">
       <div className="space-y-6">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <button onClick={() => router.push('/client/jobs')} className="hover:text-blue-600 transition-colors">
-            Jobs
-          </button>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-gray-900 font-medium truncate">{job.title}</span>
-        </div>
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/client/dashboard' },
+            { label: 'My Jobs', href: '/client/jobs', icon: <Briefcase size={16} /> },
+            { label: job.title }
+          ]}
+        />
 
         {/* Hero Section */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -605,12 +606,6 @@ export default function JobDetailPage() {
                   </Button>
                 </>
               )}
-              <button 
-                onClick={() => router.back()}
-                className="px-4 py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors"
-              >
-                Back
-              </button>
             </div>
           </div>
         </div>

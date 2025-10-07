@@ -11,6 +11,7 @@ import Loader from '../../../../../../components/ui/Feedback/Loader';
 import { proposalService, CreateProposalRequest } from '../../../../../../lib/api/proposals';
 import { jobService } from '../../../../../../lib/api/jobs';
 import { fileService, FileUploadResponse } from '../../../../../../lib/api/files';
+import Breadcrumb from '../../../../../../components/common/Breadcrumb';
 import { 
   Briefcase, 
   DollarSign, 
@@ -24,7 +25,9 @@ import {
   X,
   CheckCircle,
   AlertCircle,
-  FileText
+  FileText,
+  Search,
+  Send
 } from 'lucide-react';interface JobDetails {
   id: string;
   title: string;
@@ -403,18 +406,18 @@ export default function CreateProposalPage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Browse Jobs', href: '/freelancer/jobs', icon: <Search size={16} /> },
+            { label: jobDetails?.title || 'Job', href: `/freelancer/jobs/${jobId}` },
+            { label: 'Submit Proposal', icon: <Send size={16} /> }
+          ]}
+        />
+
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Link
-              href="/freelancer/jobs"
-              className="inline-flex items-center text-gray-500 hover:text-gray-700"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to jobs
-            </Link>
-          </div>
-
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0">
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">

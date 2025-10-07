@@ -26,7 +26,7 @@ const Button: React.FC<ButtonProps> = ({
     secondary: 'btn-secondary',
     accent: 'btn-accent',
     ghost: 'btn-ghost',
-    outline: 'bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white'
+    outline: 'btn-outline'
   };
 
   const sizes = {

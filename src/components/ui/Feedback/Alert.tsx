@@ -34,15 +34,15 @@ const Alert: React.FC<AlertProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={20} className="text-green-600" />;
+        return <CheckCircle size={20} className="text-[var(--color-success)]" />;
       case 'error':
-        return <XCircle size={20} className="text-red-600" />;
+        return <XCircle size={20} className="text-[var(--color-error)]" />;
       case 'warning':
-        return <AlertCircle size={20} className="text-[var(--color-accent)]" />;
+        return <AlertCircle size={20} className="text-[var(--accent)]" />;
       case 'info':
         return <Info size={20} className="text-[var(--color-primary)]" />;
       default:
-        return <Info size={20} className="text-[var(--color-text-body)]" />;
+        return <Info size={20} className="text-[var(--color-text-secondary)]" />;
     }
   };
 

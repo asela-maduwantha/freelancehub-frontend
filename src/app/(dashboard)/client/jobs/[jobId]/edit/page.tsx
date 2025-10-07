@@ -10,6 +10,7 @@ import Loader from '../../../../../../components/ui/Feedback/Loader';
 import { Alert } from '../../../../../../components/ui/Feedback';
 import { jobService, CreateJobRequest, JobResponse, JobAttachment } from '../../../../../../lib/api/jobs';
 import { fileService } from '../../../../../../lib/api/files';
+import Breadcrumb from '../../../../../../components/common/Breadcrumb';
 import {
   Briefcase,
   DollarSign,
@@ -19,7 +20,8 @@ import {
   Plus,
   X,
   Upload,
-  Save
+  Save,
+  Edit
 } from 'lucide-react';
 
 interface JobFormData {
@@ -358,15 +360,17 @@ export default function EditJobPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href={`/client/jobs/${jobId}`}
-            className="group inline-flex items-center gap-2 text-gray-600 hover:text-blue-700 font-medium transition-all mb-6"
-          >
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>Back to Job</span>
-          </Link>
+          {/* Breadcrumb Navigation */}
+          <div className="mb-6">
+            <Breadcrumb
+              items={[
+                { label: 'Dashboard', href: '/client/dashboard' },
+                { label: 'My Jobs', href: '/client/jobs', icon: <Briefcase size={16} /> },
+                { label: formData.title || 'Job', href: `/client/jobs/${jobId}` },
+                { label: 'Edit', icon: <Edit size={16} /> }
+              ]}
+            />
+          </div>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Edit Job Draft</h1>

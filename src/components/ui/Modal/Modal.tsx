@@ -83,22 +83,16 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity animate-in fade-in duration-200"
-        onClick={onClose}
-      />
-
+    <div className="modal-backdrop">
       {/* Modal */}
-      <div className={`relative bg-white rounded-lg shadow-xl w-full mx-4 ${sizeClasses[size]} ${className} max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 sm:mx-auto`}>
+      <div className={`modal-content w-full mx-4 ${sizeClasses[size]} ${className} sm:mx-auto`}>
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <div className="modal-header">
+            <h3 className="modal-title">{title}</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+              className="modal-close-button p-1 rounded-full hover:bg-[var(--color-bg-hover)]"
             >
               <X size={24} />
             </button>
@@ -106,13 +100,13 @@ const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Content */}
-        <div className={`px-6 py-4 text-gray-700 overflow-y-auto ${showFooter ? 'max-h-[calc(90vh-180px)]' : 'max-h-[calc(90vh-120px)]'}`}>
+        <div className={`modal-body text-[var(--color-text-secondary)] ${showFooter ? 'max-h-[calc(90vh-180px)]' : 'max-h-[calc(90vh-120px)]'}`}>
           {children}
         </div>
 
         {/* Footer - Optional for actions */}
         {showFooter && (
-          <div className="flex justify-end px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="modal-footer">
             <Button
               onClick={onClose}
               variant="secondary"

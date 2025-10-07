@@ -11,6 +11,7 @@ import { Modal } from '../../../../../components/ui/Modal';
 import { proposalService, ProposalResponse } from '../../../../../lib/api/proposals';
 import { jobService, JobResponse } from '../../../../../lib/api/jobs';
 import { fileService } from '../../../../../lib/api/files';
+import Breadcrumb from '../../../../../components/common/Breadcrumb';
 import {
   ArrowLeft,
   Eye,
@@ -166,14 +167,16 @@ const ProposalDetailPage: React.FC = () => {
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/freelancer/proposals')}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Proposals
-          </Button>
+          {/* Breadcrumb Navigation */}
+          <div className="mb-6">
+            <Breadcrumb
+              items={[
+                { label: 'Dashboard', href: '/freelancer/dashboard' },
+                { label: 'My Proposals', href: '/freelancer/proposals', icon: <FileText size={16} /> },
+                { label: `Proposal #${proposal._id.slice(-8)}` }
+              ]}
+            />
+          </div>
 
           <div className="flex items-center justify-between">
             <div>

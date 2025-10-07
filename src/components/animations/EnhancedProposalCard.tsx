@@ -10,7 +10,6 @@ import {
   FileText,
   Edit,
   X,
-  MessageCircle,
   Briefcase
 } from 'lucide-react';
 import Button from '../ui/Button';
@@ -21,7 +20,6 @@ interface EnhancedProposalCardProps {
   onViewJob: (jobId: string) => void;
   onEdit?: (proposalId: string) => void;
   onWithdraw?: (proposalId: string) => void;
-  onMessageClient?: (proposalId: string) => void;
 }
 
 const EnhancedProposalCard: React.FC<EnhancedProposalCardProps> = ({
@@ -29,8 +27,7 @@ const EnhancedProposalCard: React.FC<EnhancedProposalCardProps> = ({
   index,
   onViewJob,
   onEdit,
-  onWithdraw,
-  onMessageClient
+  onWithdraw
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -228,17 +225,6 @@ const EnhancedProposalCard: React.FC<EnhancedProposalCardProps> = ({
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
-                </Button>
-              )}
-
-              {onMessageClient && (
-                <Button
-                  variant="outline"
-                  onClick={() => onMessageClient(proposal._id)}
-                  className="w-full hover:bg-green-50 hover:border-green-200 transition-colors duration-200"
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Message
                 </Button>
               )}
 
