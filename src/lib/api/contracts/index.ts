@@ -45,6 +45,7 @@ export interface ContractResponse {
   stripePaymentIntentId?: string;
   paymentIntent?: any; // Stripe payment intent data
   setupIntent?: any; // Stripe setup intent for saving cards
+  requiresPayment?: boolean; // Whether the contract requires payment
   clientId: {
     _id: string;
     email: string;

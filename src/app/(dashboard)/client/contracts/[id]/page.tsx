@@ -14,6 +14,7 @@ import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
 import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
 import { conversationsApi } from '../../../../../lib/api/messages';
+import { messagesAPI } from '../../../../../lib/api/messages';
 import Breadcrumb from '../../../../../components/common/Breadcrumb';
 import { useToast } from '../../../../../components/common/Toast';
 import { 
@@ -555,6 +556,8 @@ const DocumentsTab = ({ documents }: { documents: Document[] }) => {
 const MessagesTab = ({ contractId }: { contractId: string }) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [startingConversation, setStartingConversation] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchConversation = async () => {
@@ -579,6 +582,33 @@ const MessagesTab = ({ contractId }: { contractId: string }) => {
     }
   }, [contractId]);
 
+  const handleStartConversation = async () => {
+    try {
+      setStartingConversation(true);
+      // Create initial message to start conversation
+      const response = await messagesAPI.messages.createMessage({
+        contractId,
+        content: "Hi! I'd like to discuss this project with you.",
+      });
+
+      if (response.success) {
+        toast.success('Conversation started successfully!');
+        // Refresh conversations to get the new conversation ID
+        const conversationsResponse = await conversationsApi.getConversations({ contractId });
+        if (conversationsResponse.success && conversationsResponse.data.conversations.length > 0) {
+          setConversationId(conversationsResponse.data.conversations[0].id);
+        }
+      } else {
+        toast.error('Failed to start conversation. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Failed to start conversation:', error);
+      toast.error(error.message || 'Failed to start conversation. Please try again.');
+    } finally {
+      setStartingConversation(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -593,10 +623,24 @@ const MessagesTab = ({ contractId }: { contractId: string }) => {
         <CardBody className="p-12">
           <div className="text-center">
             <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No conversation yet</h3>
-            <p className="text-gray-600">
-              Messages for this contract will appear here once communication begins.
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Start a conversation</h3>
+            <p className="text-gray-600 mb-6">
+              Communicate with the freelancer about this project. Start a conversation to discuss details, milestones, or any questions.
             </p>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleStartConversation}
+              disabled={startingConversation}
+              className="flex items-center gap-2 mx-auto"
+            >
+              {startingConversation ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <MessageSquare className="w-5 h-5" />
+              )}
+              {startingConversation ? 'Starting Conversation...' : 'Start Conversation'}
+            </Button>
           </div>
         </CardBody>
       </Card>

@@ -66,7 +66,6 @@ export default function ClientContractsPage() {
     
     try {
       const response = await contractService.getContracts(page, 10);
-      console.log('Contracts API response:', response);
       
       // Handle different response structures
       let contractsData: ContractResponse[];
@@ -264,7 +263,9 @@ export default function ClientContractsPage() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(c => {
         const jobTitle = typeof c.jobId === 'object' ? c.jobId.title?.toLowerCase() || '' : '';
-        const freelancerName = typeof c.freelancerId === 'object' ? c.freelancerId.fullName?.toLowerCase() || '' : '';
+        const freelancerName = typeof c.freelancerId === 'object' && c.freelancerId?.profile
+          ? `${c.freelancerId.profile.firstName} ${c.freelancerId.profile.lastName}`.trim().toLowerCase()
+          : '';
         const contractTitle = c.title?.toLowerCase() || '';
         return jobTitle.includes(query) || freelancerName.includes(query) || contractTitle.includes(query);
       });
@@ -340,7 +341,9 @@ export default function ClientContractsPage() {
     const progress = calculateProgress(contract);
     const paymentStatus = getPaymentStatus(contract);
     const daysRemaining = getDaysRemaining(contract);
-    const freelancerName = typeof contract.freelancerId === 'object' ? contract.freelancerId.fullName : 'Unknown';
+    const freelancerName = typeof contract.freelancerId === 'object' && contract.freelancerId?.profile
+      ? `${contract.freelancerId.profile.firstName} ${contract.freelancerId.profile.lastName}`.trim()
+      : 'Unknown';
 
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
@@ -445,7 +448,9 @@ export default function ClientContractsPage() {
   const ContractCardGrid = ({ contract }: { contract: ContractWithDetails }) => {
     const progress = calculateProgress(contract);
     const daysRemaining = getDaysRemaining(contract);
-    const freelancerName = typeof contract.freelancerId === 'object' ? contract.freelancerId.fullName : 'Unknown';
+    const freelancerName = typeof contract.freelancerId === 'object' && contract.freelancerId?.profile
+      ? `${contract.freelancerId.profile.firstName} ${contract.freelancerId.profile.lastName}`.trim()
+      : 'Unknown';
 
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
@@ -509,7 +514,9 @@ export default function ClientContractsPage() {
 
   const ContractTableRow = ({ contract }: { contract: ContractWithDetails }) => {
     const progress = calculateProgress(contract);
-    const freelancerName = typeof contract.freelancerId === 'object' ? contract.freelancerId.fullName : 'Unknown';
+    const freelancerName = typeof contract.freelancerId === 'object' && contract.freelancerId?.profile
+      ? `${contract.freelancerId.profile.firstName} ${contract.freelancerId.profile.lastName}`.trim()
+      : 'Unknown';
     const [showActions, setShowActions] = useState(false);
 
     return (

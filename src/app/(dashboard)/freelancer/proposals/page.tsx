@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '../../../../components/layouts/DashboardLayout';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 import Button from '../../../../components/ui/Button';
 import { Card, CardHeader, CardBody } from '../../../../components/ui/Card';
 import { Badge } from '../../../../components/ui/Display';
@@ -189,8 +190,16 @@ const MyProposalsPage: React.FC = () => {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="max-w-7xl mx-auto p-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer/dashboard' },
+            { label: 'Proposals', icon: <FileText size={16} /> }
+          ]}
+        />
+
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 mt-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Proposals</h1>
           <p className="text-gray-600">Track and manage all your job proposals</p>
         </div>
