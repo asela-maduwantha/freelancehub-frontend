@@ -89,10 +89,13 @@ function VerifyEmailForm() {
 
       setSuccessMessage('Email verified successfully! Redirecting...');
 
-      // Get user role from Redux store and redirect appropriately
-      const user = store.getState().auth.user;
+      // Get user role from Redux store or localStorage and redirect appropriately
       setTimeout(() => {
-        if (user?.role === 'client') {
+        const user = store.getState().auth.user;
+        const pendingRole = localStorage.getItem('pending_user_role');
+        const userRole = user?.role || pendingRole;
+
+        if (userRole === 'client') {
           // Check if client has completed onboarding
           const clientOnboardingProgress = localStorage.getItem('client_onboarding_progress');
           if (clientOnboardingProgress) {
@@ -115,7 +118,7 @@ function VerifyEmailForm() {
             // No progress found, start onboarding
             router.push('/client/onboarding?step=1');
           }
-        } else if (user?.role === 'freelancer') {
+        } else if (userRole === 'freelancer') {
           // Check if freelancer has completed onboarding
           const onboardingProgress = localStorage.getItem('freelancer_onboarding_progress');
           if (onboardingProgress) {
@@ -138,12 +141,15 @@ function VerifyEmailForm() {
             // No progress found, start onboarding
             router.push('/freelancer/onboarding?step=1');
           }
-        } else if (user?.role === 'admin') {
+        } else if (userRole === 'admin') {
           router.push('/admin/dashboard');
         } else {
           // Fallback to generic dashboard
           router.push('/');
         }
+
+        // Clean up the pending role
+        localStorage.removeItem('pending_user_role');
       }, 2000);
 
     } catch (err: any) {

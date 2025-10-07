@@ -99,6 +99,14 @@ export default function RegisterPage() {
 
       setSuccessMessage('Registration successful! Redirecting to email verification...');
 
+      // Store the role for use in email verification and clear any existing onboarding progress
+      localStorage.setItem('pending_user_role', formData.role);
+      if (formData.role === 'freelancer') {
+        localStorage.removeItem('freelancer_onboarding_progress');
+      } else if (formData.role === 'client') {
+        localStorage.removeItem('client_onboarding_progress');
+      }
+
       setTimeout(() => {
         router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
       }, 2000);
