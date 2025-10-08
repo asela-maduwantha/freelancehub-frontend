@@ -12,7 +12,9 @@ import { useToast } from '../../../../components/common/Toast';
 import { authService } from '../../../../lib/api/auth';
 import { clientApi } from '../../../../lib/api/clientApi';
 import { apiClient } from '../../../../lib/api/client';
+import { profileApi } from '../../../../lib/api/profile';
 import Breadcrumb from '../../../../components/common/Breadcrumb';
+import ClientStats from '../../../../components/features/profile/ClientStats';
 import {
   User,
   Building,
@@ -27,7 +29,8 @@ import {
   Eye,
   EyeOff,
   Save,
-  Upload
+  Upload,
+  Loader
 } from 'lucide-react';
 
 interface UserProfile {
@@ -100,8 +103,9 @@ export default function ClientProfilePage() {
 
   const fetchUserData = async () => {
     try {
-      const response = await authService.getMe();
-      setUser(response);
+      setLoading(true);
+      const response = await profileApi.getCurrentProfile();
+      setUser(response as any);
       setFormData({
         firstName: response.profile?.firstName || '',
         lastName: response.profile?.lastName || '',
@@ -117,18 +121,20 @@ export default function ClientProfilePage() {
         linkedin: response.profile?.socialLinks?.linkedin || '',
         github: response.profile?.socialLinks?.github || '',
         portfolio: response.profile?.socialLinks?.portfolio || '',
-        companyName: response.clientData?.companyName || '',
-        companySize: response.clientData?.companySize || '',
-        industry: response.clientData?.industry || ''
+        companyName: (response as any).clientData?.companyName || '',
+        companySize: (response as any).clientData?.companySize || '',
+        industry: (response as any).clientData?.industry || ''
       });
     } catch (error: any) {
       toast.error(error.message || 'Failed to load profile data');
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchUserSettings = async () => {
     try {
-      const response = await apiClient.get('/users/settings');
+      const response = await profileApi.getUserSettings();
       setSettings(response);
       setSettingsData({
         emailNotifications: response.emailNotifications,
@@ -140,7 +146,7 @@ export default function ClientProfilePage() {
     } catch (error: any) {
       console.warn('Failed to load settings:', error);
       // Set default settings if API fails
-      setSettings({
+      const defaultSettings: UserSettings = {
         emailNotifications: true,
         profileVisibility: 'public',
         language: 'en',
@@ -148,7 +154,8 @@ export default function ClientProfilePage() {
         twoFactorEnabled: false,
         isActive: true,
         isEmailVerified: true
-      });
+      };
+      setSettings(defaultSettings);
       setSettingsData({
         emailNotifications: true,
         profileVisibility: 'public',
@@ -156,8 +163,6 @@ export default function ClientProfilePage() {
         timezone: 'UTC',
         twoFactorEnabled: false
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -187,9 +192,7 @@ export default function ClientProfilePage() {
 
       // Upload avatar if selected
       if (avatarFile) {
-        const formDataObj = new FormData();
-        formDataObj.append('avatar', avatarFile);
-        await apiClient.postFormData('/users/upload-avatar', formDataObj);
+        await profileApi.uploadAvatar(avatarFile);
       }
 
       // Update general profile
@@ -214,7 +217,7 @@ export default function ClientProfilePage() {
         }
       };
 
-      await apiClient.put('/users/me', generalProfileData);
+      await profileApi.updateGeneralProfile(generalProfileData);
 
       // Update client-specific profile
       const clientProfileData = {
@@ -239,7 +242,7 @@ export default function ClientProfilePage() {
   const handleSaveSettings = async () => {
     try {
       setSaving(true);
-      await apiClient.put('/users/settings', settingsData);
+      await profileApi.updateUserSettings(settingsData);
       toast.success('Settings updated successfully');
       await fetchUserSettings(); // Refresh data
     } catch (error: any) {
@@ -259,8 +262,30 @@ export default function ClientProfilePage() {
               { label: 'Profile' }
             ]}
           />
-          <div className="flex justify-center py-12">
-            <ComponentLoader size="lg" />
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <Loader className="animate-spin text-blue-600 mx-auto mb-4" size={48} />
+              <p className="text-gray-600">Loading profile...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <DashboardLayout userRole="client">
+        <div className="space-y-6">
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/client' },
+              { label: 'Profile' }
+            ]}
+          />
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">Failed to load profile</p>
+            <Button onClick={fetchUserData}>Retry</Button>
           </div>
         </div>
       </DashboardLayout>
@@ -278,48 +303,91 @@ export default function ClientProfilePage() {
           ]}
         />
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-            <p className="text-gray-600 mt-1">Manage your account information and preferences</p>
+        {/* Header with Profile Overview */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6">
+            <div className="flex items-start gap-6">
+              <div className="relative">
+                <div className="h-24 w-24 rounded-full bg-gray-200 overflow-hidden">
+                  {avatarPreview || user?.profile?.avatar ? (
+                    <img
+                      src={avatarPreview || user?.profile?.avatar}
+                      alt={user?.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <User size={40} />
+                    </div>
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                  <Camera size={16} className="text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                    disabled={saving}
+                  />
+                </label>
+              </div>
+
+              <div className="flex-1">
+                <h2 className="text-2xl font-semibold text-gray-900">{user?.fullName}</h2>
+                {user?.clientData?.companyName && (
+                  <p className="text-gray-600 mt-1 flex items-center gap-2">
+                    <Building size={16} />
+                    {user.clientData.companyName}
+                  </p>
+                )}
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant={user?.isEmailVerified ? 'success' : 'warning'}>
+                    {user?.isEmailVerified ? 'Verified' : 'Unverified'}
+                  </Badge>
+                  <Badge variant={user?.isActive ? 'success' : 'error'}>
+                    {user?.isActive ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+        <div className="border-b border-gray-200 bg-white rounded-t-lg">
+          <nav className="-mb-px flex space-x-8 px-6">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                 activeTab === 'profile'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <User className="w-4 h-4 inline mr-2" />
+              <User className="w-4 h-4" />
               Profile
             </button>
             <button
               onClick={() => setActiveTab('company')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                 activeTab === 'company'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <Building className="w-4 h-4 inline mr-2" />
+              <Building className="w-4 h-4" />
               Company
             </button>
             <button
               onClick={() => setActiveTab('settings')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                 activeTab === 'settings'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <Settings className="w-4 h-4 inline mr-2" />
+              <Settings className="w-4 h-4" />
               Settings
             </button>
           </nav>
@@ -333,36 +401,16 @@ export default function ClientProfilePage() {
             </CardHeader>
             <CardBody>
               <div className="space-y-6">
-                {/* Avatar Section */}
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-                      {avatarPreview || user?.profile?.avatar ? (
-                        <img
-                          src={avatarPreview || user?.profile?.avatar}
-                          alt={user?.fullName}
-                          className="w-20 h-20 rounded-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-8 h-8 text-gray-400" />
-                      )}
+                {/* Account Information */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Email Address</p>
+                      <p className="text-gray-900">{user?.email}</p>
                     </div>
-                    <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
-                      <Camera className="w-4 h-4" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{user?.fullName}</h3>
-                    <p className="text-gray-600">{user?.email}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Upload a new profile picture (max 5MB)
-                    </p>
+                    <Badge variant={user?.isEmailVerified ? 'success' : 'warning'}>
+                      {user?.isEmailVerified ? 'Verified' : 'Unverified'}
+                    </Badge>
                   </div>
                 </div>
 
@@ -537,14 +585,30 @@ export default function ClientProfilePage() {
               </div>
             </CardBody>
             <CardFooter>
-              <Button
-                onClick={handleSaveProfile}
-                disabled={saving}
-                className="flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save Profile'}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                  className="flex items-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Profile
+                    </>
+                  )}
+                </Button>
+                {avatarFile && (
+                  <p className="text-sm text-gray-600">
+                    Avatar will be uploaded when you save
+                  </p>
+                )}
+              </div>
             </CardFooter>
           </Card>
         )}
@@ -596,35 +660,7 @@ export default function ClientProfilePage() {
 
                 {/* Company Stats (Read-only) */}
                 {user?.clientData && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-900 mb-4">Company Statistics</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {user.clientData.postedJobs}
-                        </div>
-                        <div className="text-sm text-gray-600">Jobs Posted</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          ${user.clientData.totalSpent.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-600">Total Spent</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-600">
-                          {user.clientData.rating.toFixed(1)}
-                        </div>
-                        <div className="text-sm text-gray-600">Rating</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">
-                          {user.clientData.reviewCount}
-                        </div>
-                        <div className="text-sm text-gray-600">Reviews</div>
-                      </div>
-                    </div>
-                  </div>
+                  <ClientStats clientData={user.clientData} />
                 )}
               </div>
             </CardBody>
@@ -634,8 +670,17 @@ export default function ClientProfilePage() {
                 disabled={saving}
                 className="flex items-center gap-2"
               >
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save Company Info'}
+                {saving ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Company Info
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -787,8 +832,17 @@ export default function ClientProfilePage() {
                 disabled={saving}
                 className="flex items-center gap-2"
               >
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save Settings'}
+                {saving ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Settings
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>

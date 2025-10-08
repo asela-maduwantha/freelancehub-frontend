@@ -8,6 +8,7 @@ export * from './milestones';
 export * from './messages';
 export * from './common';
 export * from './onboarding';
+export * from './profile';
 
 // Enums
 export enum JobStatus {
