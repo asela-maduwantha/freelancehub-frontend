@@ -12,9 +12,7 @@ import { ComponentLoader } from '../../../../../components/common/Loading';
 import { Badge } from '../../../../../components/ui/Display';
 import Button from '../../../../../components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '../../../../../components/ui/Card';
-import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
-import { conversationsApi } from '../../../../../lib/api/messages';
-import { messagesAPI } from '../../../../../lib/api/messages';
+
 import Breadcrumb from '../../../../../components/common/Breadcrumb';
 import { useToast } from '../../../../../components/common/Toast';
 import { 
@@ -27,7 +25,7 @@ import {
   X, Loader2, Upload, File, Image, Video, Archive
 } from 'lucide-react';
 
-type TabType = 'overview' | 'milestones' | 'activity' | 'documents' | 'messages';
+type TabType = 'overview' | 'milestones' | 'activity';
 
 interface Activity {
   id: string;
@@ -39,23 +37,7 @@ interface Activity {
   metadata?: any;
 }
 
-interface Document {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  uploadedAt: string;
-  uploadedBy: string;
-  url: string;
-}
 
-interface Message {
-  id: string;
-  content: string;
-  sender: 'client' | 'freelancer';
-  timestamp: string;
-  attachments?: Document[];
-}
 
 interface ContractWithDetails extends ContractResponse {
   job?: JobResponse;
@@ -153,9 +135,7 @@ const TabNavigation = ({
   const tabs = [
     { id: 'overview' as TabType, label: 'Overview', icon: Eye, count: tabCounts.overview },
     { id: 'milestones' as TabType, label: 'Milestones', icon: Target, count: tabCounts.milestones },
-    { id: 'activity' as TabType, label: 'Activity', icon: ActivityIcon, count: tabCounts.activity },
-    { id: 'documents' as TabType, label: 'Documents', icon: FolderOpen, count: tabCounts.documents },
-    { id: 'messages' as TabType, label: 'Messages', icon: Mail, count: tabCounts.messages }
+    { id: 'activity' as TabType, label: 'Activity', icon: ActivityIcon, count: tabCounts.activity }
   ];
 
   return (
@@ -528,185 +508,16 @@ const ActivityTab = ({
   );
 };
 
-// Documents Tab Component
-const DocumentsTab = ({ documents }: { documents: Document[] }) => {
-  return (
-    <div className="space-y-6">
-      {/* Upload Section */}
-      <Card>
-        <CardBody className="p-6">
-          <div className="text-center">
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Documents</h3>
-            <p className="text-gray-600 mb-4">Share files related to this contract</p>
-            <Button variant="outline" className="flex items-center gap-2 mx-auto">
-              <Upload className="w-4 h-4" />
-              Choose Files
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Documents List */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold text-gray-900">Contract Documents</h3>
-        </CardHeader>
-        <CardBody>
-          {documents.length === 0 ? (
-            <div className="text-center py-8">
-              <FolderOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No documents uploaded yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {documents.map((doc) => {
-                const getFileIcon = (type: string) => {
-                  switch (type.toLowerCase()) {
-                    case 'pdf': return File;
-                    case 'doc':
-                    case 'docx': return FileText;
-                    case 'jpg':
-                    case 'jpeg':
-                    case 'png': return Image;
-                    case 'mp4':
-                    case 'avi': return Video;
-                    default: return File;
-                  }
-                };
-                
-                const Icon = getFileIcon(doc.type);
-                
-                return (
-                  <div key={doc.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Icon className="w-8 h-8 text-gray-400" />
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900">{doc.name}</h4>
-                        <p className="text-xs text-gray-500">
-                          {doc.size} bytes • Uploaded by {doc.uploadedBy} on {formatDate(doc.uploadedAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardBody>
-      </Card>
-    </div>
-  );
-};
-
-// Messages Tab Component - Uses real chat interface
-const MessagesTab = ({ contractId }: { contractId: string }) => {
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [startingConversation, setStartingConversation] = useState(false);
-  const toast = useToast();
-
-  useEffect(() => {
-    const fetchConversation = async () => {
-      try {
-        setLoading(true);
-        // Fetch conversations for this contract
-        const response = await conversationsApi.getConversations({ contractId });
-        
-        if (response.success && response.data.conversations.length > 0) {
-          // Use the first conversation for this contract
-          setConversationId(response.data.conversations[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch conversation:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (contractId) {
-      fetchConversation();
-    }
-  }, [contractId]);
-
-  const handleStartConversation = async () => {
-    try {
-      setStartingConversation(true);
-      // Create initial message to start conversation
-      const response = await messagesAPI.messages.createMessage({
-        contractId,
-        content: "Hi! I'd like to discuss this project with you.",
-      });
-
-      if (response.success) {
-        toast.success('Conversation started successfully!');
-        // Refresh conversations to get the new conversation ID
-        const conversationsResponse = await conversationsApi.getConversations({ contractId });
-        if (conversationsResponse.success && conversationsResponse.data.conversations.length > 0) {
-          setConversationId(conversationsResponse.data.conversations[0].id);
-        }
-      } else {
-        toast.error('Failed to start conversation. Please try again.');
-      }
-    } catch (error: any) {
-      console.error('Failed to start conversation:', error);
-      toast.error(error.message || 'Failed to start conversation. Please try again.');
-    } finally {
-      setStartingConversation(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
-  if (!conversationId) {
-    return (
-      <Card>
-        <CardBody className="p-12">
-          <div className="text-center">
-            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Start a conversation</h3>
-            <p className="text-gray-600 mb-6">
-              Communicate with the freelancer about this project. Start a conversation to discuss details, milestones, or any questions.
-            </p>
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleStartConversation}
-              disabled={startingConversation}
-              className="flex items-center gap-2 mx-auto"
-            >
-              {startingConversation ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <MessageSquare className="w-5 h-5" />
-              )}
-              {startingConversation ? 'Starting Conversation...' : 'Start Conversation'}
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="h-[600px] bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <ChatInterface conversationId={conversationId} contractId={contractId} />
-    </div>
-  );
-};
 
 // Milestones Tab Component
 const MilestonesTab = ({ contract }: { contract: ContractWithDetails }) => {
+  const router = useRouter();
   const canCreateMilestone = contract.status === 'pending';
+  
+  const handleViewMilestones = () => {
+    const contractId = typeof contract._id === 'string' ? contract._id : String(contract._id);
+    router.push(`/client/contracts/${contractId}/milestones`);
+  };
   
   return (
     <div className="space-y-6">
@@ -745,7 +556,7 @@ const MilestonesTab = ({ contract }: { contract: ContractWithDetails }) => {
                 const milestoneAmount = contract.totalAmount / contract.milestoneCount;
                 
                 return (
-                  <div key={i} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div key={i} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         isCompleted ? 'bg-green-100' : 'bg-gray-100'
@@ -767,11 +578,15 @@ const MilestonesTab = ({ contract }: { contract: ContractWithDetails }) => {
                       <Badge variant={isCompleted ? 'success' : 'secondary'}>
                         {isCompleted ? 'Completed' : 'Pending'}
                       </Badge>
-                      {!isCompleted && (
-                        <Button variant="outline" size="sm">
-                          Release Payment
-                        </Button>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleViewMilestones}
+                        className="flex items-center gap-1"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </Button>
                     </div>
                   </div>
                 );
@@ -805,13 +620,12 @@ export default function ClientContractDetailPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab') as TabType;
-      if (tabParam && ['overview', 'milestones', 'activity', 'documents', 'messages'].includes(tabParam)) {
+      if (tabParam && ['overview', 'milestones', 'activity'].includes(tabParam)) {
         setActiveTab(tabParam);
       }
     }
   }, []);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [showEndContractModal, setShowEndContractModal] = useState(false);
   const [activityFilter, setActivityFilter] = useState<string>('all');
   const [showContractDetails, setShowContractDetails] = useState(false);
@@ -876,20 +690,6 @@ export default function ClientContractDetailPage() {
 
         setActivities(mockActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
 
-        // Generate mock documents
-        const mockDocuments: Document[] = [
-          {
-            id: '1',
-            name: 'Contract Agreement.pdf',
-            type: 'pdf',
-            size: 245760,
-            uploadedAt: contractData.createdAt,
-            uploadedBy: 'System',
-            url: '#'
-          }
-        ];
-        setDocuments(mockDocuments);
-
         // Debug logging for milestone data
         console.log('Contract milestone data:', {
           milestoneCount: contractData.milestoneCount,
@@ -948,9 +748,7 @@ export default function ClientContractDetailPage() {
     return {
       overview: 1,
       milestones: contract?.milestoneCount || 0,
-      activity: activities.length,
-      documents: documents.length,
-      messages: 0 // Messages are loaded dynamically in the MessagesTab
+      activity: activities.length
     };
   };
 
@@ -962,7 +760,6 @@ export default function ClientContractDetailPage() {
     if (contract.status === 'active') {
       actions.push(
         { label: 'View Milestones', icon: Target, action: () => router.push(`/client/contracts/${contractId}/milestones`) },
-        { label: 'Message Freelancer', icon: MessageSquare, action: () => setActiveTab('messages') },
         { label: 'End Contract', icon: XCircle, action: () => setShowEndContractModal(true) }
       );
     } else if (contract.status === 'pending') {
@@ -1154,10 +951,6 @@ export default function ClientContractDetailPage() {
                     <span className="hidden sm:inline">View Milestones</span>
                     <span className="sm:hidden">Milestones</span>
                   </Button>
-                  <Button variant="outline" onClick={() => setActiveTab('messages')} className="flex items-center justify-center gap-2 w-full sm:w-auto">
-                    <MessageSquare className="w-4 h-4" />
-                    Message
-                  </Button>
                   {canCancelContract && (
                     <Button 
                       variant="outline" 
@@ -1187,8 +980,6 @@ export default function ClientContractDetailPage() {
           {activeTab === 'overview' && <OverviewTab contract={contract} activities={activities} />}
           {activeTab === 'milestones' && <MilestonesTab contract={contract} />}
           {activeTab === 'activity' && <ActivityTab activities={activities} activityFilter={activityFilter} setActivityFilter={setActivityFilter} />}
-          {activeTab === 'documents' && <DocumentsTab documents={documents} />}
-          {activeTab === 'messages' && <MessagesTab contractId={contractId} />}
         </div>
 
        
