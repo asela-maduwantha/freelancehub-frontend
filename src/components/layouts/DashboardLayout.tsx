@@ -67,13 +67,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         id: 'profile',
         label: 'Profile',
         icon: <User size={20} />,
-        href: userRole === 'freelancer' ? '/freelancer/profile' : '/shared/settings/profile',
-      },
-      {
-        id: 'settings',
-        label: 'Settings',
-        icon: <Settings size={20} />,
-        href: `/${userRole}/settings`,
+        href: userRole === 'freelancer' ? '/freelancer/profile' : '/client/profile',
       }
     ];
 

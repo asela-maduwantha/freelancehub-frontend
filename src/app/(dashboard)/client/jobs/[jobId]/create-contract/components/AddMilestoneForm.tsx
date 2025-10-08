@@ -8,9 +8,11 @@ interface AddMilestoneFormProps {
   isSubmitting: boolean;
   remainingAmount?: number;
   formatCurrency?: (amount: number) => string;
+  remainingDays?: number;
+  maxAllowedDays?: number;
 }
 
-export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, formatCurrency }: AddMilestoneFormProps) {
+export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, formatCurrency, remainingDays = 0, maxAllowedDays = 0 }: AddMilestoneFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -18,6 +20,7 @@ export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, for
     amount: 0,
     durationDays: 1,
   });
+  const [durationError, setDurationError] = useState<string | null>(null);
   
   // Helper to suggest remaining amount
   const suggestRemainingAmount = () => {
@@ -27,12 +30,19 @@ export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, for
   };
 
   const handleSubmit = () => {
-    if (!formData.title.trim() || formData.amount <= 0) {
+    if (!formData.title.trim() || formData.amount <= 0 || formData.durationDays < 1) {
+      return;
+    }
+
+    // Validate duration doesn't exceed remaining days
+    if (maxAllowedDays > 0 && formData.durationDays > remainingDays) {
+      setDurationError(`This exceeds the remaining ${remainingDays} days.`);
       return;
     }
 
     onAdd({
       ...formData,
+      durationDays: formData.durationDays < 1 ? 1 : formData.durationDays,
     });
 
     // Reset form
@@ -42,6 +52,7 @@ export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, for
       amount: 0,
       durationDays: 1,
     });
+    setDurationError(null);
     setIsExpanded(false);
   };
 
@@ -52,6 +63,7 @@ export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, for
       amount: 0,
       durationDays: 1,
     });
+    setDurationError(null);
     setIsExpanded(false);
   };
 
@@ -156,8 +168,16 @@ export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, for
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary">$</span>
                 <input
                   type="number"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                  value={formData.amount === 0 ? '' : formData.amount}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setFormData({ ...formData, amount: 0 });
+                      return;
+                    }
+                    const numValue = parseFloat(value);
+                    setFormData({ ...formData, amount: isNaN(numValue) ? 0 : numValue });
+                  }}
                   className="input-default pl-7"
                   placeholder="0.00"
                   min="0"
@@ -179,14 +199,46 @@ export function AddMilestoneForm({ onAdd, isSubmitting, remainingAmount = 0, for
               </label>
               <input
                 type="number"
-                value={formData.durationDays}
-                onChange={(e) => setFormData({ ...formData, durationDays: parseInt(e.target.value) || 1 })}
-                className="input-default"
+                value={formData.durationDays === 0 ? '' : formData.durationDays}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setFormData({ ...formData, durationDays: 0 });
+                    setDurationError(null);
+                    return;
+                  }
+                  const numValue = parseInt(value);
+                  if (isNaN(numValue) || numValue < 1) {
+                    setFormData({ ...formData, durationDays: 1 });
+                    setDurationError(null);
+                    return;
+                  }
+                  setFormData({ ...formData, durationDays: numValue });
+                  
+                  // Check if adding this milestone would exceed the max allowed days
+                  if (maxAllowedDays > 0 && numValue > remainingDays) {
+                    setDurationError(`This exceeds the remaining ${remainingDays} days. Maximum allowed is ${maxAllowedDays} days total.`);
+                  } else {
+                    setDurationError(null);
+                  }
+                }}
+                onBlur={() => {
+                  // Ensure at least 1 day when user leaves the field
+                  if (formData.durationDays < 1) {
+                    setFormData({ ...formData, durationDays: 1 });
+                  }
+                }}
+                className={`input-default ${durationError ? 'border-error' : ''}`}
                 placeholder="7"
                 min="1"
                 disabled={isSubmitting}
                 required
               />
+              {remainingDays >= 0 && maxAllowedDays > 0 && (
+                <div className={`form-help ${durationError ? 'text-error' : 'text-secondary'}`}>
+                  {durationError || `${remainingDays} days remaining in contract timeline`}
+                </div>
+              )}
             </div>
           </div>
 

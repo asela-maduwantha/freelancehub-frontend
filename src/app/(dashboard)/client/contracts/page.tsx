@@ -419,15 +419,6 @@ export default function ClientContractsPage() {
               <Eye className="h-4 w-4" />
               View Details
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => handleCreateMilestone(contract)}
-              className="flex items-center gap-2"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Milestones
-            </Button>
             {paymentStatus === 'pending' && (
               <Button
                 variant="accent"

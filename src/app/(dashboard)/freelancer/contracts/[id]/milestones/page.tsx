@@ -10,6 +10,7 @@ import { Badge } from '../../../../../../components/ui/Display';
 import { milestoneApi, MilestoneResponse } from '../../../../../../lib/api/milestones';
 import { SubmitWorkModal } from '../../../../../../components/features/milestones';
 import { ArrowLeft } from 'lucide-react';
+import Breadcrumb from '../../../../../../components/common/Breadcrumb';
 
 export default function ContractMilestonesPage() {
   const params = useParams();
@@ -137,12 +138,18 @@ export default function ContractMilestonesPage() {
     return (
       <DashboardLayout userRole="freelancer">
         <div className="space-y-6">
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/freelancer' },
+              { label: 'Contracts', href: '/freelancer/contracts' },
+              { label: 'Contract Details', href: `/freelancer/contracts/${contractId}` },
+              { label: 'Milestones' }
+            ]}
+          />
+
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
-            <Button variant="secondary" onClick={handleBackToContracts}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Contracts
-            </Button>
           </div>
           <div className="flex justify-center py-12">
             <ComponentLoader size="lg" />
@@ -156,12 +163,18 @@ export default function ContractMilestonesPage() {
     return (
       <DashboardLayout userRole="freelancer">
         <div className="space-y-6">
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/freelancer' },
+              { label: 'Contracts', href: '/freelancer/contracts' },
+              { label: 'Contract Details', href: `/freelancer/contracts/${contractId}` },
+              { label: 'Milestones' }
+            ]}
+          />
+
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
-            <Button variant="secondary" onClick={handleBackToContracts}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Contracts
-            </Button>
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="text-center">
@@ -182,12 +195,18 @@ export default function ContractMilestonesPage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer' },
+            { label: 'Contracts', href: '/freelancer/contracts' },
+            { label: 'Contract Details', href: `/freelancer/contracts/${contractId}` },
+            { label: 'Milestones' }
+          ]}
+        />
+
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Contract Milestones</h1>
-          <Button variant="secondary" onClick={handleBackToContracts}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Contracts
-          </Button>
         </div>
 
         {milestones.length === 0 ? (

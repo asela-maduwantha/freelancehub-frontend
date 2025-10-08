@@ -100,3 +100,35 @@ export const getJobStatusColor = (status: string): string => {
   };
   return colors[status] || 'bg-gray-100 text-gray-600';
 };
+
+// Platform Fee Calculation
+export const PLATFORM_FEE_PERCENTAGE = 10; // 10% platform fee
+
+export interface PaymentBreakdown {
+  contractAmount: number;
+  platformFeePercentage: number;
+  platformFeeAmount: number;
+  totalClientCharge: number;
+  currency: string;
+}
+
+export const calculatePlatformFee = (contractAmount: number): number => {
+  return contractAmount * (PLATFORM_FEE_PERCENTAGE / 100);
+};
+
+export const calculateTotalClientCharge = (contractAmount: number): number => {
+  return contractAmount + calculatePlatformFee(contractAmount);
+};
+
+export const getPaymentBreakdown = (contractAmount: number, currency = 'USD'): PaymentBreakdown => {
+  const platformFeeAmount = calculatePlatformFee(contractAmount);
+  const totalClientCharge = contractAmount + platformFeeAmount;
+
+  return {
+    contractAmount,
+    platformFeePercentage: PLATFORM_FEE_PERCENTAGE,
+    platformFeeAmount,
+    totalClientCharge,
+    currency,
+  };
+};

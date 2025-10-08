@@ -144,8 +144,16 @@ export function MilestoneCard({
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary">$</span>
               <input
                 type="number"
-                value={milestone.amount}
-                onChange={(e) => handleFieldChange('amount', parseFloat(e.target.value) || 0)}
+                value={milestone.amount === 0 ? '' : milestone.amount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    handleFieldChange('amount', 0);
+                    return;
+                  }
+                  const numValue = parseFloat(value);
+                  handleFieldChange('amount', isNaN(numValue) ? 0 : numValue);
+                }}
                 className="input-default pl-7"
                 placeholder="0.00"
                 min="0"
@@ -167,10 +175,24 @@ export function MilestoneCard({
           {isEditable ? (
             <input
               type="number"
-              value={milestone.durationDays}
-              onChange={(e) => handleFieldChange('durationDays', parseInt(e.target.value) || 1)}
+              value={milestone.durationDays === 0 ? '' : milestone.durationDays}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  handleFieldChange('durationDays', 0);
+                  return;
+                }
+                const numValue = parseInt(value);
+                handleFieldChange('durationDays', isNaN(numValue) || numValue < 1 ? 1 : numValue);
+              }}
+              onBlur={() => {
+                // Ensure at least 1 day when user leaves the field
+                if (milestone.durationDays < 1) {
+                  handleFieldChange('durationDays', 1);
+                }
+              }}
               className="input-default"
-              placeholder="0"
+              placeholder="1"
               min="1"
               disabled={isSubmitting}
             />

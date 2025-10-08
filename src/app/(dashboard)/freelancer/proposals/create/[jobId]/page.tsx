@@ -121,7 +121,7 @@ export default function CreateProposalPage() {
           description: job.description,
           budget: job.budget,
           duration: job.duration ? {
-            type: job.duration.unit,
+            type: `${job.duration.value} ${job.duration.unit}`,
             estimatedHours: job.duration.unit === 'days' ? job.duration.value * 8 :
                            job.duration.unit === 'weeks' ? job.duration.value * 40 :
                            job.duration.value * 160 // months
@@ -137,13 +137,15 @@ export default function CreateProposalPage() {
 
         setJobDetails(mappedJob);
 
-        // Set the proposed rate type based on job budget type
+        // Set the proposed rate type and amount based on job budget type
         const budgetType = mappedJob.budget.type === 'range' ? 'fixed' : mappedJob.budget.type;
         setFormData(prev => ({
           ...prev,
           proposedRate: {
             ...prev.proposedRate,
-            type: budgetType
+            type: budgetType,
+            // For fixed budget, pre-fill with the required amount
+            amount: mappedJob.budget.type === 'fixed' ? mappedJob.budget.min.toString() : prev.proposedRate.amount
           }
         }));
       } catch (err) {
@@ -291,6 +293,25 @@ export default function CreateProposalPage() {
     }
     if (!formData.estimatedDuration.value.trim()) {
       return 'Estimated duration is required';
+    }
+
+    // Validate proposed budget based on job budget type
+    const proposedAmount = parseFloat(formData.proposedRate.amount);
+    if (jobDetails) {
+      if (jobDetails.budget.type === 'fixed') {
+        // For fixed budget, proposed amount must match exactly
+        if (proposedAmount !== jobDetails.budget.min) {
+          return `For fixed budget projects, you must propose exactly $${jobDetails.budget.min}`;
+        }
+      } else if (jobDetails.budget.type === 'range') {
+        // For range budget, proposed amount must be within range
+        if (proposedAmount > (jobDetails.budget.max || 0)) {
+          return `Proposed budget cannot exceed $${jobDetails.budget.max}`;
+        }
+        if (proposedAmount < jobDetails.budget.min) {
+          return `Proposed budget cannot be less than $${jobDetails.budget.min}`;
+        }
+      }
     }
 
     // Validate milestones if any exist
@@ -442,7 +463,7 @@ export default function CreateProposalPage() {
                 {jobDetails.duration && (
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-1" />
-                    {jobDetails.duration.estimatedHours}hrs
+                    {jobDetails.duration.type}
                   </div>
                 )}
               </div>
@@ -507,13 +528,26 @@ export default function CreateProposalPage() {
                 </label>
                 <Input
                   type="number"
-                  placeholder="Enter fixed price amount"
+                  placeholder={
+                    jobDetails?.budget.type === 'fixed'
+                      ? `Must be $${jobDetails.budget.min}`
+                      : jobDetails?.budget.type === 'range'
+                      ? `Between $${jobDetails.budget.min} - $${jobDetails.budget.max}`
+                      : 'Enter amount'
+                  }
                   value={formData.proposedRate.amount}
                   onChange={handleProposedRateChange('amount')}
                   required
                   className="w-full"
+                  disabled={jobDetails?.budget.type === 'fixed'}
                 />
-                <p className="text-xs text-gray-500 mt-1">Fixed price for the entire project</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {jobDetails?.budget.type === 'fixed'
+                    ? 'Fixed budget - amount cannot be changed'
+                    : jobDetails?.budget.type === 'range'
+                    ? `Your proposed budget must be between $${jobDetails.budget.min} and $${jobDetails.budget.max}`
+                    : 'Fixed price for the entire project'}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -758,24 +792,16 @@ export default function CreateProposalPage() {
 
           {/* Submit Buttons */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <Link
-                href="/freelancer/jobs"
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Cancel
-              </Link>
+            <div className="flex items-center justify-end">
               <div className="flex space-x-3">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    // Save as draft functionality (would need backend support)
-                    alert('Draft saving not implemented yet');
-                  }}
+                  onClick={() => router.back()}
                   disabled={isSubmitting}
                 >
-                  Save as Draft
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Cancel
                 </Button>
                 <Button
                   type="submit"

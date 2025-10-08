@@ -12,6 +12,8 @@ import { setPaymentProcessing, resetPaymentProcessing, clearContractCreationFlow
 import { AppDispatch } from '../../../../../store';
 import { stripePromise as globalStripePromise, getPaymentErrorMessage } from '../../../../../lib/stripe';
 import { contractService } from '../../../../../lib/api/contracts';
+import { PaymentBreakdownCard } from '../../../../../components/features/contracts/PaymentBreakdownCard';
+import { calculatePlatformFee, calculateTotalClientCharge } from '../../../../../lib/utils/formatting';
 
 export default function PaymentProcessingPage() {
   const router = useRouter();
@@ -214,26 +216,29 @@ export default function PaymentProcessingPage() {
                 </p>
 
                 {/* Contract Summary */}
-                {contractCreationFlow.contractData && (
-                  <div className="max-w-md mx-auto bg-gray-50 rounded-lg p-6 mb-6 text-left">
-                    <h3 className="font-semibold text-lg mb-4 text-gray-800">Contract Summary</h3>
-                    <div className="space-y-4">
-                      {/* Total Amount */}
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Contract Value</p>
-                            <p className="font-bold text-2xl text-primary">
-                              ${contractCreationFlow.contractData.milestones?.reduce((sum: number, m: any) => sum + (m.amount || 0), 0).toFixed(2) || '0.00'}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500 mb-1">Milestones</p>
-                            <p className="font-semibold text-lg text-gray-700">
-                              {contractCreationFlow.contractData.milestones?.length || 0}
-                            </p>
-                          </div>
-                        </div>
+                {contractCreationFlow.contractData && (() => {
+                  const contractAmount = contractCreationFlow.contractData.milestones?.reduce((sum: number, m: any) => sum + (m.amount || 0), 0) || 0;
+                  const platformFee = calculatePlatformFee(contractAmount);
+                  const totalCharge = calculateTotalClientCharge(contractAmount);
+                  
+                  return (
+                    <div className="max-w-md mx-auto mb-6">
+                      <h3 className="font-semibold text-lg mb-4 text-gray-800 text-center">Contract Summary</h3>
+                      
+                      {/* Payment Breakdown */}
+                      <PaymentBreakdownCard
+                        contractAmount={contractAmount}
+                        variant="detailed"
+                        showFreelancerNote={true}
+                        className="mb-4"
+                      />
+                      
+                      {/* Milestones Count */}
+                      <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center">
+                        <p className="text-xs text-gray-500 mb-1">Milestones</p>
+                        <p className="font-semibold text-lg text-gray-700">
+                          {contractCreationFlow.contractData.milestones?.length || 0}
+                        </p>
                       </div>
 
                       {/* Timeline */}
@@ -303,8 +308,8 @@ export default function PaymentProcessingPage() {
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 <div className="max-w-md mx-auto bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <p className="text-sm text-blue-800">

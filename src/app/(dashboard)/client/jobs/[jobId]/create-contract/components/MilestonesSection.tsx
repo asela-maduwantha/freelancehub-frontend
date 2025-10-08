@@ -18,6 +18,9 @@ interface MilestonesSectionProps {
   formatCurrency: (amount: number, currency?: string) => string;
   proposedRate: number;
   remainingAmount: number;
+  maxAllowedDays: number;
+  remainingDays: number;
+  totalDays: number;
 }
 
 export function MilestonesSection({
@@ -32,7 +35,10 @@ export function MilestonesSection({
   onToggleProposalMilestone,
   formatCurrency,
   proposedRate,
-  remainingAmount
+  remainingAmount,
+  maxAllowedDays,
+  remainingDays,
+  totalDays
 }: MilestonesSectionProps) {
   const getTotalAmount = () => {
     return milestones.reduce((sum, m) => sum + m.amount, 0);
@@ -154,6 +160,8 @@ export function MilestonesSection({
         isSubmitting={isSubmitting}
         remainingAmount={remainingAmount}
         formatCurrency={formatCurrency}
+        remainingDays={remainingDays}
+        maxAllowedDays={maxAllowedDays}
       />
 
       {/* Contract Milestones Section */}
@@ -257,6 +265,53 @@ export function MilestonesSection({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-xs font-medium">Reduce milestones by {formatCurrency(Math.abs(remainingAmount))} to match the proposed rate.</span>
+                </div>
+              )}
+              
+              {/* Duration Validation */}
+              {maxAllowedDays > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-secondary">Timeline Duration:</span>
+                    <span className={`font-semibold ${
+                      totalDays > maxAllowedDays ? 'text-error' : totalDays === maxAllowedDays ? 'text-success' : 'text-primary'
+                    }`}>
+                      {totalDays} / {maxAllowedDays} days
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        totalDays > maxAllowedDays ? 'bg-error' : totalDays === maxAllowedDays ? 'bg-success' : 'bg-primary'
+                      }`}
+                      style={{ width: `${Math.min((totalDays / maxAllowedDays) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                  {totalDays > maxAllowedDays ? (
+                    <div className="flex items-center gap-2 text-error bg-error bg-opacity-10 rounded px-3 py-2">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-xs font-medium">
+                        Total milestone duration ({totalDays} days) exceeds contract duration ({maxAllowedDays} days) by {totalDays - maxAllowedDays} days. 
+                        Please reduce durations or extend the end date.
+                      </span>
+                    </div>
+                  ) : remainingDays > 0 ? (
+                    <div className="flex items-center gap-2 text-secondary text-xs">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{remainingDays} days remaining in contract timeline</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-success bg-success bg-opacity-10 rounded px-3 py-2">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-xs font-medium">Perfect! Milestone durations match the contract timeline.</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

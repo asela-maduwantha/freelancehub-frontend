@@ -8,7 +8,6 @@ import {
   DollarSign,
   Clock,
   FileText,
-  Edit,
   X,
   Briefcase
 } from 'lucide-react';
@@ -18,7 +17,6 @@ interface EnhancedProposalCardProps {
   proposal: any; // Using any for now, should be typed properly
   index: number;
   onViewJob: (jobId: string) => void;
-  onEdit?: (proposalId: string) => void;
   onWithdraw?: (proposalId: string) => void;
 }
 
@@ -26,7 +24,6 @@ const EnhancedProposalCard: React.FC<EnhancedProposalCardProps> = ({
   proposal,
   index,
   onViewJob,
-  onEdit,
   onWithdraw
 }) => {
   const formatDate = (dateString: string) => {
@@ -216,17 +213,6 @@ const EnhancedProposalCard: React.FC<EnhancedProposalCardProps> = ({
                 <Eye className="mr-2 h-4 w-4 group-hover/btn:scale-110 transition-transform duration-200" />
                 View Job
               </Button>
-
-              {onEdit && proposal.status === 'pending' && (
-                <Button
-                  variant="outline"
-                  onClick={() => onEdit(proposal._id)}
-                  className="w-full hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200"
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
-              )}
 
               {proposal.status === 'pending' && onWithdraw && (
                 <Button

@@ -272,10 +272,6 @@ const MyProposalsPage: React.FC = () => {
                 proposal={proposal}
                 index={index}
                 onViewJob={handleViewJob}
-                onEdit={(id) => {
-                  // Handle edit - could navigate to edit page or open modal
-                  console.log('Edit proposal:', id);
-                }}
                 onWithdraw={(id) => {
                   // Handle withdraw with confirmation
                   if (window.confirm('Are you sure you want to withdraw this proposal? This action cannot be undone.')) {

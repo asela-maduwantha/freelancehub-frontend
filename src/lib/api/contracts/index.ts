@@ -34,6 +34,8 @@ export interface ContractResponse {
   completionPercentage: number;
   platformFeePercentage: number;
   platformFee: number;
+  platformFeeAmount?: number; // New field for 10% platform fee
+  totalClientCharge?: number; // New field for total amount client pays (totalAmount + platformFeeAmount)
   freelancerAmount: number;
   milestoneCount: number;
   completedMilestones: number;
@@ -46,6 +48,14 @@ export interface ContractResponse {
   paymentIntent?: any; // Stripe payment intent data
   setupIntent?: any; // Stripe setup intent for saving cards
   requiresPayment?: boolean; // Whether the contract requires payment
+  paymentBreakdown?: {
+    contractAmount: number;
+    platformFeePercentage: number;
+    platformFeeAmount: number;
+    totalClientCharge: number;
+    currency: string;
+    note: string;
+  };
   clientId: {
     _id: string;
     email: string;

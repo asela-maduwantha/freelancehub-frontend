@@ -14,6 +14,7 @@ import { ArrowLeft, MessageSquare, Loader2, XCircle } from 'lucide-react';
 import { ChatInterface } from '../../../../../components/features/messaging/ChatInterface';
 import { conversationsApi } from '../../../../../lib/api/messages';
 import { useToast } from '../../../../../components/common/Toast';
+import Breadcrumb from '../../../../../components/common/Breadcrumb';
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -173,26 +174,6 @@ export default function ContractDetailPage() {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    if (!contract) return;
-
-    try {
-      const response = await contractService.downloadContract(contract._id);
-      // Create a blob from the response and download it
-      const blob = new Blob([response], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `contract-${contract._id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err: any) {
-      alert('Failed to download PDF: ' + (err.message || 'Unknown error'));
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout userRole="freelancer">
@@ -209,11 +190,16 @@ export default function ContractDetailPage() {
     return (
       <DashboardLayout userRole="freelancer">
         <div className="space-y-6">
-          <div className="flex items-center gap-4 mb-6">
-            <Button variant="secondary" onClick={handleBackToContracts}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Contracts
-            </Button>
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/freelancer' },
+              { label: 'Contracts', href: '/freelancer/contracts' },
+              { label: 'Contract Details' }
+            ]}
+          />
+
+          <div>
             <h1 className="text-2xl font-bold text-gray-900">Contract Details</h1>
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -235,50 +221,52 @@ export default function ContractDetailPage() {
   return (
     <DashboardLayout userRole="freelancer">
       <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/freelancer' },
+            { label: 'Contracts', href: '/freelancer/contracts' },
+            { label: 'Contract Details' }
+          ]}
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="secondary" onClick={handleBackToContracts}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Contracts
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{contract.title}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-gray-600">Contract #{typeof contract._id === 'string' ? contract._id.slice(-6) : 'N/A'}</span>
-                <Badge variant={getStatusBadgeVariant(contract.status)}>
-                  {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{contract.title}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-gray-600">Contract #{typeof contract._id === 'string' ? contract._id.slice(-6) : 'N/A'}</span>
+              <Badge variant={getStatusBadgeVariant(contract.status)}>
+                {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
+              </Badge>
+              {contract.contractType && (
+                <Badge variant="secondary">
+                  {contract.contractType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </Badge>
-                {contract.contractType && (
-                  <Badge variant="secondary">
-                    {contract.contractType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </Badge>
-                )}
-              </div>
+              )}
             </div>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={handleDownloadPDF}>
-              Download PDF
-            </Button>
             <Button 
               variant={showMessages ? "primary" : "outline"} 
+              size="sm"
               onClick={() => setShowMessages(!showMessages)}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
               {showMessages ? 'Hide Messages' : 'Messages'}
             </Button>
             {!contract.isFreelancerSigned && contract.status !== 'cancelled' && (
-              <Button variant="primary" onClick={() => setShowSignModal(true)}>
+              <Button variant="primary" size="sm" onClick={() => setShowSignModal(true)}>
                 Sign Contract
               </Button>
             )}
-            <Button variant="primary" onClick={handleViewMilestones}>
+            <Button variant="primary" size="sm" onClick={handleViewMilestones}>
               View Milestones
             </Button>
             {canCancelContract && (
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => setShowCancelModal(true)}
                 className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
               >

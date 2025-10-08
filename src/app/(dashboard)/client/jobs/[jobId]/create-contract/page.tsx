@@ -163,14 +163,44 @@ function CreateContractPage() {
     return milestones.reduce((sum, m) => sum + m.amount, 0);
   };
 
+  // Get total milestone duration
+  const getTotalMilestoneDays = () => {
+    return milestones.reduce((sum, m) => sum + m.durationDays, 0);
+  };
+
+  // Get maximum allowed days based on start and end date
+  const getMaxAllowedDays = () => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
   // Get proposed rate from proposal
   const getProposedRate = () => {
     return proposal?.proposedRate?.amount || 0;
   };
 
+  // Calculate platform fee (10%)
+  const getPlatformFee = () => {
+    return getProposedRate() * 0.1;
+  };
+
+  // Calculate total client charge (contract amount + platform fee)
+  const getTotalClientCharge = () => {
+    return getProposedRate() + getPlatformFee();
+  };
+
   // Calculate remaining amount
   const getRemainingAmount = () => {
     return getProposedRate() - getTotalMilestoneAmount();
+  };
+
+  // Get remaining days
+  const getRemainingDays = () => {
+    return getMaxAllowedDays() - getTotalMilestoneDays();
   };
 
   // Validate form
@@ -190,6 +220,13 @@ function CreateContractPage() {
       if (!milestone.title.trim()) return `Milestone ${i + 1}: Title is required`;
       if (milestone.amount <= 0) return `Milestone ${i + 1}: Amount must be greater than 0`;
       if (milestone.durationDays < 1) return `Milestone ${i + 1}: Duration must be at least 1 day`;
+    }
+
+    // Validate total duration doesn't exceed contract duration
+    const totalDays = getTotalMilestoneDays();
+    const maxDays = getMaxAllowedDays();
+    if (totalDays > maxDays) {
+      return `Total milestone duration (${totalDays} days) exceeds the contract duration (${maxDays} days). Please adjust milestone durations or extend the end date.`;
     }
 
     // Validate total amount equals proposed rate
@@ -337,6 +374,9 @@ function CreateContractPage() {
             formatCurrency={formatCurrencyHelper}
             proposedRate={getProposedRate()}
             remainingAmount={getRemainingAmount()}
+            maxAllowedDays={getMaxAllowedDays()}
+            remainingDays={getRemainingDays()}
+            totalDays={getTotalMilestoneDays()}
           />
 
           {/* Contract Terms */}
@@ -346,7 +386,7 @@ function CreateContractPage() {
             isSubmitting={false}
           />
 
-          {/* Payment Info Banner */}
+          {/* Payment Info Banner with Fee Breakdown */}
           <Card variant="default">
             <CardBody>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -369,13 +409,48 @@ function CreateContractPage() {
                     </div>
                   </div>
                   <div className="flex-grow">
-                    <h3 className="text-lg font-semibold text-primary mb-2">
-                      Secure Payment Required
+                    <h3 className="text-lg font-semibold text-primary mb-3">
+                      Payment Breakdown
                     </h3>
+                    
+                    {/* Cost Breakdown */}
+                    <div className="bg-white rounded-lg p-4 mb-4 border border-blue-100">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-secondary">Contract Amount:</span>
+                          <span className="font-semibold text-gray-900">
+                            {formatCurrencyHelper(getProposedRate())}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-secondary">Platform Fee (10%):</span>
+                          <span className="font-semibold text-gray-900">
+                            +{formatCurrencyHelper(getPlatformFee())}
+                          </span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-primary text-base">Total Charge:</span>
+                            <span className="font-bold text-primary text-xl">
+                              {formatCurrencyHelper(getTotalClientCharge())}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-secondary">
+                          <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          The freelancer will receive {formatCurrencyHelper(getProposedRate())}
+                        </p>
+                      </div>
+                    </div>
+
                     <p className="text-secondary text-sm mb-4">
-                      You will be charged <span className="font-bold text-primary">{formatCurrencyHelper(getProposedRate())}</span> upfront. 
                       Funds will be securely held in escrow and released as milestones are completed and approved.
                     </p>
+                    
                     <ul className="space-y-2 text-sm text-secondary">
                       <li className="flex items-start gap-2">
                         <svg className="w-5 h-5 text-success flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
